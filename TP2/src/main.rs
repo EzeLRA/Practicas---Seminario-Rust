@@ -1,12 +1,15 @@
 //Importacion de ejercicios
 mod tp2;
 
-/*
+
 //Programa principal
 fn main() {
     //Inserte codigo
+    println!("Programa principal");
+    let res = tp2::ej5::duplicar_valores_arr([2.0,4.0]) ;
+    println!("{:?}",res);
 }
-*/
+
 
 /*
     Ejercicio 1
@@ -67,4 +70,28 @@ fn test_sumatoria_vector(){
         if num%2 == 0 {res2 += num}
     }
     assert_eq!((res1==res2),true);
+}
+
+/*
+    Ejercicio 4
+*/
+#[test]
+fn test_cantidad_impares(){
+    let arr : [i32;5] = [3,5,7,11,13];
+    let res : u32 = tp2::ej4::cantidad_impares(&arr);
+
+    assert_eq!((res == arr.len() as u32 ),true);
+}
+
+/*
+    EJercicio 5
+*/
+#[test]
+fn test_duplicar_elementos_array(){
+    let arr1 : [f32;3] = [2.0,4.0,8.0];
+    let mut arr2 = tp2::ej5::duplicar_valores_arr(arr1);
+    for i in 0..arr2.len(){
+        arr2[i] = arr2[i] / 2.0;
+    }
+    assert_eq!((arr1 == arr2),true);
 }
