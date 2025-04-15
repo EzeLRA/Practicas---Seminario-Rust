@@ -6,8 +6,8 @@ mod tp2;
 fn main() {
     //Inserte codigo
     println!("Programa principal");
-    let res = tp2::ej5::duplicar_valores_arr([2.0,4.0]) ;
-    println!("{:?}",res);
+    let arr = ["asd","fsdsdds","sadfg"];
+    tp2::ej6::longitud_de_cadenas(arr);
 }
 
 
@@ -94,4 +94,13 @@ fn test_duplicar_elementos_array(){
         arr2[i] = arr2[i] / 2.0;
     }
     assert_eq!((arr1 == arr2),true);
+}
+
+/*
+    Ejercicio 6
+*/
+#[test]
+fn test_longitud_cadenas(){
+    let arr = tp2::ej6::longitud_de_cadenas(["asdf"]);
+    assert_eq!(arr[0],4);
 }
