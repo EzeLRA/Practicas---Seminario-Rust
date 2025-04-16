@@ -104,3 +104,12 @@ fn test_longitud_cadenas(){
     let arr = tp2::ej6::longitud_de_cadenas(["asdf"]);
     assert_eq!(arr[0],4);
 }
+
+/*
+    Ejecicio 7
+*/
+#[test]
+fn test_numeros_mayores(){
+    let cant = tp2::ej7::cantidad_de_mayores([12,43,54,76], 20);
+    assert_eq!(cant,3);
+}
