@@ -113,3 +113,30 @@ fn test_numeros_mayores(){
     let cant = tp2::ej7::cantidad_de_mayores([12,43,54,76], 20);
     assert_eq!(cant,3);
 }
+
+/*
+    Ejercicio 8
+ */
+#[test]
+fn test_suma_arrays(){
+    let arr = tp2::ej8::sumar_arreglos([10.0,43.5,23.5], [2.0,54.5,5.2]);
+    assert_eq!(arr[0],12.0);
+}
+
+/*
+    Ejercicio 9
+*/
+#[test]
+fn test_rangos(){
+    let cant = tp2::ej9::cantidad_en_rango([-2,3,10,25], 0, 10);
+    assert_eq!(cant,2);
+}
+
+/*
+    Ejercicio 10
+ */
+#[test]
+fn test_cadenas_mayores_a(){
+    let cant = tp2::ej10::cantidad_de_cadenas_mayor_a([String::from("Alexander"),String::from("Martinez"),String::from("Fernandez")], 5);
+    assert_eq!(cant,3);
+}
