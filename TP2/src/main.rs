@@ -5,9 +5,11 @@ mod tp2;
 //Programa principal
 fn main() {
     //Inserte codigo
-    println!("Programa principal");
-    let arr = ["asd","fsdsdds","sadfg"];
-    tp2::ej6::longitud_de_cadenas(arr);
+    let mut noms : [String;3] = [String::from("Marcos"),String::from("Beto"),String::from("Tolosa")];
+    tp2::ej13::ordenar_nombres(&mut noms);
+    for n in noms {
+        println!("{ }",n);
+    }
 }
 
 
@@ -139,4 +141,44 @@ fn test_rangos(){
 fn test_cadenas_mayores_a(){
     let cant = tp2::ej10::cantidad_de_cadenas_mayor_a([String::from("Alexander"),String::from("Martinez"),String::from("Fernandez")], 5);
     assert_eq!(cant,3);
+}
+
+/*
+    Ejercicio 11
+*/
+#[test]
+fn test_multiplicar_valores(){
+    let mut arr : [i32;5] = [5,4,2,8,9];
+    tp2::ej11::multiplicar_valores(&mut arr, 5);
+    assert_eq!(arr[0],25);
+}
+
+/*
+    Ejercicio 12
+*/
+#[test]
+fn test_reemplazar_pare(){
+    let mut arr : [i32;3] = [2,4,8];
+    tp2::ej12::reemplazar_pares(&mut arr);
+    assert_eq!(arr[0] , -1);
+}
+
+/*
+    Ejercicio 13
+*/
+#[test]
+fn test_ordenar_nombres(){
+    let mut noms : [String;3] = [String::from("Marcos"),String::from("Beto"),String::from("Tolosa")];
+    tp2::ej13::ordenar_nombres(&mut noms);
+    assert_eq!(noms[0],String::from("Beto"));
+}
+
+/*
+    EJercicio 14
+*/
+#[test]
+fn test_incrementar(){
+    let mut num : f32 = 9.0;
+    tp2::ej14::incrementar(&mut num);
+    assert_eq!(num,10.0);
 }
