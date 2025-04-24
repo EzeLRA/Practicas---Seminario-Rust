@@ -66,7 +66,7 @@ fn test_numeros_primos(){
 #[test]
 fn test_sumatoria_vector(){
     let arr : [i32;5] = [2,23,4,5,6];
-    let res1 = tp2::ej3::sumar_pares(&arr);    //Se puede quitar el (&)
+    let res1 = tp2::ej3::sumar_pares(arr);
     let mut res2=0;
     for num in arr.iter(){
         if num%2 == 0 {res2 += num}
