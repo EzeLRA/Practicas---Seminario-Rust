@@ -1,1 +1,1 @@
-/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP3/target/debug/TP3: /home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP3/src/main.rs
+C:\Users\Ezequiel\Desktop\UNLP\2doAño\ UNLP\Seminario\ Rust\TP3\target\debug\TP3.exe: C:\Users\Ezequiel\Desktop\UNLP\2doAño\ UNLP\Seminario\ Rust\TP3\src\main.rs C:\Users\Ezequiel\Desktop\UNLP\2doAño\ UNLP\Seminario\ Rust\TP3\src\tp3\ej1.rs C:\Users\Ezequiel\Desktop\UNLP\2doAño\ UNLP\Seminario\ Rust\TP3\src\tp3\mod.rs

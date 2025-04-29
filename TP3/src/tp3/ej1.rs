@@ -2,22 +2,29 @@
     Estructura Persona
 */
 
-//Corregir
-
 //Atributos
 pub struct Persona{
-    nombre : String,
-    edad : u32,
-    direccion : String
+    pub nombre : String,
+    pub edad : u32,
+    pub direccion : String
 }
 
 //Metodos
-pub impl Persona{
-    pub fn new(nomIn : String , edadIn : u32 , dirIn : String)->Persona{
+impl Persona{
+    pub fn new(nom_in : String , edad_in : u32 , dir_in : String)->Persona{
         return Persona{
-            nombre : nomIn,
-            edad : edadIn,
-            direccion : dirIn
+            nombre : nom_in,
+            edad : edad_in,
+            direccion : dir_in
         };
+    }
+    pub fn to_string(&self)->String{
+        return format!("{};{};{}", self.nombre, self.edad, self.direccion);
+    }
+    pub fn obtener_edad(&self)-> u32{
+        return self.edad;
+    }
+    pub fn actualizar_direccion(&mut self , dir_nuevo : String){
+        self.direccion = dir_nuevo;
     }
 }
