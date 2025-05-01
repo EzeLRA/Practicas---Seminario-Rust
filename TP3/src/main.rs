@@ -1,9 +1,11 @@
 mod tp3;
 use tp3::ej1::Persona;
 use tp3::ej2::Rectangulo;
+use tp3::ej3::Fecha;
 
 fn main() {
-    //Ingresar codigo
+    let f = Fecha::new(25, 5, 2003);
+    println!("{}",f.es_bisiesto());
 }
 
 #[cfg(test)]
