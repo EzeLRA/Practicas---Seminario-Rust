@@ -56,26 +56,38 @@ impl Fecha{
     
     }
 
-    //Mejorar codigo y probarlo
+    //Auxiliar para avanzar de mes y anio
+    fn avanzar_mes(&mut self) {
+        if self.mes == 12 {
+            self.mes = 1;
+            self.anio += 1;
+        } else {
+            self.mes += 1;
+        }
+        self.dia = 1;
+    }
 
     //Se considera que la fecha es valida
     pub fn sumar_dias(&mut self,dias:u32){
-        let mut cant = 0;
-        let mut max : u8 = self.ultimo_dia();
-        while(cant < dias){
-            while((cant < dias)&&(self.dia <= max)){
-                self.dia += 1;
-                cant += 1;
-            }
-            if(cant < dias){
-                if(self.mes == 12){
-                    self.mes = 1;
-                    self.anio += 1;
-                }else{
-                    self.mes += 1;
-                }
-                self.dia = 1;
-                max = self.ultimo_dia();
+        //Se guarda la cantidad de dias a sumar para operar en el algoritmo
+        let mut dias_sumar = dias;
+        
+        //Bucle principal para el calculo
+        while dias_sumar > 0 {
+            //Obtiene el ultimo dia del mes (Cantidad total de dias que le corresponde)
+            let dias_mes = self.ultimo_dia();
+            //Calcula el resto de dias que debera actualizar en "dias_sumar" para avanzar en mes y anio hasta llegar al mes con la cantidad minima a sumar de dias correspondiente
+            let dias_restantes = dias_mes - self.dia + 1;
+            
+            //Avanza en los meses y anios(si fuera necesario) hasta llegar al mes y sumar la cantidad minima de dias
+            if dias_sumar >= dias_restantes as u32 {
+                dias_sumar -= dias_restantes as u32;
+                self.avanzar_mes();
+            } else {
+                //Suma la cantidad correspondiente al mes
+                self.dia += dias_sumar as u8;
+                //Fin de ejecucion
+                dias_sumar = 0;
             }
         }
     }

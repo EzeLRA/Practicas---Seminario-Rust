@@ -4,8 +4,11 @@ use tp3::ej2::Rectangulo;
 use tp3::ej3::Fecha;
 
 fn main() {
-    let f = Fecha::new(25, 5, 2003);
-    println!("{}",f.es_bisiesto());
+    //Probar en testing
+    let mut f = Fecha::new(25, 5, 2003);
+    println!("{} / {} / {}", f.dia , f.mes , f.anio);
+    f.sumar_dias(50);
+    println!("{} / {} / {}", f.dia , f.mes , f.anio);
 }
 
 #[cfg(test)]
@@ -105,4 +108,15 @@ mod testing_rectangulo{
         assert_eq!(r.es_cuadrado(), true);
     }
 
+}
+
+#[cfg(test)]
+mod testing_fecha{
+    use super::Fecha;
+
+    #[test]
+    fn creacion_fecha(){
+        let f = Fecha::new(1, 1, 2025);
+        assert_eq!(f,Fecha::new(1, 1, 2025));
+    }
 }
