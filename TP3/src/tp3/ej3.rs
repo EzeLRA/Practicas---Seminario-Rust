@@ -59,10 +59,7 @@ impl Fecha{
     }
 
     //Se considera que la fecha es valida
-    pub fn sumar_dias(&mut self,dias:u32){
-        //Se guarda la cantidad de dias a sumar para operar en el algoritmo
-        let mut dias_sumar = dias;
-        
+    pub fn sumar_dias(&mut self,mut dias_sumar:u32){
         //Bucle principal para el calculo
         while dias_sumar > 0 {
             //Obtiene el ultimo dia del mes (Cantidad total de dias que le corresponde)
@@ -81,6 +78,44 @@ impl Fecha{
                 dias_sumar = 0;
             }
         }
+
+    }
+
+    //Auxiliar para retroceder de mes y anio
+    fn retroceder_mes(&mut self){
+        if self.mes == 1{
+            self.mes = 12;
+            self.anio -= 1;
+        } else {
+            self.mes -= 1;
+        }
+        self.dia = self.ultimo_dia();
+    }
+
+    //Se considera que la fecha es valida
+    //Y que no se llegara a una fecha negativa(anio negativo)
+    pub fn restar_dias(&mut self, mut dias_restar:u32){
+        //Bucle principal para el calculo
+        while dias_restar > 0 {
+            
+            //Retrocede en los meses y anios(si fuera necesario) hasta llegar al mes y restar la cantidad minima de dias
+            if dias_restar >= self.dia as u32 {
+                dias_restar -= self.dia as u32;
+                self.retroceder_mes();
+            } else {
+                //Resta la cantidad correspondiente al mes
+                self.dia -= dias_restar as u8;
+                //Fin de ejecucion
+                dias_restar = 0;
+            }
+        }
+    }
+
+    pub fn es_mayor(&self , f:&Fecha)->bool{
+        //return (self.anio >= f.anio)&&(self.mes >= f.mes)&&(self.dia > f.dia);
+        return if(self.anio > f.anio){true}else 
+        if((self.anio == f.anio) && (self.mes > f.mes)){true}else 
+        if((self.mes == f.mes) && (self.dia > f.dia)){true}else{false};
     }
 
 }

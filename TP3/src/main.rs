@@ -4,14 +4,9 @@ use tp3::ej2::Rectangulo;
 use tp3::ej3::Fecha;
 
 fn main() {
-    /* 
-    let mut f = Fecha::new(25, 5, 2003);
-    println!("{} / {} / {}", f.dia , f.mes , f.anio);
-    f.sumar_dias(50);
-    println!("{} / {} / {}", f.dia , f.mes , f.anio);
-    */
-    let f = Fecha::new(29, 2, 2003);
-    println!("{}", f.es_fecha_valida());
+    let f = Fecha::new(25,2,2004);
+    let f2 = Fecha::new(1, 1, 2003);
+    print!("{}",f.es_mayor(&f2));
 }
 
 #[cfg(test)]
@@ -138,4 +133,32 @@ mod testing_fecha{
         f = Fecha::new(1, 1, 2025);
         assert_eq!(f.es_bisiesto(),false);
     }
+
+    #[test]
+    fn adicion_fecha(){
+        let mut f = Fecha::new(1, 1, 2028);
+        f.sumar_dias(30);
+        assert_eq!(f,Fecha::new(31, 1, 2028));
+        f.sumar_dias(1);
+        assert_eq!(f,Fecha::new(1, 2, 2028));
+        f.sumar_dias(29);
+        assert_eq!(f,Fecha::new(1,3,2028));
+    }
+
+    #[test]
+    fn sustraccion_fecha(){
+        let mut f = Fecha::new(10, 4, 2028);
+        f.restar_dias(9);
+        assert_eq!(f,Fecha::new(1, 4, 2028));
+        f.restar_dias(31);
+        assert_eq!(f,Fecha::new(1,3,2028));
+        f.restar_dias(1);
+        assert_eq!(f,Fecha::new(29, 2, 2028));
+    }
+
+    #[test]
+    fn comparacion_fechas(){
+
+    }
+
 }
