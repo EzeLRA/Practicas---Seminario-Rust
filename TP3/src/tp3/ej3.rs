@@ -20,23 +20,14 @@ impl Fecha{
     }
     pub fn es_fecha_valida(&self)->bool{
         
-        if((self.mes > 0) && (self.mes <= 12) && (self.anio > 0)){
-            if(self.dia > 0){
-                if(self.es_bisiesto()){
-                    if((self.dia <= 29)&&(self.mes == 2)){
-                        return true;
-                    }
-                }else{
-                    if((self.dia <= 28)&&(self.mes == 2)){
-                        return true;
-                    }
-                }
-                if((self.mes == 9)||(self.mes == 4)||(self.mes == 6)||(self.mes == 11)){
-                    return (self.dia <= 30);
-                }else{
-                    return (self.dia <= 31);
-                }
+        if((self.mes > 0) && (self.mes <= 12) && (self.anio > 0) && (self.dia > 0)){
+        
+            match self.mes{
+                2 => if(self.es_bisiesto()){ return self.dia <= 29 }else{ return self.dia <= 28},
+                9|4|6|11 => return self.dia <= 30,
+                _ => return self.dia <= 31
             }
+            
         }
 
         return false;

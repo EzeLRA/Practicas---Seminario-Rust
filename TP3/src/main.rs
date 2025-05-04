@@ -4,11 +4,14 @@ use tp3::ej2::Rectangulo;
 use tp3::ej3::Fecha;
 
 fn main() {
-    //Probar en testing
+    /* 
     let mut f = Fecha::new(25, 5, 2003);
     println!("{} / {} / {}", f.dia , f.mes , f.anio);
     f.sumar_dias(50);
     println!("{} / {} / {}", f.dia , f.mes , f.anio);
+    */
+    let f = Fecha::new(29, 2, 2003);
+    println!("{}", f.es_fecha_valida());
 }
 
 #[cfg(test)]
@@ -118,5 +121,21 @@ mod testing_fecha{
     fn creacion_fecha(){
         let f = Fecha::new(1, 1, 2025);
         assert_eq!(f,Fecha::new(1, 1, 2025));
+    }
+
+    #[test]
+    fn validacion_de_fecha(){
+        let mut f = Fecha::new(1, 1, 2025);
+        assert_eq!(f.es_fecha_valida(),true);
+        f = Fecha::new(31, 2, 2004);
+        assert_eq!(f.es_fecha_valida(),false);
+    }
+
+    #[test]
+    fn validar_bisiesto(){
+        let mut f = Fecha::new(1, 1, 2028);
+        assert_eq!(f.es_bisiesto(),true);
+        f = Fecha::new(1, 1, 2025);
+        assert_eq!(f.es_bisiesto(),false);
     }
 }
