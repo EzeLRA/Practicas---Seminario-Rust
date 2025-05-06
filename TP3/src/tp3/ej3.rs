@@ -112,7 +112,6 @@ impl Fecha{
     }
 
     pub fn es_mayor(&self , f:&Fecha)->bool{
-        //return (self.anio >= f.anio)&&(self.mes >= f.mes)&&(self.dia > f.dia);
         return if(self.anio > f.anio){true}else 
         if((self.anio == f.anio) && (self.mes > f.mes)){true}else 
         if((self.mes == f.mes) && (self.dia > f.dia)){true}else{false};

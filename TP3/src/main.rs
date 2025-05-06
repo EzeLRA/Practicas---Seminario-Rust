@@ -2,12 +2,17 @@ mod tp3;
 use tp3::ej1::Persona;
 use tp3::ej2::Rectangulo;
 use tp3::ej3::Fecha;
+use crate::tp3::ej4::Triangulo;
 
 fn main() {
-    let f = Fecha::new(25,2,2004);
-    let f2 = Fecha::new(1, 1, 2003);
-    print!("{}",f.es_mayor(&f2));
+    let t = Triangulo::new(5.0, 6.0, 5.0);
+    //print!("{}",t.calcular_perimetro());
+    print!("{}",t.calcular_area());
 }
+
+/*
+    Test de Persona     -      Ejercicio 1
+*/
 
 #[cfg(test)]
 mod testing_persona{
@@ -66,6 +71,10 @@ mod testing_persona{
     }
 }
 
+/*
+    Test de Rectangulo  -   Ejercicio 2
+*/
+
 #[cfg(test)]
 mod testing_rectangulo{
     use super::Rectangulo;
@@ -107,6 +116,10 @@ mod testing_rectangulo{
     }
 
 }
+
+/*
+    Test de Fecha   -   Ejercicio 3
+*/
 
 #[cfg(test)]
 mod testing_fecha{
@@ -158,7 +171,43 @@ mod testing_fecha{
 
     #[test]
     fn comparacion_fechas(){
+        let f1 = Fecha::new(25, 5, 2000);
+        let f2 = Fecha::new(25, 2, 2004);
+        assert_eq!(f1.es_mayor(&f2),false);
+        assert_eq!(f2.es_mayor(&f1),true);
+    }
 
+}
+
+/*
+    Test de Triangulo   -   Ejercicio 4
+*/
+
+#[cfg(test)]
+mod testing_triangulo{
+    use crate::tp3::ej4::{TipoTriangulo, Triangulo};
+    
+    #[test]
+    fn creacion_triangulo(){
+        let t = Triangulo::new(5.2, 5.2, 5.2);
+        assert_eq!(t,Triangulo::new(5.2, 5.2, 5.2));
+    }
+
+    #[test]
+    fn clasificar_tipos(){
+        let mut t = Triangulo::new(5.2, 5.2, 5.2);
+        assert_eq!(t.determinar_tipo(), TipoTriangulo::Equilatero);
+        t = Triangulo::new(5.2, 5.2, 8.0);
+        assert_eq!(t.determinar_tipo(), TipoTriangulo::Isoceles);
+        t = Triangulo::new(5.2, 3.2, 8.0);
+        assert_eq!(t.determinar_tipo(), TipoTriangulo::Escaleno);
+    }
+
+    #[test]
+    fn resultado_calculo(){
+        let t = Triangulo::new(5.0, 6.0, 5.0);
+        assert_eq!(t.calcular_perimetro(),16.0);
+        assert_eq!(t.calcular_area(),12.0);
     }
 
 }
