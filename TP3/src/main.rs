@@ -3,11 +3,19 @@ use tp3::ej1::Persona;
 use tp3::ej2::Rectangulo;
 use tp3::ej3::Fecha;
 use crate::tp3::ej4::Triangulo;
+use tp3::ej5::Producto;
+use tp3::ej6::*;
 
 fn main() {
-    let t = Triangulo::new(5.0, 6.0, 5.0);
-    //print!("{}",t.calcular_perimetro());
-    print!("{}",t.calcular_area());
+
+    //Implementar
+
+    let mut est = Estudiante::new(String::from("Jose"), 1234);
+    est.agregar_examen(Examen::new(String::from("Mat"), 10));
+    let mut examenes : Vec<Examen> = Vec::new();
+    //examenes.push(Examen::new("asd".to_string(), 4));
+    let ex1 = examenes.first().cloned();
+    println!("{:?}",ex1);
 }
 
 /*
@@ -208,6 +216,38 @@ mod testing_triangulo{
         let t = Triangulo::new(5.0, 6.0, 5.0);
         assert_eq!(t.calcular_perimetro(),16.0);
         assert_eq!(t.calcular_area(),12.0);
+    }
+
+}
+
+/*
+    Test de Producto    -   Ejercicio 5
+*/
+
+#[cfg(test)]
+mod testing_producto{
+    use super::Producto;
+
+    #[test]
+    fn crear_producto(){
+        let p = Producto::new(String::from("Serenito"), 8500.0, 12452);
+        assert_eq!(p,Producto::new(String::from("Serenito"), 8500.0, 12452));
+    }
+
+    #[test]
+    fn calcular_precios(){
+        let p = Producto::new(String::from("Baggio"), 5000.0, 5432);
+        assert_eq!(p.calcular_impuestos(10.0),5500.0);
+        assert_eq!(p.calcular_impuestos(0.0),5000.0);
+        assert_eq!(p.calcular_descuento(10.0),4500.0);
+        assert_eq!(p.calcular_descuento(0.0),5000.0);
+    }
+
+    #[test]
+    fn estimar_precio(){
+        let p = Producto::new(String::from("Milka"), 1000.0, 8932);
+        assert_eq!(p.calcular_precio_total(10.0, 10.0),1000.0);
+        assert_eq!(p.calcular_precio_total(0.0, 0.0),1000.0);
     }
 
 }
