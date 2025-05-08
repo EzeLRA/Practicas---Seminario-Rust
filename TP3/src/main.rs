@@ -11,11 +11,10 @@ fn main() {
     //Implementar
 
     let mut est = Estudiante::new(String::from("Jose"), 1234);
-    est.agregar_examen(Examen::new(String::from("Mat"), 10));
-    let mut examenes : Vec<Examen> = Vec::new();
-    //examenes.push(Examen::new("asd".to_string(), 4));
-    let ex1 = examenes.first().cloned();
-    println!("{:?}",ex1);
+    est.agregar_examen(Examen::new(String::from("Mat"), 10.0));
+    //est.agregar_examen(Examen::new(String::from("Mat"), 8.0));
+    //est.agregar_examen(Examen::new(String::from("Mat"), 7.5));
+    
 }
 
 /*
@@ -248,6 +247,52 @@ mod testing_producto{
         let p = Producto::new(String::from("Milka"), 1000.0, 8932);
         assert_eq!(p.calcular_precio_total(10.0, 10.0),1000.0);
         assert_eq!(p.calcular_precio_total(0.0, 0.0),1000.0);
+    }
+
+}
+
+#[cfg(test)]
+mod testing_estudiante{
+    use super::Estudiante;
+    use super::Examen;
+
+    #[test]
+    fn creacion_estudiante(){
+        let est = Estudiante::new("Carlos".to_string(), 1);
+        assert_eq!(est,Estudiante::new("Carlos".to_string(), 1));
+    }
+
+    #[test]
+    fn calculo_promedios(){
+        let mut est = Estudiante::new("Damian".to_string(), 621);
+        assert_eq!(est.obtener_promedio(),0.0);
+        est.agregar_examen(Examen::new(String::from("Mat"), 8.0));
+        assert_eq!(est.obtener_promedio(),8.0);
+        est.agregar_examen(Examen::new(String::from("Cadp"), 4.5));
+        est.agregar_examen(Examen::new(String::from("Oc"), 7.2));
+        est.agregar_examen(Examen::new(String::from("Mat2"), 10.0));
+        assert_eq!(est.obtener_promedio(),7.425);
+    }
+
+    #[test]
+    fn obtener_nota_max(){
+        let mut est = Estudiante::new("Julio".to_string(), 231);
+        assert_eq!(est.obtener_calificacion_mas_alta(),-1.0);
+        est.agregar_examen(Examen::new(String::from("Mat"), 8.0));
+        est.agregar_examen(Examen::new(String::from("Cadp"), 4.5));
+        est.agregar_examen(Examen::new(String::from("Mat3"), 7.2));
+        est.agregar_examen(Examen::new(String::from("Mat2"), 10.0));
+        assert_eq!(est.obtener_calificacion_mas_alta(),10.0);
+    }
+
+    #[test]
+    fn obtener_nota_min(){
+        let mut est = Estudiante::new("Tobias".to_string(), 321);
+        assert_eq!(est.obtener_calificacion_mas_baja(),11.0);
+        est.agregar_examen(Examen::new(String::from("Mat"), 2.0));
+        est.agregar_examen(Examen::new(String::from("Mat3"), 7.2));
+        est.agregar_examen(Examen::new(String::from("Mat2"), 8.0));
+        assert_eq!(est.obtener_calificacion_mas_baja(),2.0);
     }
 
 }

@@ -6,7 +6,7 @@
 #[derive(PartialEq, Debug,Clone)]
 pub struct Examen{
     nombre : String,
-    nota : u8
+    nota : f32
 }
 
 #[derive(PartialEq, Debug)]
@@ -18,8 +18,12 @@ pub struct Estudiante{
 
 //Metodos
 impl Examen{
-    pub fn new(nom:String,n:u8)->Examen{
+    pub fn new(nom:String,n:f32)->Examen{
         return Examen{nombre:nom,nota:n};
+    }
+    //Getter
+    pub fn obtener_nota(&self)->f32{
+        return self.nota;
     }
 }
 
@@ -34,9 +38,45 @@ impl Estudiante{
     pub fn agregar_examen(&mut self,e:Examen){
         self.examenes.push(e);
     }
-    //Revisar y tomar precauciones
-    /* 
-    pub fn primer_examen(&self) -> Option<Examen> {
-        return self.examenes.first().cloned();
-    }*/
+    //Retorna el ultimo examen y lo retorna
+    pub fn conseguir_examen(&mut self) -> Option<Examen> {
+        return self.examenes.pop();
+    }
+
+    pub fn obtener_promedio(&self)->f32{
+        let mut prom : f32 = 0.0;
+        if(!self.examenes.is_empty()){
+            for exam in &self.examenes{
+                prom += exam.obtener_nota();
+            }
+            prom = prom/self.examenes.len() as f32 ;
+            
+        }
+        return prom
+    }
+
+    pub fn obtener_calificacion_mas_alta(&self)->f32{
+        let mut nota : f32 = -1.0;
+        if(self.examenes.len()>0){
+            for exam in &self.examenes{
+                if(exam.obtener_nota()>nota){
+                    nota = exam.obtener_nota();
+                }
+            }
+        }
+        return nota;
+    }
+
+    pub fn obtener_calificacion_mas_baja(&self)->f32{
+        let mut nota : f32 = 11.0;
+        if(self.examenes.len()>0){
+            for exam in &self.examenes{
+                if(exam.obtener_nota()<nota){
+                    nota = exam.obtener_nota();
+                }
+            }
+        }
+        return nota;
+    }
+
 }
