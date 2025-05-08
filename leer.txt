@@ -1,0 +1,5 @@
+Revisar denuevo el TP2 y hacer correcciones
+Probar funcionalidad de TP3
+
++Se reordeno la distribucion de los archivos en TP2 y TP3 . Considerar revisar la funcionalidad e integridad de ambas carpetas.
++Hacer Correciones de algoritmo en TP2 

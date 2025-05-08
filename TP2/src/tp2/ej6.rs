@@ -6,3 +6,13 @@ pub fn longitud_de_cadenas<const N:usize>(arr:[&str;N]) -> [u32 ; N]{
     }
     return arr_nuevo;
 }
+
+#[cfg(test)]
+mod testing_ejercicio6{
+    use crate::tp2::ej6;
+    #[test]
+    fn test_longitud_cadenas(){
+        let arr = ej6::longitud_de_cadenas(["asdf"]);
+        assert_eq!(arr[0],4);
+    }
+}

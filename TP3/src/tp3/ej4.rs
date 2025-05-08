@@ -51,3 +51,33 @@ impl Triangulo{
     }
 
 }
+
+
+#[cfg(test)]
+mod testing_triangulo{
+    use crate::tp3::ej4::{TipoTriangulo, Triangulo};
+    
+    #[test]
+    fn creacion_triangulo(){
+        let t = Triangulo::new(5.2, 5.2, 5.2);
+        assert_eq!(t,Triangulo::new(5.2, 5.2, 5.2));
+    }
+
+    #[test]
+    fn clasificar_tipos(){
+        let mut t = Triangulo::new(5.2, 5.2, 5.2);
+        assert_eq!(t.determinar_tipo(), TipoTriangulo::Equilatero);
+        t = Triangulo::new(5.2, 5.2, 8.0);
+        assert_eq!(t.determinar_tipo(), TipoTriangulo::Isoceles);
+        t = Triangulo::new(5.2, 3.2, 8.0);
+        assert_eq!(t.determinar_tipo(), TipoTriangulo::Escaleno);
+    }
+
+    #[test]
+    fn resultado_calculo(){
+        let t = Triangulo::new(5.0, 6.0, 5.0);
+        assert_eq!(t.calcular_perimetro(),16.0);
+        assert_eq!(t.calcular_area(),12.0);
+    }
+
+}

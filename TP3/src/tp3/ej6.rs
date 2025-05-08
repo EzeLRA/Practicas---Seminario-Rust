@@ -3,7 +3,7 @@
 */
 
 //Atributos
-#[derive(PartialEq, Debug,Clone)]
+#[derive(PartialEq, Debug)]
 pub struct Examen{
     nombre : String,
     nota : f32
@@ -43,40 +43,93 @@ impl Estudiante{
         return self.examenes.pop();
     }
 
-    pub fn obtener_promedio(&self)->f32{
-        let mut prom : f32 = 0.0;
+    //Se maneja Option<f32> para el caso de que el alumno no haya rendido un examen
+    pub fn obtener_promedio(&self)->Option<f32>{
         if(!self.examenes.is_empty()){
+            let mut prom : f32 = 0.0;
             for exam in &self.examenes{
                 prom += exam.obtener_nota();
             }
             prom = prom/self.examenes.len() as f32 ;
-            
+            return Some(prom);
+        }else{
+            return None;
         }
-        return prom
     }
 
-    pub fn obtener_calificacion_mas_alta(&self)->f32{
-        let mut nota : f32 = -1.0;
-        if(self.examenes.len()>0){
+    pub fn obtener_calificacion_mas_alta(&self)->Option<f32>{
+        if(!self.examenes.is_empty()){
+            let mut nota : f32 = -1.0;
             for exam in &self.examenes{
                 if(exam.obtener_nota()>nota){
                     nota = exam.obtener_nota();
                 }
             }
+            return Some(nota);
+        }else{
+            return None;
         }
-        return nota;
     }
 
-    pub fn obtener_calificacion_mas_baja(&self)->f32{
-        let mut nota : f32 = 11.0;
-        if(self.examenes.len()>0){
+    pub fn obtener_calificacion_mas_baja(&self)->Option<f32>{
+        if(!self.examenes.is_empty()){
+            let mut nota : f32 = 11.0;
             for exam in &self.examenes{
                 if(exam.obtener_nota()<nota){
                     nota = exam.obtener_nota();
                 }
             }
+            return Some(nota);
+        }else{
+            return None;
         }
-        return nota;
+    }
+
+}
+
+
+#[cfg(test)]
+mod testing_estudiante{
+    use super::Estudiante;
+    use super::Examen;
+
+    #[test]
+    fn creacion_estudiante(){
+        let est = Estudiante::new("Carlos".to_string(), 1);
+        assert_eq!(est,Estudiante::new("Carlos".to_string(), 1));
+    }
+
+    #[test]
+    fn calculo_promedios(){
+        let mut est = Estudiante::new("Damian".to_string(), 621);
+        assert_eq!(est.obtener_promedio(),None);
+        est.agregar_examen(Examen::new(String::from("Mat"), 8.0));
+        assert_eq!(est.obtener_promedio(),Some(8.0));
+        est.agregar_examen(Examen::new(String::from("Cadp"), 4.5));
+        est.agregar_examen(Examen::new(String::from("Oc"), 7.2));
+        est.agregar_examen(Examen::new(String::from("Mat2"), 10.0));
+        assert_eq!(est.obtener_promedio(),Some(7.425));
+    }
+
+    #[test]
+    fn obtener_nota_max(){
+        let mut est = Estudiante::new("Julio".to_string(), 231);
+        assert_eq!(est.obtener_calificacion_mas_alta(),None);
+        est.agregar_examen(Examen::new(String::from("Mat"), 8.0));
+        est.agregar_examen(Examen::new(String::from("Cadp"), 4.5));
+        est.agregar_examen(Examen::new(String::from("Mat3"), 7.2));
+        est.agregar_examen(Examen::new(String::from("Mat2"), 10.0));
+        assert_eq!(est.obtener_calificacion_mas_alta(),Some(10.0));
+    }
+
+    #[test]
+    fn obtener_nota_min(){
+        let mut est = Estudiante::new("Tobias".to_string(), 321);
+        assert_eq!(est.obtener_calificacion_mas_baja(),None);
+        est.agregar_examen(Examen::new(String::from("Mat"), 2.0));
+        est.agregar_examen(Examen::new(String::from("Mat3"), 7.2));
+        est.agregar_examen(Examen::new(String::from("Mat2"), 8.0));
+        assert_eq!(est.obtener_calificacion_mas_baja(),Some(2.0));
     }
 
 }

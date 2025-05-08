@@ -25,3 +25,32 @@ impl Producto{
         return self.precio_bruto + (self.calcular_impuestos(porcentaje_impuesto) - self.precio_bruto) - (self.precio_bruto - self.calcular_descuento(porcentaje_descuento));
     }
 }
+
+
+#[cfg(test)]
+mod testing_producto{
+    use super::Producto;
+
+    #[test]
+    fn crear_producto(){
+        let p = Producto::new(String::from("Serenito"), 8500.0, 12452);
+        assert_eq!(p,Producto::new(String::from("Serenito"), 8500.0, 12452));
+    }
+
+    #[test]
+    fn calcular_precios(){
+        let p = Producto::new(String::from("Baggio"), 5000.0, 5432);
+        assert_eq!(p.calcular_impuestos(10.0),5500.0);
+        assert_eq!(p.calcular_impuestos(0.0),5000.0);
+        assert_eq!(p.calcular_descuento(10.0),4500.0);
+        assert_eq!(p.calcular_descuento(0.0),5000.0);
+    }
+
+    #[test]
+    fn estimar_precio(){
+        let p = Producto::new(String::from("Milka"), 1000.0, 8932);
+        assert_eq!(p.calcular_precio_total(10.0, 10.0),1000.0);
+        assert_eq!(p.calcular_precio_total(0.0, 0.0),1000.0);
+    }
+
+}
