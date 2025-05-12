@@ -45,7 +45,7 @@ impl Estudiante{
 
     //Se maneja Option<f32> para el caso de que el alumno no haya rendido un examen
     pub fn obtener_promedio(&self)->Option<f32>{
-        if(!self.examenes.is_empty()){
+        if !self.examenes.is_empty() {
             let mut prom : f32 = 0.0;
             for exam in &self.examenes{
                 prom += exam.obtener_nota();
@@ -58,10 +58,10 @@ impl Estudiante{
     }
 
     pub fn obtener_calificacion_mas_alta(&self)->Option<f32>{
-        if(!self.examenes.is_empty()){
+        if !self.examenes.is_empty() {
             let mut nota : f32 = -1.0;
             for exam in &self.examenes{
-                if(exam.obtener_nota()>nota){
+                if exam.obtener_nota()>nota {
                     nota = exam.obtener_nota();
                 }
             }
@@ -72,10 +72,10 @@ impl Estudiante{
     }
 
     pub fn obtener_calificacion_mas_baja(&self)->Option<f32>{
-        if(!self.examenes.is_empty()){
+        if !self.examenes.is_empty() {
             let mut nota : f32 = 11.0;
             for exam in &self.examenes{
-                if(exam.obtener_nota()<nota){
+                if exam.obtener_nota()<nota {
                     nota = exam.obtener_nota();
                 }
             }

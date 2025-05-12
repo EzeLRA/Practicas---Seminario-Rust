@@ -5,3 +5,4 @@ pub mod ej3;
 pub mod ej4;
 pub mod ej5;
 pub mod ej6;
+pub mod ej7;
