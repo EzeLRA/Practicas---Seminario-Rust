@@ -84,7 +84,7 @@ impl ConcesionarioAuto{
 			autos:Vec::new()
 		}
 	}
-	//Preserva OwnerShip
+	//Preserva OwnerShip y agrega repetidos
 	pub fn agregar_auto(&mut self,auto:&Auto)->bool{
 		if (self.autos.len() as u32) < self.capacidad {
 			self.autos.push(auto.clone());
@@ -93,9 +93,10 @@ impl ConcesionarioAuto{
 			return false;
 		}
 	}
+	//Elimina la primer ocurrencia para un auto con las caracteristicas exactas
 	pub fn eliminar_auto(&mut self,auto:&Auto){
 		if !self.autos.is_empty() {
-			for i in 1..self.autos.len(){
+			for i in 0..self.autos.len(){
 				if self.autos.get(i) == Some(auto){
 					self.autos.remove(i);
 					break;
@@ -103,10 +104,11 @@ impl ConcesionarioAuto{
 			}
 		}
 	}
+	//Busca un auto con las caracteristicas exactas
 	pub fn buscar_auto(&self,auto:&Auto)->Option<Auto>{
 		let mut res : Option<Auto> = None;
 		if !self.autos.is_empty() {
-			for i in 1..self.autos.len(){
+			for i in 0..self.autos.len(){
 				if self.autos.get(i) == Some(auto){
 					res = self.autos.get(i).cloned();
 					break;
@@ -121,7 +123,10 @@ impl ConcesionarioAuto{
 mod testing_consencionaria_auto{
 	use crate::tp3::ej7::{Colores,Auto,ConcesionarioAuto};
 
-	//Auto
+	/*
+		Auto
+	*/
+
 	#[test]
 	fn creacion_auto(){
 		let a = Auto::new(String::from("asdf"),String::from("aytuiy"),2023,100432.0,Colores::Rojo);
@@ -140,6 +145,36 @@ mod testing_consencionaria_auto{
 		assert_eq!(a.calcular_precio(),105000.0);
 		//Identificar antiguedad
 		let a = Auto::new(String::from("asd"),String::from("aytuiy"),2000,100000.0,Colores::Rojo);
-		assert_eq!(a.calcular_precio(),120000.0);
+		assert_eq!(a.calcular_precio(),125000.0);
+	}
+
+	/*
+		Concensionaria
+	*/
+
+	#[test]
+	fn creacion_consecionaria(){
+		let conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),10);
+		assert_eq!(conse1,ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),10));
+	}
+
+	#[test]
+	fn operatoria_consecionaria(){
+		let a1 = Auto::new(String::from("asdf"),String::from("aytuiy"),2023,100432.0,Colores::Rojo);
+		let a2 = Auto::new(String::from("BMW"),String::from("ajytjt"),2000,200500.0,Colores::Verde);
+		let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),3);
+		//Limite de incersiones
+		assert_eq!(conse1.agregar_auto(&a1),true);
+		assert_eq!(conse1.agregar_auto(&a1),true);
+		assert_eq!(conse1.agregar_auto(&a2),true);
+		assert_eq!(conse1.agregar_auto(&a2),false);
+		//Borra auto "a1"(primera recurrencia)
+		conse1.eliminar_auto(&a1);
+		//Busqueda de auto "a1"(el unico existente)
+		assert_ne!(conse1.buscar_auto(&a1),None);
+		//Borra auto "a1"
+		conse1.eliminar_auto(&a1);
+		//Busqueda de auto "a1"(ya no lo dispone)
+		assert_eq!(conse1.buscar_auto(&a1),None);
 	}
 }
