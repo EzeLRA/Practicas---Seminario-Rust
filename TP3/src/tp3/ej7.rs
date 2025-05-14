@@ -88,15 +88,6 @@ impl Auto{
 	pub fn es_igual_a(&self,a:&Auto)->bool{
 		return (self.marca == a.marca)&&(self.modelo == a.modelo)&&(self.anio == a.anio)&&(self.precio_bruto == a.precio_bruto)&&(self.color.es_igual_a(&a.color));
 	}
-	pub fn clonar(&self)->Auto{
-		return Auto{
-			marca : self.marca.clone(),
-			modelo : self.modelo.clone(),
-			anio : self.anio,
-			precio_bruto : self.precio_bruto,
-			color : self.color.clone()
-		}
-	}
 
 }
 
@@ -136,14 +127,15 @@ impl ConcesionarioAuto{
 			}
 		}
 	}
-	//Se considera que la estructura no tiene un gran impacto en la performance
+	//Se considera que la estructura no tendra un gran impacto en la performance(segun tamanio)
 	//Busca un auto con las caracteristicas exactas
 	pub fn buscar_auto(&self,a1:&Auto)->Option<Auto>{
 		let mut res : Option<Auto> = None;
 		if !self.autos.is_empty() {
 			for auto in self.autos.clone(){
 				if(auto.es_igual_a(&a1)){
-					res = Some(auto.clonar());
+					res = Some(auto);
+					break;
 				}
 			}
 		}
@@ -152,7 +144,7 @@ impl ConcesionarioAuto{
 }
 
 #[cfg(test)]
-mod testing_consencionaria_auto{
+mod testing_consecionaria_auto{
 	use crate::tp3::ej7::{Colores,Auto,ConcesionarioAuto};
 
 	/*
@@ -203,15 +195,16 @@ mod testing_consencionaria_auto{
 		//Borra auto "a1"(primera recurrencia)
 		conse1.eliminar_auto(&a1);
 
-		/*
-			Arreglar error de trait
-		 */
-
-		//Busqueda de auto "a1"(el unico existente)
-		assert_ne!(conse1.buscar_auto(&a1),None);
+		//Busqueda de auto "a1"(solo encontrara al unico existente con tales caracteristicas)
+		if let Some(a) = conse1.buscar_auto(&a1){
+			assert_eq!(a.es_igual_a(&a1),true);
+		}else{
+			panic!("El auto no fue encontrado en el concesionario");
+		}
 		//Borra auto "a1"
 		conse1.eliminar_auto(&a1);
-		//Busqueda de auto "a1"(ya no lo dispone)
-		assert_eq!(conse1.buscar_auto(&a1),None);
+
+		//Busqueda de auto "a1"(ya no lo dispone y no existe otro en la estructura)
+		assert_eq!(conse1.buscar_auto(&a1).is_none(),true);
 	}
 }
