@@ -2,7 +2,7 @@
 	Estructuras: Concesionario y Autos
 */
 //Enum
-#[derive(PartialEq, Debug , Clone)]
+#[derive(Debug , Clone)]
 pub enum Colores{	
 	//Primarios
 	Rojo,
@@ -19,10 +19,21 @@ impl Colores{
 	pub fn es_primario(&self)->bool{
 		matches!(self, Colores::Rojo | Colores::Azul | Colores::Amarillo)
 	}
+	pub fn es_igual_a(&self, c: &Colores) -> bool {
+        match (self, c) {
+            (Colores::Rojo, Colores::Rojo) => true,
+            (Colores::Azul, Colores::Azul) => true,
+            (Colores::Verde, Colores::Verde) => true,
+			(Colores::Amarillo, Colores::Amarillo) => true,
+			(Colores::Blanco, Colores::Blanco) => true,
+			(Colores::Negro, Colores::Negro) => true,
+            _ => false
+        }
+    }
 }
 
 //Atributos
-#[derive(PartialEq, Debug , Clone)]
+#[derive(Debug , Clone)]
 pub struct Auto{
     marca : String,
     modelo : String,
@@ -31,7 +42,7 @@ pub struct Auto{
     color : Colores
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct ConcesionarioAuto{
 	nombre : String,
 	direccion : String,
@@ -73,9 +84,28 @@ impl Auto{
 		return self.precio_bruto + recargo - descuento;
 	}
 
+	//Metodo secundario
+	pub fn es_igual_a(&self,a:&Auto)->bool{
+		return (self.marca == a.marca)&&(self.modelo == a.modelo)&&(self.anio == a.anio)&&(self.precio_bruto == a.precio_bruto)&&(self.color.es_igual_a(&a.color));
+	}
+	pub fn clonar(&self)->Auto{
+		return Auto{
+			marca : self.marca.clone(),
+			modelo : self.modelo.clone(),
+			anio : self.anio,
+			precio_bruto : self.precio_bruto,
+			color : self.color.clone()
+		}
+	}
+
 }
 
 impl ConcesionarioAuto{
+	//Metodos secundarios
+	pub fn es_igual_a(&self,c:&ConcesionarioAuto)->bool{
+		return (self.nombre == c.nombre)&&(self.direccion == c.direccion)&&(self.capacidad == c.capacidad);
+	}
+	//Metodos primarios
 	pub fn new(nom:String,dir:String,cant:u32)->ConcesionarioAuto{
 		return ConcesionarioAuto{
 			nombre : nom,
@@ -94,24 +124,26 @@ impl ConcesionarioAuto{
 		}
 	}
 	//Elimina la primer ocurrencia para un auto con las caracteristicas exactas
-	pub fn eliminar_auto(&mut self,auto:&Auto){
+	pub fn eliminar_auto(&mut self,a1:&Auto){
 		if !self.autos.is_empty() {
 			for i in 0..self.autos.len(){
-				if self.autos.get(i) == Some(auto){
-					self.autos.remove(i);
-					break;
+				if let Some(auto) = self.autos.get(i){
+					if(auto.es_igual_a(&a1)){
+						self.autos.remove(i);
+						break;
+					}
 				}
 			}
 		}
 	}
+	//Se considera que la estructura no tiene un gran impacto en la performance
 	//Busca un auto con las caracteristicas exactas
-	pub fn buscar_auto(&self,auto:&Auto)->Option<Auto>{
+	pub fn buscar_auto(&self,a1:&Auto)->Option<Auto>{
 		let mut res : Option<Auto> = None;
 		if !self.autos.is_empty() {
-			for i in 0..self.autos.len(){
-				if self.autos.get(i) == Some(auto){
-					res = self.autos.get(i).cloned();
-					break;
+			for auto in self.autos.clone(){
+				if(auto.es_igual_a(&a1)){
+					res = Some(auto.clonar());
 				}
 			}
 		}
@@ -130,7 +162,7 @@ mod testing_consencionaria_auto{
 	#[test]
 	fn creacion_auto(){
 		let a = Auto::new(String::from("asdf"),String::from("aytuiy"),2023,100432.0,Colores::Rojo);
-		assert_eq!(a,Auto::new(String::from("asdf"),String::from("aytuiy"),2023,100432.0,Colores::Rojo));
+		assert_eq!(a.es_igual_a(&Auto::new(String::from("asdf"),String::from("aytuiy"),2023,100432.0,Colores::Rojo)),true);
 	}
 
 	#[test]
@@ -155,7 +187,7 @@ mod testing_consencionaria_auto{
 	#[test]
 	fn creacion_consecionaria(){
 		let conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),10);
-		assert_eq!(conse1,ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),10));
+		assert_eq!(conse1.es_igual_a(&ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),10)),true);
 	}
 
 	#[test]
@@ -170,6 +202,11 @@ mod testing_consencionaria_auto{
 		assert_eq!(conse1.agregar_auto(&a2),false);
 		//Borra auto "a1"(primera recurrencia)
 		conse1.eliminar_auto(&a1);
+
+		/*
+			Arreglar error de trait
+		 */
+
 		//Busqueda de auto "a1"(el unico existente)
 		assert_ne!(conse1.buscar_auto(&a1),None);
 		//Borra auto "a1"

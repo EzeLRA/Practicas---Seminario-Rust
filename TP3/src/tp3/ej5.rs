@@ -3,7 +3,7 @@
 */
 
 //Atributos
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Producto{
     nombre : String,
     precio_bruto : f32,
@@ -12,6 +12,11 @@ pub struct Producto{
 
 //Metodos
 impl Producto{
+    //Metodos secundarios
+    pub fn es_igual_a(&self,p:&Producto)->bool{
+        return (self.nombre == p.nombre)&&(self.precio_bruto == p.precio_bruto)&&(self.num_identificacion == p.num_identificacion);
+    }
+    //Metodos primarios
     pub fn new(nom:String,precio:f32,num:i32)->Producto{
         Producto { nombre: nom, precio_bruto: precio, num_identificacion: num }
     }
@@ -24,6 +29,7 @@ impl Producto{
     pub fn calcular_precio_total(&self,porcentaje_impuesto:f32,porcentaje_descuento:f32)->f32{
         return self.precio_bruto + (self.calcular_impuestos(porcentaje_impuesto) - self.precio_bruto) - (self.precio_bruto - self.calcular_descuento(porcentaje_descuento));
     }
+    
 }
 
 
@@ -34,7 +40,7 @@ mod testing_producto{
     #[test]
     fn crear_producto(){
         let p = Producto::new(String::from("Serenito"), 8500.0, 12452);
-        assert_eq!(p,Producto::new(String::from("Serenito"), 8500.0, 12452));
+        assert_eq!(p.es_igual_a(&Producto::new(String::from("Serenito"), 8500.0, 12452)),true);
     }
 
     #[test]

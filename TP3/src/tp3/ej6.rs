@@ -3,13 +3,13 @@
 */
 
 //Atributos
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Examen{
     nombre : String,
     nota : f32
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Estudiante{
     nombre : String,
     num_id : i32,
@@ -30,6 +30,14 @@ impl Examen{
 //Revisar si se agregan elementos de un unico tipo
 
 impl Estudiante{
+
+    //Metodos secundarios
+    pub fn es_igual_a(&self,e:&Estudiante)->bool{
+        return (self.nombre == e.nombre)&&(self.num_id == e.num_id);
+    }
+
+    //Metodos primarios
+
     //Se crea un estudiante sin examenes registrados
     pub fn new(nom:String,id:i32)->Estudiante{
         return Estudiante{nombre:nom,num_id:id,examenes:Vec::new()};
@@ -96,7 +104,7 @@ mod testing_estudiante{
     #[test]
     fn creacion_estudiante(){
         let est = Estudiante::new("Carlos".to_string(), 1);
-        assert_eq!(est,Estudiante::new("Carlos".to_string(), 1));
+        assert_eq!(est.es_igual_a(&Estudiante::new("Carlos".to_string(), 1)),true);
     }
 
     #[test]

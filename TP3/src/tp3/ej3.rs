@@ -3,7 +3,7 @@
 */
 
 //Atributos
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Fecha{
     pub dia : u8,
     pub mes : u8,
@@ -15,6 +15,23 @@ pub struct Fecha{
 */
 
 impl Fecha{
+
+    //Metodos Secundarios
+    pub fn get_dia(&self)->u8{
+        return self.dia;
+    }
+    pub fn get_mes(&self)->u8{
+        return self.mes;
+    }
+    pub fn get_anio(&self)->u16{
+        return self.anio;
+    }
+    pub fn es_igual_a(&self,f:&Fecha)->bool{
+        return if(self.get_dia() == f.get_dia())&&(self.get_mes() == f.get_mes())&&(self.get_anio() == f.get_anio()){true}else{false}
+    }
+    /*
+        Metodos Primarios    
+     */
     pub fn new(d:u8,m:u8,a:u16)->Fecha{
         return Fecha { dia: d , mes: m , anio: a }
     }
@@ -113,8 +130,8 @@ impl Fecha{
 
     pub fn es_mayor(&self , f:&Fecha)->bool{
         return if(self.anio > f.anio){true}else 
-        if((self.anio == f.anio) && (self.mes > f.mes)){true}else 
-        if((self.mes == f.mes) && (self.dia > f.dia)){true}else{false};
+        if (self.anio == f.anio) && (self.mes > f.mes) {true}else 
+        if (self.mes == f.mes) && (self.dia > f.dia) {true}else{false};
     }
 
 }
@@ -127,7 +144,7 @@ mod testing_fecha{
     #[test]
     fn creacion_fecha(){
         let f = Fecha::new(1, 1, 2025);
-        assert_eq!(f,Fecha::new(1, 1, 2025));
+        assert_eq!(f.es_igual_a(&Fecha::new(1, 1, 2025)),true);
     }
 
     #[test]
@@ -150,22 +167,22 @@ mod testing_fecha{
     fn adicion_fecha(){
         let mut f = Fecha::new(1, 1, 2028);
         f.sumar_dias(30);
-        assert_eq!(f,Fecha::new(31, 1, 2028));
+        assert_eq!(f.es_igual_a(&Fecha::new(31, 1, 2028)),true);
         f.sumar_dias(1);
-        assert_eq!(f,Fecha::new(1, 2, 2028));
+        assert_eq!(f.es_igual_a(&Fecha::new(1, 2, 2028)),true);
         f.sumar_dias(29);
-        assert_eq!(f,Fecha::new(1,3,2028));
+        assert_eq!(f.es_igual_a(&Fecha::new(1,3,2028)),true);
     }
 
     #[test]
     fn sustraccion_fecha(){
         let mut f = Fecha::new(10, 4, 2028);
         f.restar_dias(9);
-        assert_eq!(f,Fecha::new(1, 4, 2028));
+        assert_eq!(f.es_igual_a(&Fecha::new(1, 4, 2028)),true);
         f.restar_dias(31);
-        assert_eq!(f,Fecha::new(1,3,2028));
+        assert_eq!(f.es_igual_a(&Fecha::new(1,3,2028)),true);
         f.restar_dias(1);
-        assert_eq!(f,Fecha::new(29, 2, 2028));
+        assert_eq!(f.es_igual_a(&Fecha::new(29, 2, 2028)),true);
     }
 
     #[test]

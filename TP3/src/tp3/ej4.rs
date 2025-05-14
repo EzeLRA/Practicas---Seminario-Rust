@@ -3,7 +3,7 @@
 */
 
 //Atributos
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Triangulo{
     long1 : f32,
     long2 : f32,
@@ -11,15 +11,27 @@ pub struct Triangulo{
 }
 
 //Enum
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub enum TipoTriangulo {
     Equilatero,
     Isoceles,
     Escaleno,
 }
+impl TipoTriangulo {
+    pub fn es_igual_a(&self, t: &TipoTriangulo) -> bool {
+        match (self, t) {
+            (TipoTriangulo::Equilatero, TipoTriangulo::Equilatero) => true,
+            (TipoTriangulo::Isoceles, TipoTriangulo::Isoceles) => true,
+            (TipoTriangulo::Escaleno, TipoTriangulo::Escaleno) => true,
+            _ => false,
+        }
+    }
+}
 
 //Metodos
 impl Triangulo{
+
+    //Metodos primarios
 
     pub fn new(l1:f32,l2:f32,l3:f32)->Triangulo{
         return Triangulo{ long1 : l1 , long2 : l2 , long3 : l3}
@@ -50,6 +62,11 @@ impl Triangulo{
         return self.long1 + self.long2 + self.long3;
     }
 
+    //Metodos secundarios
+    pub fn es_igual_a(&self,t:&Triangulo)->bool{
+        return if(self.long1 == t.long1)&&(self.long2 == t.long2)&&(self.long3 == t.long3){true}else{false}
+    }
+
 }
 
 
@@ -60,17 +77,17 @@ mod testing_triangulo{
     #[test]
     fn creacion_triangulo(){
         let t = Triangulo::new(5.2, 5.2, 5.2);
-        assert_eq!(t,Triangulo::new(5.2, 5.2, 5.2));
+        assert_eq!(t.es_igual_a(&Triangulo::new(5.2, 5.2, 5.2)),true);
     }
 
     #[test]
     fn clasificar_tipos(){
         let mut t = Triangulo::new(5.2, 5.2, 5.2);
-        assert_eq!(t.determinar_tipo(), TipoTriangulo::Equilatero);
+        assert_eq!(t.determinar_tipo().es_igual_a(&TipoTriangulo::Equilatero), true);
         t = Triangulo::new(5.2, 5.2, 8.0);
-        assert_eq!(t.determinar_tipo(), TipoTriangulo::Isoceles);
+        assert_eq!(t.determinar_tipo().es_igual_a(&TipoTriangulo::Isoceles), true);
         t = Triangulo::new(5.2, 3.2, 8.0);
-        assert_eq!(t.determinar_tipo(), TipoTriangulo::Escaleno);
+        assert_eq!(t.determinar_tipo().es_igual_a(&TipoTriangulo::Escaleno), true);
     }
 
     #[test]

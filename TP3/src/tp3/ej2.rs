@@ -3,7 +3,7 @@
 */
 
 //Atributos
-#[derive(PartialEq,Debug)]
+#[derive(Debug)]
 pub struct Rectangulo{
 	pub longitud : f32,
 	pub ancho : f32
@@ -20,7 +20,18 @@ impl Rectangulo{
             ancho : anc
         };
 	}
-
+    //Metodos getters
+    pub fn obtener_largo(&self)->f32{
+        return self.longitud;
+    }
+    pub fn obtener_ancho(&self)->f32{
+        return self.ancho;
+    }
+    //Metodo de comparacion
+    pub fn es_igual_a(&self,r:&Rectangulo)->bool{
+        return if(self.obtener_largo() == r.obtener_largo())&&(self.obtener_ancho() == r.obtener_ancho()){true}else{false}
+    }
+    //Metodos primarios
 	pub fn calcular_area(&self)->f32{
 		return self.longitud*self.ancho;
 	}
@@ -41,7 +52,7 @@ mod testing_rectangulo{
     #[test]
     fn creacion_rectangulo(){
         let r = Rectangulo::new(25.0,2.0);
-        assert_eq!(r, Rectangulo::new(25.0,2.0) );
+        assert_eq!(r.es_igual_a(&Rectangulo::new(25.0,2.0)), true );
     }
 
     #[test]

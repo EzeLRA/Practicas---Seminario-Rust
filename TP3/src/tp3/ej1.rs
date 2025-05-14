@@ -3,7 +3,7 @@
 */
 
 //Atributos
-#[derive(PartialEq, Debug)]
+#[derive(Debug,Clone)]
 pub struct Persona{
     pub nombre : String,
     pub edad : u32,
@@ -21,20 +21,32 @@ impl Persona{
             direccion : dir_in
         };
     }
-    pub fn to_string(&self)->String{
-        let direc: &str;
-        if let Some(dir) = &self.direccion {
-            direc = dir;
-        } else {
-            direc = "No identificado"
-        }
-        return format!("{};{};{}", self.nombre, self.edad, direc);
-    }
+    //Metodos getter
     pub fn obtener_edad(&self)-> u32{
         return self.edad;
     }
+    pub fn obtener_nombre(&self)->String{
+        return self.nombre.clone();
+    }
+    pub fn obtener_direccion(&self)->String{
+        return if let Some(dir) = &self.direccion{dir.to_string()}else{"No identificado".to_string()}
+    }
+    //Metodos ṕrimarios
+    pub fn to_string(&self)->String{
+        return format!("{};{};{}", self.obtener_nombre(), self.obtener_edad(), self.obtener_direccion());
+    }
     pub fn actualizar_direccion(&mut self , dir_nuevo : Option<String>){
         self.direccion = dir_nuevo;
+    }
+    //Metodo auxiliar para comparacion
+    pub fn igual_a(&self,per1:&Persona)->bool{
+        let mut res = false;
+        if (self.obtener_nombre() == per1.obtener_nombre()) && 
+        (self.obtener_edad() == per1.obtener_edad()) && 
+        (self.obtener_direccion() == per1.obtener_direccion()){
+            res = true;
+        }
+        return res;
     }
 }
 
@@ -46,11 +58,11 @@ mod testing_persona{
     fn creacion_persona(){
         let mut persona = Persona::new(String::from("Mario"),23,None );
         //Persona con direccion nula
-        assert_eq!( persona , Persona::new(String::from("Mario"),23,None ) );
+        assert_eq!( persona.igual_a( &Persona::new(String::from("Mario"),23,None )) , true );
         
         //Persona sin direccion nula
         persona = Persona::new(String::from("Mario"),23,Some(String::from("Av.Entre Rios")));
-        assert_eq!( persona , Persona::new(String::from("Mario"),23,Some(String::from("Av.Entre Rios"))) );
+        assert_eq!( persona.igual_a( &Persona::new(String::from("Mario"),23,Some(String::from("Av.Entre Rios")))) , true );
     }
 
     #[test]
