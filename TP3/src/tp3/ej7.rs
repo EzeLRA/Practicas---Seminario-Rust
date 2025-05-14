@@ -119,7 +119,7 @@ impl ConcesionarioAuto{
 		if !self.autos.is_empty() {
 			for i in 0..self.autos.len(){
 				if let Some(auto) = self.autos.get(i){
-					if(auto.es_igual_a(&a1)){
+					if auto.es_igual_a(&a1) {
 						self.autos.remove(i);
 						break;
 					}
@@ -133,7 +133,7 @@ impl ConcesionarioAuto{
 		let mut res : Option<Auto> = None;
 		if !self.autos.is_empty() {
 			for auto in self.autos.clone(){
-				if(auto.es_igual_a(&a1)){
+				if auto.es_igual_a(&a1) {
 					res = Some(auto);
 					break;
 				}

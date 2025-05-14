@@ -37,10 +37,10 @@ impl Fecha{
     }
     pub fn es_fecha_valida(&self)->bool{
         
-        if((self.mes > 0) && (self.mes <= 12) && (self.anio > 0) && (self.dia > 0)){
+        if (self.mes > 0) && (self.mes <= 12) && (self.anio > 0) && (self.dia > 0) {
         
             match self.mes{
-                2 => if(self.es_bisiesto()){ return self.dia <= 29 }else{ return self.dia <= 28},
+                2 => if self.es_bisiesto() { return self.dia <= 29 }else{ return self.dia <= 28},
                 9|4|6|11 => return self.dia <= 30,
                 _ => return self.dia <= 31
             }
@@ -57,7 +57,7 @@ impl Fecha{
     //Auxiliar para determinar el ultimo dia de un mes
     fn ultimo_dia(&self)->u8{
         match self.mes{
-            2 => if(self.es_bisiesto()){29}else{28},
+            2 => if self.es_bisiesto() {29}else{28},
             9|4|6|11 => 30,
             _ => 31
         }
@@ -129,7 +129,7 @@ impl Fecha{
     }
 
     pub fn es_mayor(&self , f:&Fecha)->bool{
-        return if(self.anio > f.anio){true}else 
+        return if self.anio > f.anio {true}else 
         if (self.anio == f.anio) && (self.mes > f.mes) {true}else 
         if (self.mes == f.mes) && (self.dia > f.dia) {true}else{false};
     }
