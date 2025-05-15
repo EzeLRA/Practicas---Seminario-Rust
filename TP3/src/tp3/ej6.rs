@@ -95,7 +95,6 @@ impl Estudiante{
 
 }
 
-
 #[cfg(test)]
 mod testing_estudiante{
     use super::Estudiante;
