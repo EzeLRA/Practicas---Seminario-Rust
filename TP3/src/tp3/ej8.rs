@@ -141,6 +141,7 @@ impl PlayList{
 }
 
 
+#[cfg(test)]
 mod testing_playlist{
     use super::*;
 
