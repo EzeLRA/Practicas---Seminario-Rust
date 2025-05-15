@@ -179,24 +179,25 @@ impl Biblioteca {
         let mut cantidad = 0;
         for prestamo in &self.prestamos {
             if (prestamo.cliente.es_igual_a(&cliente)) && (prestamo.estado.es_igual_a(&Estado::EnPrestamo)) {
-                cantidad+=1;
+                cantidad = cantidad + 1;
             }
         }
         return cantidad;
     }
 
-    pub fn prestar(&mut self,cliente:Cliente,libro:Libro,vencimiento:Fecha) -> bool {
+    pub fn prestar(&mut self,cliente:Cliente,libro:&Libro,vencimiento:Fecha) -> bool {
         if (self.copias(&libro)>0) && (self.prestamos(&cliente)<=5) {
-            self.prestamos.push(Prestamo::new(libro, cliente, vencimiento));
+            self.prestamos.push(Prestamo::new(libro.clone(), cliente, vencimiento));
+            self.decrementar(&libro.clone());
             return true
         } else {
             return false
         }
     }
     
-    pub fn vencimientos_proximos(&self,dias:u32) -> Vec<Prestamo> {
-        //Fecha definida para la prueba(no se actualiza con el actual)
-        let mut fecha = Fecha::new(15,5,2025);
+    //Parametro auxiliar de fecha para el calculo de proximidad
+    pub fn vencimientos_proximos(&self,f:&Fecha,dias:u32) -> Vec<Prestamo> {
+        let mut fecha = f.clone();
         fecha.sumar_dias(dias);
         let mut prestamos: Vec<Prestamo> = Vec::new();
         for prestamo in &self.prestamos {
@@ -209,8 +210,8 @@ impl Biblioteca {
     }
 
     //Reutiliza el metodo de arriba
-    pub fn prestamos_vencidos(&self) -> Vec<Prestamo> {
-        self.vencimientos_proximos(0)
+    pub fn prestamos_vencidos(&self,f:&Fecha) -> Vec<Prestamo> {
+        return self.vencimientos_proximos(&f,0);
     }
 
     fn buscar(&self,libro:&Libro,cliente:&Cliente) -> Option<Prestamo> {
@@ -224,14 +225,17 @@ impl Biblioteca {
         return res
     }
 
-    fn devolver(&mut self,libro:&Libro,cliente:&Cliente) {
+    fn devolver(&mut self,f:&Fecha,libro:&Libro,cliente:&Cliente) {
+        let mut pude = false;
         for prestamo in &mut self.prestamos {
             if (prestamo.cliente.es_igual_a(&cliente)) && (prestamo.libro.es_igual_a(&libro)) {
                 prestamo.estado = Estado::Devuelto;
                 //Se utiliza una fecha definida para la prueba
-                prestamo.devolucion = Some(Fecha::new(15,5,2025));
+                prestamo.devolucion = Some(f.clone());
+                pude = true;
             }
         }
+        if pude {self.incrementar(&libro.clone());}
     }
 }
 
@@ -240,17 +244,12 @@ mod biblioteca_tests {
     use super::*;
 
     #[test]
-    fn test_biblioteca() {
+    fn libros_biblioteca(){
         let nombre = String::from("Silencio");
         let direccion = String::from("1 e 2 y 3");
        
         let mut biblioteca = Biblioteca::new(nombre,direccion);
         assert_eq!(biblioteca.es_igual_a(&Biblioteca::new("Silencio".to_string(),"1 e 2 y 3".to_string())),true);
-        
-        let humano1 = Cliente::new("Persona1".to_string(),1,"Carlos.com".to_string());
-        let humano2 = Cliente::new("Persona2".to_string(),2,"Mateo.com".to_string());
-        let humano3 = Cliente::new("Persona3".to_string(),3,"Juan.com".to_string());
-        let humano4 = Cliente::new("Persona4".to_string(),4,"Pedro.com".to_string());
 
         let libro1 = Libro::new(10, "Autor1".to_string(), "Libro1".to_string(), 50 , Genero::Infantil);
         let libro2 = Libro::new(20, "Autor2".to_string(), "Libro2".to_string(), 50 , Genero::Novela);
@@ -266,40 +265,80 @@ mod biblioteca_tests {
 
         assert_eq!(biblioteca.copias(&libro1),1);
         assert_eq!(biblioteca.copias(&libro2),2);
+    }
 
+    #[test]
+    fn operatoria_prestamos() {
+        let nombre = String::from("Silencio");
+        let direccion = String::from("1 e 2 y 3");
+       
+        let mut biblioteca = Biblioteca::new(nombre,direccion);
+        
+        //Clientela
+        let cliente1 = Cliente::new("Persona1".to_string(),1,"Carlos.com".to_string());
+        let cliente2 = Cliente::new("Persona2".to_string(),2,"Mateo.com".to_string());
+        let cliente3 = Cliente::new("Persona3".to_string(),3,"Juan.com".to_string());
+        let cliente4 = Cliente::new("Persona4".to_string(),4,"Pedro.com".to_string());
+
+        //Libros
+        let libro1 = Libro::new(10, "Autor1".to_string(), "Libro1".to_string(), 50 , Genero::Infantil);
+        let libro2 = Libro::new(20, "Autor2".to_string(), "Libro2".to_string(), 50 , Genero::Novela);
+        let libro3 = Libro::new(30, "Autor3".to_string(), "Libro3".to_string(), 50 , Genero::Tecnico);
+        let libro4 = Libro::new(40, "Autor4".to_string(), "Libro4".to_string(), 50 , Genero::Otro);
+
+        biblioteca.agregar_libro(libro1.clone(),5);
+        biblioteca.agregar_libro(libro2.clone(),5);
+        biblioteca.agregar_libro(libro3.clone(),3);
+        biblioteca.agregar_libro(libro4.clone(),4);
+
+        //Operacion de los prestamos
         let mut ayer = Fecha::new(14, 5, 2025);
         let mut quince_dias = ayer.clone();
         quince_dias.sumar_dias(15);
         ayer.restar_dias(1);
         let mut nunca = ayer.clone();
-        nunca.sumar_dias(u32::MAX);
+        nunca.sumar_dias(99999);    //Fecha maxima de ejemplo
 
-        biblioteca.prestar(humano1.clone(), libro1.clone(), quince_dias.clone());
-        biblioteca.prestar(humano2.clone(), libro2.clone(), quince_dias.clone());
-        biblioteca.prestar(humano3.clone(), libro3.clone(), nunca.clone());
-        biblioteca.prestar(humano4.clone(), libro1.clone(), nunca.clone());
-        biblioteca.prestar(humano4.clone(), libro2.clone(), nunca.clone());
-        biblioteca.prestar(humano4.clone(), libro3.clone(), ayer.clone());
-        biblioteca.prestar(humano4.clone(), libro4.clone(), ayer.clone());
-        assert_eq!(biblioteca.prestamos(&humano4),4);
+        biblioteca.prestar(cliente1.clone(), &libro1, quince_dias.clone());
+        biblioteca.prestar(cliente2.clone(), &libro2, quince_dias.clone());
+        biblioteca.prestar(cliente3.clone(), &libro3, nunca.clone());
+        biblioteca.prestar(cliente4.clone(), &libro1, nunca.clone());
+        biblioteca.prestar(cliente4.clone(), &libro2, nunca.clone());
+        biblioteca.prestar(cliente4.clone(), &libro3, ayer.clone());
+        biblioteca.prestar(cliente4.clone(), &libro4, ayer.clone());
+        assert_eq!(biblioteca.prestamos(&cliente1),1);
+        assert_eq!(biblioteca.prestamos(&cliente4),4);
+
+        //Copias prestadas en total de "libro1"
+        assert_eq!(biblioteca.copias(&libro1),3); 
+
+        //Fecha a operar
+        let act = Fecha::new(15, 5, 2025);
         
+        if let Some(pres) = biblioteca.buscar(&libro1, &cliente1){
+            assert_eq!(pres.estado.es_igual_a(&Estado::EnPrestamo), true);
+        }else{
+            panic!("No se registro el prestamo");
+        }
 
-        /*
-            Corregir
-        */
+        //Contabiliza los prestamos de ayer y de 15 dias(definido arriba)
+        assert_eq!(biblioteca.vencimientos_proximos(&act,20).len(),4);
+        
+        //Contabiliza los prestamos de ayer
+        assert_eq!(biblioteca.prestamos_vencidos(&act).len(),2);
 
-        //let v = biblioteca.prestamos.clone();
-        assert_eq!(biblioteca.buscar(&libro1, &humano1).is_none() , false);
-        assert_eq!(biblioteca.vencimientos_proximos(20).len(),4);
-  
-        assert_eq!(biblioteca.prestamos_vencidos().len(),2);
-
-        biblioteca.devolver(&libro1, &humano1);
-        assert_eq!(biblioteca.disponibles[0].cantidad,1);
-        ayer.sumas_dias(1);
+        //Contabiliza las copias de "libro1"
+        biblioteca.devolver(&act,&libro1, &cliente1);
+        assert_eq!(biblioteca.disponibles[0].cantidad,4);
+        
         let prestamo = biblioteca.prestamos[0].clone();
-        assert_eq!(prestamo.estado.es_igual_a(&Estado:: Devuelto), true);
-        //assert_eq!(prestamo.devolucion,Some(ayer));
+        assert_eq!(prestamo.estado.es_igual_a(&Estado::Devuelto), true);
+        
+        if let Some(f) = prestamo.devolucion{
+            assert_eq!(f.es_igual_a(&act),true);
+        }else{
+            panic!("No se registro la devolucion");
+        }
     }
 }
 
