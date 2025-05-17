@@ -112,6 +112,45 @@ pub struct Informe{
 
 //Funciones de la estructura
 impl Informe{
+    /*
+        Metodos secundarios
+    */
+
+    //Metodos abstraidos de Estudiante para que se retorne "El examen"
+    pub fn obtener_examen_max(examenes : &Vec<Examen>)->Option<Examen>{
+        if !examenes.is_empty() {
+            let mut max_nota = -1.0;
+            let mut max_nom = String::new();
+            for exam in examenes{
+                if exam.obtener_nota()>max_nota{
+                    max_nota = exam.obtener_nota();
+                    max_nom = exam.nombre.clone();
+                }
+            }
+            return Some(Examen::new(max_nom,max_nota));
+        }else{
+            return None;
+        }
+    }
+
+    pub fn obtener_examen_min(examenes : &Vec<Examen>)->Option<Examen>{
+        if !examenes.is_empty() {
+            let mut min_nota = 11.0;
+            let mut min_nom = String::new();
+            for exam in examenes{
+                if exam.obtener_nota()<min_nota{
+                    min_nota = exam.obtener_nota();
+                    min_nom = exam.nombre.clone();
+                }
+            }
+            return Some(Examen::new(min_nom,min_nota));
+        }else{
+            return None;
+        }
+    }
+    /*
+        Metodos primarios
+    */
 
     //Metodo que procesa un alumno para generar el informe
     pub fn generar_informe(e:&Estudiante)->Option<Informe>{
@@ -120,11 +159,12 @@ impl Informe{
             let info = Informe{
                 nom_alumno : e.nombre.clone(),
                 id_alumno : e.num_id,
-                examenes_rendidos_cant : e.examenes.len(),
-                promedio_notas : if let Some(data) = e.obtener_promedio() { data },
-                examen_max : if let Some(data) = e.obtener_calificacion_mas_alta() { data },
-                examen_min : if let Some(data) = e.obtener_calificacion_mas_baja() { data }
-             }
+                examenes_rendidos_cant : e.examenes.len() as u32,
+                //Se utiliza if-let para desempaquetar los Some()
+                promedio_notas : if let Some(data) = e.obtener_promedio() { data }else{0.0},
+                examen_max : if let Some(data) = Informe::obtener_examen_max(&e.examenes) { data }else{Examen::new("".to_string(),0.0)},
+                examen_min : if let Some(data) = Informe::obtener_examen_min(&e.examenes) { data }else{Examen::new("".to_string(),0.0)}
+             };
              return Some(info);
         }else{
             return None;
@@ -139,17 +179,85 @@ mod testing_informe{
     use super::*;
     //1°Test: Se buscara testear la correcta creacion del informe
     #[test]
-    fn creacion_estudiante(){
+    fn creacion_informe(){
         //Se evaluara un informe vacio
         let est = Estudiante::new("Carlos".to_string(), 1);
 
-        let info = Informe::new(&est);
+        let info = Informe::generar_informe(&est);
         assert_eq!(info.is_none(),true);
     }
+
+
+
     //2°Test: Se probara con casos de alumnos que rindieron examenes y viceversa para el correcto retorno de un informe
     //Se implementara un codigo similar al de arriba tomando ambos casos para la creacion y evaluando los valores de retorno del informe(Datos como las notas , promedio y nombre del alumno)
+    #[test]
+    fn verificacion_informe(){
 
-    //Funcion a implementar aqui 
+        //Caso 1º: Evaluacion de un estudiante con examenes rendidos
+        let mut est = Estudiante::new("Julian".to_string(), 991);
+        est.agregar_examen(Examen::new(String::from("Mat"), 8.5));
+        est.agregar_examen(Examen::new(String::from("Cadp"), 5.0));
+        est.agregar_examen(Examen::new(String::from("Oc"), 7.5));
+        est.agregar_examen(Examen::new(String::from("Mat2"), 10.0));
+
+        let info = Informe::generar_informe(&est);
+        
+        //Validacion de informe
+        if let Some(info_procesar) = info{
+
+            //Datos alumno
+            assert_eq!(info_procesar.nom_alumno,est.nombre);
+            assert_eq!(info_procesar.id_alumno,est.num_id);
+            //Cantidad de examenes
+            assert_eq!(info_procesar.examenes_rendidos_cant,4);
+            //Promedio general
+            if let Some(prom) = est.obtener_promedio(){
+                assert_eq!(prom == info_procesar.promedio_notas,true);
+            }//Else - avisar de promedio no retornado
+            //Examen max
+            assert_eq!(info_procesar.examen_max.nombre,"Mat2".to_string());
+            assert_eq!(info_procesar.examen_max.obtener_nota(),10.0);
+            //Examen min
+            assert_eq!(info_procesar.examen_min.nombre,"Cadp".to_string());
+            assert_eq!(info_procesar.examen_min.obtener_nota(),5.0);
+
+        }//Else - avisar de informe no creado
+
+
+
+        //Caso 2º: Modificacion del estudiante Julian(Solo tiene un examen rendido)
+        est.conseguir_examen();
+        est.conseguir_examen();
+        est.conseguir_examen();
+        let info = Informe::generar_informe(&est);
+        
+        //Validacion de informe
+        if let Some(info_procesar) = info{
+
+            //Datos alumno
+            assert_eq!(info_procesar.nom_alumno,est.nombre);
+            assert_eq!(info_procesar.id_alumno,est.num_id);
+            //Cantidad de examenes
+            assert_eq!(info_procesar.examenes_rendidos_cant,1);
+            if let Some(prom) = est.obtener_promedio(){
+                assert_eq!(prom == info_procesar.promedio_notas,true);
+            }//Else - avisar de promedio no retornado
+            //Examen max
+            assert_eq!(info_procesar.examen_max.nombre,"Mat".to_string());
+            assert_eq!(info_procesar.examen_max.obtener_nota(),8.5);
+            //Examen min
+            assert_eq!(info_procesar.examen_min.nombre,"Mat".to_string());
+            assert_eq!(info_procesar.examen_min.obtener_nota(),8.5);
+        
+        }//Else - avisar de informe no creado
+
+        //Caso final: El Estudiante Julian(Sin examenes rendidos)
+        est.conseguir_examen();
+        let info = Informe::generar_informe(&est);
+        assert_eq!(info.is_none(),true);
+
+    }
 
 }
 
