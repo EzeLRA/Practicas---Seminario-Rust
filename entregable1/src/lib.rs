@@ -152,7 +152,7 @@ impl Informe{
         Metodos primarios
     */
 
-    //Metodo que procesa un alumno para generar el informe
+    //Metodo que procesa un alumno para generar el informe (Se realizaron correciones de sintaxis)
     pub fn generar_informe(e:&Estudiante)->Option<Informe>{
         if !e.examenes.is_empty() {
             //Procesa el alumno
@@ -160,10 +160,10 @@ impl Informe{
                 nom_alumno : e.nombre.clone(),
                 id_alumno : e.num_id,
                 examenes_rendidos_cant : e.examenes.len() as u32,
-                //Se utiliza if-let para desempaquetar los Some()
-                promedio_notas : if let Some(data) = e.obtener_promedio() { data }else{0.0},
-                examen_max : if let Some(data) = Informe::obtener_examen_max(&e.examenes) { data }else{Examen::new("".to_string(),0.0)},
-                examen_min : if let Some(data) = Informe::obtener_examen_min(&e.examenes) { data }else{Examen::new("".to_string(),0.0)}
+                //Se utiliza if-let para desempaquetar los Option obtenidos
+                promedio_notas : if let Some(data) = e.obtener_promedio() { data }else{ panic!("No se obtuvo un promedio"); },
+                examen_max : if let Some(data) = Informe::obtener_examen_max(&e.examenes) { data }else{ panic!("No se obtuvo un examen"); },
+                examen_min : if let Some(data) = Informe::obtener_examen_min(&e.examenes) { data }else{ panic!("No se obtuvo un examen"); }
              };
              return Some(info);
         }else{
@@ -187,10 +187,8 @@ mod testing_informe{
         assert_eq!(info.is_none(),true);
     }
 
-
-
     //2°Test: Se probara con casos de alumnos que rindieron examenes y viceversa para el correcto retorno de un informe
-    //Se implementara un codigo similar al de arriba tomando ambos casos para la creacion y evaluando los valores de retorno del informe(Datos como las notas , promedio y nombre del alumno)
+    //Se implementara un codigo similar al de arriba,tomando ambos casos para la creacion y evaluando los valores de retorno del informe(Datos como las notas , promedio y nombre del alumno)
     #[test]
     fn verificacion_informe(){
 
@@ -214,7 +212,9 @@ mod testing_informe{
             //Promedio general
             if let Some(prom) = est.obtener_promedio(){
                 assert_eq!(prom == info_procesar.promedio_notas,true);
-            }//Else - avisar de promedio no retornado
+            }else{
+                panic!("No se obtuvo el promedio por parte del estudiante");
+            }
             //Examen max
             assert_eq!(info_procesar.examen_max.nombre,"Mat2".to_string());
             assert_eq!(info_procesar.examen_max.obtener_nota(),10.0);
@@ -222,7 +222,9 @@ mod testing_informe{
             assert_eq!(info_procesar.examen_min.nombre,"Cadp".to_string());
             assert_eq!(info_procesar.examen_min.obtener_nota(),5.0);
 
-        }//Else - avisar de informe no creado
+        }else{
+            panic!("No se creo el informe");
+        }
 
 
 
@@ -242,7 +244,9 @@ mod testing_informe{
             assert_eq!(info_procesar.examenes_rendidos_cant,1);
             if let Some(prom) = est.obtener_promedio(){
                 assert_eq!(prom == info_procesar.promedio_notas,true);
-            }//Else - avisar de promedio no retornado
+            }else{
+                panic!("No se obtuvo el promedio por parte del estudiante");
+            }
             //Examen max
             assert_eq!(info_procesar.examen_max.nombre,"Mat".to_string());
             assert_eq!(info_procesar.examen_max.obtener_nota(),8.5);
@@ -250,9 +254,11 @@ mod testing_informe{
             assert_eq!(info_procesar.examen_min.nombre,"Mat".to_string());
             assert_eq!(info_procesar.examen_min.obtener_nota(),8.5);
         
-        }//Else - avisar de informe no creado
+        }else{
+            panic!("No se creo el informe");
+        }
 
-        //Caso final: El Estudiante Julian(Sin examenes rendidos)
+        //Caso final: El Estudiante Julian no tiene examenes rendidos
         est.conseguir_examen();
         let info = Informe::generar_informe(&est);
         assert_eq!(info.is_none(),true);
