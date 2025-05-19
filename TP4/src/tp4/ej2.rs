@@ -29,35 +29,40 @@ pub trait DatosPersona<'a>{
 	fn obtener_salario(&self)->f64;
 	fn obtener_edad(&self)->u8;
 	fn es_igual_a(&self, p: Persona<'a>)->bool;
+	//primarios
+	fn salario_mayor_a(&self,s:f64)->bool;
 }
 
 //Persona
-impl<'a> Persona<'a>{
+impl<'a> DatosPersona<'a> for Persona<'a> {
 	//Metodos secundarios
-	pub fn obtener_nombre(&self)->String{
+	fn obtener_nombre(&self)->String{
 		return self.nombre.to_string().clone();
 	}
-	pub fn obtener_apellido(&self)->String{
+	fn obtener_apellido(&self)->String{
 		return self.apellido.to_string().clone();
 	}
-	pub fn obtener_direccion(&self)->String{
+	fn obtener_direccion(&self)->String{
 		return self.direccion.to_string().clone();
 	}
-	pub fn obtener_ciudad(&self)->String{
+	fn obtener_ciudad(&self)->String{
 		return self.ciudad.to_string().clone();
 	}
-	pub fn obtener_salario(&self)->f64{
+	fn obtener_salario(&self)->f64{
 		return self.salario;
 	}
-	pub fn obtener_edad(&self)->u8{
+	fn obtener_edad(&self)->u8{
 		return self.edad;
 	}
-	pub fn es_igual_a(&self, p: Persona<'a>)->bool{
+	fn es_igual_a(&self, p: Persona<'a>)->bool{
 		return (self.nombre == p.obtener_nombre())&&(self.apellido == p.obtener_apellido())&&(self.direccion == p.obtener_direccion())&&
 		(self.ciudad == p.obtener_ciudad())&&(self.salario == p.obtener_salario())&&(self.edad == p.obtener_edad());
 	}
+
 	//Metodos primarios
-	pub fn salario_mayor_a(&self,salario_in:f64)->bool{
+	fn salario_mayor_a(&self,salario_in:f64)->bool{
 		return self.salario > salario_in;
 	}
+
+
 }
