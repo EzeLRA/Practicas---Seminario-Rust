@@ -1,3 +1,4 @@
+use std::collections::LinkedList;
 
 //Estructura Persona 
 #[derive(Debug,Clone)]
@@ -64,5 +65,36 @@ impl<'a> DatosPersona<'a> for Persona<'a> {
 		return self.salario > salario_in;
 	}
 
+}
+
+//Averiguar como implementar traits para Iterators 
+
+//Modulo primarios
+pub fn modulo_a<'a>(v:&'a Vec<Persona<'a>>,s:f64)->LinkedList<Persona<'a>>{
+	let mut res = LinkedList::new();
+
+	for p in v.iter(){
+		if p.obtener_salario() > s {
+			res.push_back(p.clone());
+		}
+	}
+
+	return res;
+}
+
+#[cfg(test)]
+mod test_ejercicio2{
+	use super::*;
+
+	#[test]
+	fn procesar_salarios(){
+		let mut vector : Vec<Persona> = Vec::new();
+		vector.push(Persona::new("Carlos","Maro","AvSanMartin","BuenosAires",50000.0,30));
+		let res = modulo_a(&vector,1000.0);
+		if let Some(p) = res.back(){
+			assert_eq!(p.salario_mayor_a(1000.0),true);
+		}
+		
+	}
 
 }
