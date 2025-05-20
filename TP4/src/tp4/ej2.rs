@@ -87,11 +87,25 @@ pub trait PersonaIteratorExt<'a>: Iterator<Item = &'a Persona<'a>> + Sized {
         Persona<'a>: Clone,
 	{	
 		for p in self.cloned() {
-			if(p.obtener_ciudad() != nom_ciu){
+			if p.obtener_ciudad() != nom_ciu {
 				return false;
 			}
 		}
 		return true;
+	}
+	fn modulo_d(self, nom_ciu : String)-> bool
+	where
+        Persona<'a>: Clone,
+	{	
+		let mut it = self.cloned();
+		return it.any(|p| p.obtener_ciudad() == nom_ciu);
+	}
+	fn modulo_e(self, p2 : Persona<'a>)-> bool
+	where
+        Persona<'a>: Clone,
+	{	
+		let mut it = self.cloned();
+		return it.any(|p| p.es_igual_a(p2.clone() ) );
 	}
 }
 
@@ -116,7 +130,7 @@ mod test_ejercicio2{
 
 		let res = vector.iter().modulo_a(1000.0);
 		
-		if(!res.is_empty()){
+		if !res.is_empty() {
 			for p in res.iter(){
 				assert_eq!(p.salario_mayor_a(1000.0),true);
 			}
@@ -127,7 +141,7 @@ mod test_ejercicio2{
 		//Personas mayores a una edad y residentes de una ciudad
 		let res = vector.iter().modulo_b(10,"Buenos Aires".to_string());
 		
-		if(!res.is_empty()){
+		if !res.is_empty() {
 			for p in res.iter(){
 				assert_eq!((p.obtener_edad() > 10),true);
 				assert_eq!(p.obtener_ciudad() == "Buenos Aires".to_string(),true);
@@ -139,18 +153,23 @@ mod test_ejercicio2{
 	}
 
 	#[test]
-	fn personas_de_una_ciudad(){
+	fn personas_ciudadanos(){
 		//Personas de Buenos Aires
 		let mut vector : Vec<Persona> = Vec::new();
 		vector.push(Persona::new("Carlos","Maro","AvSanMartin","Buenos Aires",1500.0,30));
 		vector.push(Persona::new("Maria","Mercedes","AvBelgrano","Buenos Aires",2000.0,25));
 		vector.push(Persona::new("Julian","Wen","AvLibertad","Buenos Aires",2800.0,28));
 		
+		assert_eq!(vector.iter().modulo_d("La Plata".to_string()),false);
 		assert!(vector.iter().modulo_c("Buenos Aires".to_string()));
 
 		vector.push(Persona::new("Julio","Mora","Av1yCa2","La Plata",3800.0,28));
 
 		assert_eq!(vector.iter().modulo_c("Buenos Aires".to_string()),false);
+		assert_eq!(vector.iter().modulo_d("La Plata".to_string()),true);
+
+		//Verficar que no exista un problema de borrow
+		assert!(vector.iter().modulo_e(Persona::new("Carlos","Maro","AvSanMartin","Buenos Aires",1500.0,30)));
 	}
 
 }
