@@ -67,19 +67,39 @@ impl<'a> DatosPersona<'a> for Persona<'a> {
 
 }
 
-//Averiguar como implementar traits para Iterators 
+//Trait primario
 
-//Modulo primarios
-pub fn modulo_a<'a>(v:&'a Vec<Persona<'a>>,s:f64)->LinkedList<Persona<'a>>{
-	let mut res = LinkedList::new();
-
-	for p in v.iter(){
-		if p.obtener_salario() > s {
-			res.push_back(p.clone());
-		}
+pub trait PersonaIteratorExt<'a>: Iterator<Item = &'a Persona<'a>> + Sized {
+    fn modulo_a(self, monto: f64) -> LinkedList<Persona<'a>>
+	where
+        Persona<'a>: Clone,
+    {
+        return self.filter(|p| p.obtener_salario() > monto).cloned().collect()
+    }
+	fn modulo_b(self, edad:u8 , nom_ciu : String)-> LinkedList<Persona<'a>>
+	where
+        Persona<'a>: Clone,
+	{
+		return self.filter(|p| (p.obtener_edad() > edad)&&(p.obtener_ciudad() == nom_ciu)).cloned().collect()
 	}
+	fn modulo_c(self, nom_ciu : String)-> bool
+	where
+        Persona<'a>: Clone,
+	{	
+		for p in self.cloned() {
+			if(p.obtener_ciudad() != nom_ciu){
+				return false;
+			}
+		}
+		return true;
+	}
+}
 
-	return res;
+impl<'a, I> PersonaIteratorExt<'a> for I
+where
+    I: Iterator<Item = &'a Persona<'a>>,
+{
+    // Usa la implementación por defecto del trait
 }
 
 #[cfg(test)]
@@ -87,14 +107,50 @@ mod test_ejercicio2{
 	use super::*;
 
 	#[test]
-	fn procesar_salarios(){
+	fn procesar_listados(){
+		//Personas con salarios mayor a un monto
 		let mut vector : Vec<Persona> = Vec::new();
-		vector.push(Persona::new("Carlos","Maro","AvSanMartin","BuenosAires",50000.0,30));
-		let res = modulo_a(&vector,1000.0);
-		if let Some(p) = res.back(){
-			assert_eq!(p.salario_mayor_a(1000.0),true);
-		}
+		vector.push(Persona::new("Carlos","Maro","AvSanMartin","Buenos Aires",1500.0,30));
+		vector.push(Persona::new("Maria","Mercedes","AvBelgrano","Buenos Aires",2000.0,25));
+		vector.push(Persona::new("Julian","Wen","AvLibertad","Buenos Aires",2800.0,28));
+
+		let res = vector.iter().modulo_a(1000.0);
 		
+		if(!res.is_empty()){
+			for p in res.iter(){
+				assert_eq!(p.salario_mayor_a(1000.0),true);
+			}
+		}else{
+			panic!("La estructura esta vacia , porque 'vector' no se cargo ninguna persona con tal condicion");
+		}
+
+		//Personas mayores a una edad y residentes de una ciudad
+		let res = vector.iter().modulo_b(10,"Buenos Aires".to_string());
+		
+		if(!res.is_empty()){
+			for p in res.iter(){
+				assert_eq!((p.obtener_edad() > 10),true);
+				assert_eq!(p.obtener_ciudad() == "Buenos Aires".to_string(),true);
+			}
+		}else{
+			panic!("La estructura esta vacia , porque 'vector' no se cargo ninguna persona con tal condicion");
+		}
+
+	}
+
+	#[test]
+	fn personas_de_una_ciudad(){
+		//Personas de Buenos Aires
+		let mut vector : Vec<Persona> = Vec::new();
+		vector.push(Persona::new("Carlos","Maro","AvSanMartin","Buenos Aires",1500.0,30));
+		vector.push(Persona::new("Maria","Mercedes","AvBelgrano","Buenos Aires",2000.0,25));
+		vector.push(Persona::new("Julian","Wen","AvLibertad","Buenos Aires",2800.0,28));
+		
+		assert!(vector.iter().modulo_c("Buenos Aires".to_string()));
+
+		vector.push(Persona::new("Julio","Mora","Av1yCa2","La Plata",3800.0,28));
+
+		assert_eq!(vector.iter().modulo_c("Buenos Aires".to_string()),false);
 	}
 
 }
