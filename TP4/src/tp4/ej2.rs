@@ -107,6 +107,43 @@ pub trait PersonaIteratorExt<'a>: Iterator<Item = &'a Persona<'a>> + Sized {
 		let mut it = self.cloned();
 		return it.any(|p| p.es_igual_a(p2.clone() ) );
 	}
+	fn modulo_f<const N:usize>(self)-> [u8;N]
+	where
+    	Self: Sized, 
+	{
+    	let mut result = [0u8; N]; 
+
+	    for (i, edad) in self.map(|p| p.obtener_edad()).enumerate().take(N) {
+	        result[i] = edad;
+	    }
+    
+    	return result;
+	}
+	//Revisar que las personas se reciban como option (corregir)
+	fn modulo_g<const N:usize>(self, pMax:&mut Persona<'a> , pMin:&mut Persona<'a>)
+	where
+    	Self: Sized,
+    	Persona<'a>: Clone,
+	{
+		let mut max : f64 = -1.0;
+		let mut min : f64 = f64::MAX;
+    	
+    	for persona in self {
+    		let salario = persona.obtener_salario();
+    		let edad = persona.obtener_edad();
+    		//Procesa pMax
+    		if (salario > max) || (salario == max && edad > pMax.obtener_edad()){
+    			max = salario;
+    			*pMax = persona.clone();
+    		}
+    		//Procesa pMin
+    		if (salario < min) || (salario == max && edad < pMin.obtener_edad()) {
+    			min = salario;
+    			*pMin = persona.clone();
+    		}
+    	}
+	}
+
 }
 
 impl<'a, I> PersonaIteratorExt<'a> for I
@@ -170,6 +207,22 @@ mod test_ejercicio2{
 
 		//Verficar que no exista un problema de borrow
 		assert!(vector.iter().modulo_e(Persona::new("Carlos","Maro","AvSanMartin","Buenos Aires",1500.0,30)));
+	}
+
+	//Consultar si se debe usar arrays o ArrayList
+	#[test]
+	fn procesar_arrays(){
+		const N : usize = 3;
+		let personas: [Persona; N] = [
+		    Persona::new("Juan","Cruz", "Av1y12","Buenos Aires", 2500.0, 30),
+		    Persona::new("Ana","Lucia", "Pichincha","Buenos Aires" ,3000.0, 25),
+		    Persona::new("Carlos","Del Monte", "AvVenezuela","Buenos Aires" ,2500.0, 40), // Mismo salario que Juan pero mayor edad
+		];
+		let res: [u8; N] = personas.iter().modulo_f();
+		assert_eq!(res.is_empty(),false);
+		//Probar mas cosas
+
+		//Probar modulo_g
 	}
 
 }
