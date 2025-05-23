@@ -70,20 +70,21 @@ impl<'a> DatosPersona<'a> for Persona<'a> {
 //Trait primario
 
 pub trait PersonaIteratorExt<'a>: Iterator<Item = &'a Persona<'a>> + Sized {
-    fn modulo_a(self, monto: f64) -> LinkedList<Persona<'a>>
+    fn salarios_mayores_a(self, monto: f64) -> LinkedList<Persona<'a>>
 	where
         Persona<'a>: Clone,
     {
         return self.filter(|p| p.obtener_salario() > monto).cloned().collect()
     }
-	fn modulo_b(self, edad:u8 , nom_ciu : String)-> LinkedList<Persona<'a>>
+	fn ciudadanos_mayores_a(self, edad:u8 , nom_ciu : String)-> LinkedList<Persona<'a>>
 	where
         Persona<'a>: Clone,
 	{
 		return self.filter(|p| (p.obtener_edad() > edad)&&(p.obtener_ciudad() == nom_ciu)).cloned().collect()
 	}
-	fn modulo_c(self, nom_ciu : String)-> bool
+	fn ciudadanos_pertenecientes_a(self, nom_ciu : String)-> bool
 	where
+		Self : Clone,
         Persona<'a>: Clone,
 	{	
 		for p in self.cloned() {
@@ -93,55 +94,67 @@ pub trait PersonaIteratorExt<'a>: Iterator<Item = &'a Persona<'a>> + Sized {
 		}
 		return true;
 	}
-	fn modulo_d(self, nom_ciu : String)-> bool
+	fn ciudadanos_existentes_en(self, nom_ciu : String)-> bool
 	where
+		Self : Clone,
         Persona<'a>: Clone,
 	{	
 		let mut it = self.cloned();
 		return it.any(|p| p.obtener_ciudad() == nom_ciu);
 	}
-	fn modulo_e(self, p2 : Persona<'a>)-> bool
+	fn existe_persona(self, p2 : Persona<'a>)-> bool
 	where
+		Self : Clone,
         Persona<'a>: Clone,
 	{	
 		let mut it = self.cloned();
 		return it.any(|p| p.es_igual_a(p2.clone() ) );
 	}
-	fn modulo_f<const N:usize>(self)-> [u8;N]
-	where
-    	Self: Sized, 
-	{
-    	let mut result = [0u8; N]; 
 
-	    for (i, edad) in self.map(|p| p.obtener_edad()).enumerate().take(N) {
-	        result[i] = edad;
-	    }
-    
-    	return result;
-	}
-	//Revisar que las personas se reciban como option (corregir)
-	fn modulo_g<const N:usize>(self, pMax:&mut Persona<'a> , pMin:&mut Persona<'a>)
+	fn obtener_edades(self) -> Vec<u8>
 	where
-    	Self: Sized,
-    	Persona<'a>: Clone,
+        Persona<'a>: Clone,
 	{
-		let mut max : f64 = -1.0;
-		let mut min : f64 = f64::MAX;
-    	
-    	for persona in self {
-    		let salario = persona.obtener_salario();
-    		let edad = persona.obtener_edad();
-    		//Procesa pMax
-    		if (salario > max) || (salario == max && edad > pMax.obtener_edad()){
-    			max = salario;
-    			*pMax = persona.clone();
-    		}
-    		//Procesa pMin
-    		if (salario < min) || (salario == max && edad < pMin.obtener_edad()) {
-    			min = salario;
-    			*pMin = persona.clone();
-    		}
-    	}
+    	return self.map(|p| p.obtener_edad()).collect()
+	}
+	//Revisar que las personas se reciban como option (probarlo)
+	fn salarios_maximos_minimos(&self, p_max:&mut Option<Persona<'a>> , p_min:&mut Option<Persona<'a>>)
+	where
+    	Self : Clone,
+    	Persona<'a>: Clone,
+	{	
+		let mut pMax : Option<Persona<'a>> = None;
+		let mut pMin : Option<Persona<'a>> = None;
+		if self.clone().next().is_some(){
+			let mut max : f64 = -1.0;
+			let mut min : f64 = f64::MAX;
+			
+			let mut edad_p1 : u8 = 0;
+			let mut edad_p2 : u8 = 0;
+	
+			for persona in self.clone() {
+				let salario = persona.obtener_salario();
+				let edad = persona.obtener_edad();
+				//Procesa pMax
+				if (salario > max) || (salario == max && edad > edad_p1){
+					max = salario;
+					edad_p1 = edad;
+					pMax = Some(persona.clone());
+				}
+				//Procesa pMin
+				if (salario < min) || (salario == max && edad > edad_p2) {
+					min = salario;
+					edad_p2 = edad;
+					pMin = Some(persona.clone());
+				}
+			}
+
+		}
+		
+		//Retorno 
+		*p_max = pMax ;
+		*p_min = pMin ;
+		
 	}
 
 }
@@ -152,6 +165,11 @@ where
 {
     // Usa la implementación por defecto del trait
 }
+
+/*
+	HACER VALIDACIONES PROFUNDAS (Profundizar los testings)
+*/
+
 
 #[cfg(test)]
 mod test_ejercicio2{
@@ -165,7 +183,7 @@ mod test_ejercicio2{
 		vector.push(Persona::new("Maria","Mercedes","AvBelgrano","Buenos Aires",2000.0,25));
 		vector.push(Persona::new("Julian","Wen","AvLibertad","Buenos Aires",2800.0,28));
 
-		let res = vector.iter().modulo_a(1000.0);
+		let res = vector.iter().salarios_mayores_a(1000.0);
 		
 		if !res.is_empty() {
 			for p in res.iter(){
@@ -176,7 +194,7 @@ mod test_ejercicio2{
 		}
 
 		//Personas mayores a una edad y residentes de una ciudad
-		let res = vector.iter().modulo_b(10,"Buenos Aires".to_string());
+		let res = vector.iter().ciudadanos_mayores_a(10,"Buenos Aires".to_string());
 		
 		if !res.is_empty() {
 			for p in res.iter(){
@@ -197,32 +215,37 @@ mod test_ejercicio2{
 		vector.push(Persona::new("Maria","Mercedes","AvBelgrano","Buenos Aires",2000.0,25));
 		vector.push(Persona::new("Julian","Wen","AvLibertad","Buenos Aires",2800.0,28));
 		
-		assert_eq!(vector.iter().modulo_d("La Plata".to_string()),false);
-		assert!(vector.iter().modulo_c("Buenos Aires".to_string()));
+		assert_eq!(vector.iter().ciudadanos_existentes_en("La Plata".to_string()),false);
+		assert!(vector.iter().ciudadanos_pertenecientes_a("Buenos Aires".to_string()));
 
 		vector.push(Persona::new("Julio","Mora","Av1yCa2","La Plata",3800.0,28));
 
-		assert_eq!(vector.iter().modulo_c("Buenos Aires".to_string()),false);
-		assert_eq!(vector.iter().modulo_d("La Plata".to_string()),true);
+		assert_eq!(vector.iter().ciudadanos_pertenecientes_a("Buenos Aires".to_string()),false);
+		assert_eq!(vector.iter().ciudadanos_existentes_en("La Plata".to_string()),true);
 
 		//Verficar que no exista un problema de borrow
-		assert!(vector.iter().modulo_e(Persona::new("Carlos","Maro","AvSanMartin","Buenos Aires",1500.0,30)));
+		assert!(vector.iter().existe_persona(Persona::new("Carlos","Maro","AvSanMartin","Buenos Aires",1500.0,30)));
 	}
 
-	//Consultar si se debe usar arrays o ArrayList
 	#[test]
 	fn procesar_arrays(){
-		const N : usize = 3;
-		let personas: [Persona; N] = [
-		    Persona::new("Juan","Cruz", "Av1y12","Buenos Aires", 2500.0, 30),
-		    Persona::new("Ana","Lucia", "Pichincha","Buenos Aires" ,3000.0, 25),
-		    Persona::new("Carlos","Del Monte", "AvVenezuela","Buenos Aires" ,2500.0, 40), // Mismo salario que Juan pero mayor edad
+		let mut personas : Vec<Persona> = vec![
+			Persona::new("Juan","Cruz", "Av1y12","Buenos Aires", 2500.0, 30),
+			Persona::new("Ana","Lucia", "Pichincha","Buenos Aires" ,3000.0, 25),
+			Persona::new("Ana","Lucia", "Pichincha","Buenos Aires" ,3000.0, 50),
+			Persona::new("Carlos","Del Monte", "AvVenezuela","Buenos Aires" ,2500.0, 40)
 		];
-		let res: [u8; N] = personas.iter().modulo_f();
+		
+		let res = personas.iter().obtener_edades();
 		assert_eq!(res.is_empty(),false);
-		//Probar mas cosas
+		
+		let mut p_max : Option<Persona> = None;
+		let mut p_min : Option<Persona> = None;
 
-		//Probar modulo_g
+		personas.iter().salarios_maximos_minimos(&mut p_max,&mut p_min);
+		assert!(p_max.is_some());
+		assert!(p_min.is_some());
+		
 	}
 
 }

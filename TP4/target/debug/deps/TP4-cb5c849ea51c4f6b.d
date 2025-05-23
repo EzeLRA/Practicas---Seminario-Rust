@@ -1,8 +1,9 @@
-/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP4/target/debug/deps/TP4-cb5c849ea51c4f6b: src/main.rs src/tp4/mod.rs src/tp4/ej1.rs src/tp4/ej2.rs
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP4/target/debug/deps/TP4-cb5c849ea51c4f6b: src/main.rs src/tp4/mod.rs src/tp4/ej1.rs src/tp4/ej2.rs src/tp4/ej3.rs
 
-/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP4/target/debug/deps/TP4-cb5c849ea51c4f6b.d: src/main.rs src/tp4/mod.rs src/tp4/ej1.rs src/tp4/ej2.rs
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP4/target/debug/deps/TP4-cb5c849ea51c4f6b.d: src/main.rs src/tp4/mod.rs src/tp4/ej1.rs src/tp4/ej2.rs src/tp4/ej3.rs
 
 src/main.rs:
 src/tp4/mod.rs:
 src/tp4/ej1.rs:
 src/tp4/ej2.rs:
+src/tp4/ej3.rs:
