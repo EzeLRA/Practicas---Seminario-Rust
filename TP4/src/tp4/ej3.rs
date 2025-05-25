@@ -34,7 +34,8 @@ pub struct Suscripcion_activa{
 pub struct Usuario{
 	nombre : String,
 	dni : u16 ,
-	suscripcion : Suscripcion_activa	//Integrar Option<Suscripcion_activa>
+	suscripcion_actual : Option<Suscripcion_activa>
+	suscripcion_anterior : Option<Suscripcion_activa>
 }
 
 /*
@@ -58,6 +59,8 @@ pub trait DatosUsuario{
 	fn get_dni(&self)->u16;
 	fn set_nombre(&mut self, nom : &String);
 	fn set_dni(&mut self, dni_in : u16);
+	fn get_suscripcion(&self)->Option<Suscripcion_activa>;
+	fn set_suscripcion(&mut self,s:&Suscripcion_activa);
 }
 impl DatosUsuario for Usuario{
 	fn get_nombre(&self)->String{
@@ -72,17 +75,19 @@ impl DatosUsuario for Usuario{
 	fn set_dni(&mut self, dni_in : u16){
 		self.dni = dni_in;
 	}
-}
-impl Usuario{
-	fn new(nom:&String,dni_in:u16,s:&Suscripcion_activa)->Usuario{
-		return Usuario{
-			nombre : nom.clone(),
-			dni : dni_in,
-			suscripcion : s.clone()	//Integrar Option<Suscripcion_activa>
+	fn get_suscripcion(&self)->Option<Suscripcion_activa>{
+		if let Some(s) = self.suscripcion_actual.clone(){
+			return Some(s);
+		}else{
+			return None;
 		}
 	}
-	//Implementar cambio de estado de suscripcion (pueda elevar o releevar de tipo)
+	fn set_suscripcion(&mut self,s:&Suscripcion_activa){
+		self.suscripcion_anterior = self.suscripcion_actual.clone();
+		self.suscripcion_actual = Some(s.clone());
+	}
 }
+
 impl DatosSuscripcion for Suscripcion_activa {
 	fn set_costo(&mut self,monto : f64){
 		self.costo_mensual = monto;
@@ -150,3 +155,164 @@ impl Suscripcion_activa{
 		return true;
 	}
 }
+
+impl Usuario{
+	fn new(nom:&String,dni_in:u16,s:&Suscripcion_activa)->Usuario{
+		return Usuario{
+			nombre : nom.clone(),
+			dni : dni_in,
+			suscripcion_actual : Some(s.clone()),
+			suscripcion_anterior : None	
+		}
+	}
+	fn upgrade_suscripcion(&mut self){
+		if let Some(mut s) = self.get_suscripcion(){
+			if s.upgrade(){
+				self.suscripcion_anterior = self.suscripcion_actual.clone();
+				self.suscripcion_actual = Some(s);
+			}
+		}
+	}
+	fn downgrade_suscripcion(&mut self){
+		if let Some(mut s) = self.get_suscripcion(){
+			self.suscripcion_anterior = self.suscripcion_actual.clone();
+			if !s.downgrade(){
+				self.suscripcion_actual = None;
+			}else{
+				self.suscripcion_actual = Some(s);
+			}
+		}
+	}
+	fn cancelar_suscripcion(&mut self){
+		if self.suscripcion_actual.is_some(){
+			self.suscripcion_anterior = self.suscripcion_actual.clone();
+			self.suscripcion_actual = None;
+		}
+	}
+}
+
+pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
+	fn upgrade_usuario(&mut self,user1:&Usuario){
+		for mut user in self{
+			if user == user1.clone() {
+				user.upgrade_suscripcion();
+				break;
+			}
+		}
+	}
+
+	fn downgrade_usuario(&mut self,user1:&Usuario){
+		for mut user in self{
+			if user == user1.clone() {
+				user.downgrade_suscripcion();
+				break;
+			}
+		}
+	}
+
+	fn cancelar_suscripcion_usuario(&mut self,user1:&Usuario){
+		for mut user in self{
+			if user == user1.clone() {
+				user.cancelar_suscripcion();
+				break;
+			}
+		}
+	}
+
+	fn metodo_pago_mas_usado(&self)->Option<Medios_de_pago>
+	where
+		Self: Clone,
+	{	
+		if self.clone().next().is_some(){
+			let mut res : Option<Medios_de_pago>;
+
+			let mut metodos_cant = [0; 5]; 
+			for user in self.clone(){
+				if let Some(s) = user.get_suscripcion(){
+					match s.get_medio(){
+						Medios_de_pago::Efectivo => metodos_cant[0] +=1,
+						Medios_de_pago::Mercado_pago => metodos_cant[1] +=1,
+						Medios_de_pago::Transferencia_bancaria => metodos_cant[2] +=1,
+						Medios_de_pago::Tarjeta_de_credito => metodos_cant[3] +=1,
+						Medios_de_pago::Criptomoneda => metodos_cant[4] +=1,
+					}
+				}
+			}
+			//Obtener el maximo del array
+			
+			let mut max = -1;
+			let mut pos : u8 = 0;
+			for i in 0..4 {
+				if metodos_cant[i] < max {
+					max = metodos_cant[i];
+					pos = i as u8;
+				}
+			}
+
+			//Retornar segun posicion el tipo de pago con mas cantidad
+			
+			match pos {
+			    0 => res = Some(Medios_de_pago::Efectivo),
+			    1 => res = Some(Medios_de_pago::Mercado_pago),
+			    2 => res = Some(Medios_de_pago::Transferencia_bancaria),
+			    3 => res = Some(Medios_de_pago::Tarjeta_de_credito),
+			    4 => res = Some(Medios_de_pago::Criptomoneda),
+				_ => res = None,
+		   	}
+			
+
+			return res;
+		}
+		return None
+	}
+	fn suscripcion_mas_contratado(&self)->Option<Suscripciones>
+	where
+		Self: Clone,
+	{	
+		if self.clone().next().is_some(){
+			let mut res : Option<Suscripciones>;
+
+			let mut tipos_cant = [0; 3]; 
+			for user in self.clone(){
+				if let Some(s) = user.get_suscripcion(){
+					match s.get_tipo(){
+						Suscripciones::Basic => tipos_cant[0] +=1,
+						Suscripciones::Clasic => tipos_cant[1] +=1,
+						Suscripciones::Super => tipos_cant[2] +=1,
+					}
+				}
+			}
+			//Obtener el maximo del array
+			
+			let mut max = -1;
+			let mut pos : u8 = 0;
+			for i in 0..4 {
+				if tipos_cant[i] < max {
+					max = tipos_cant[i];
+					pos = i as u8;
+				}
+			}
+
+			//Retornar segun posicion el tipo de pago con mas cantidad
+			
+			match pos {
+			    0 => res = Some(Suscripciones::Basic),
+			    1 => res = Some(Suscripciones::Clasic),
+			    2 => res = Some(Suscripciones::Super),
+				_ => res = None,
+		   	}
+			
+
+			return res;
+		}
+		return None
+	}
+}
+
+impl<I> UsuariosIteratorExt for I
+where
+    I: Iterator<Item = Usuario>,
+{
+    // Usa la implementación por defecto del trait
+}
+
