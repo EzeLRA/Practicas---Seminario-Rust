@@ -455,8 +455,43 @@ mod test_ejercicio2{
 
 	#[test]
 	fn operar_suscripcion_usuarios(){
-		//Testear estructura de usuarios
-		assert!(true);
+		let mut usuario1 = Usuario::new(&"Daniel".to_string() , 
+		64254 , 
+		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+			 123.5,
+			  5, 
+			  120325, 
+			  Medios_de_pago::Transferencia_bancaria));
+		let mut usuario2 = Usuario::new(&"Tobias".to_string() , 
+		93843 , 
+		&Suscripcion_activa::crear_suscripcion(Suscripciones::Super,
+			 225.5,
+			  12, 
+			  310325, 
+			  Medios_de_pago::Transferencia_bancaria));
+		let mut usuario3 = Usuario::new(&"Marcos".to_string() , 
+		542134 , 
+		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+			 103.5,
+			  3, 
+			  120525, 
+			  Medios_de_pago::Efectivo));
+		let mut usuario1 = Usuario::new(&"Dario".to_string() , 
+	32124 , 
+		&Suscripcion_activa::crear_suscripcion(Suscripciones::Clasic,
+			 183.5,
+			  7, 
+			  120125, 
+			  Medios_de_pago::Criptomoneda));
+	
+		let mut usuarios : Vec<Usuario> = Vec::new();
+		
+		assert!(usuarios.into_iter().suscripcion_anterior_mas_contratada().is_none());
+		//Arreglar problemas de borrowing
+		//assert!(usuarios.into_iter().suscripcion_mas_contratada().is_none());
+		//assert!(usuarios.into_iter().metodo_pago_anterior_mas_usado().is_none());
+		//assert!(usuarios.into_iter().metodo_pago_mas_usado().is_none());
+	
 	}
 
 }
