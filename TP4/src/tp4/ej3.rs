@@ -1,3 +1,6 @@
+use std::borrow::Borrow;
+use std::collections::BinaryHeap;
+
 /*
 	Estructuras secundarias : Suscripciones , Medios de pago y 
 */
@@ -197,8 +200,35 @@ impl Usuario{
 	}
 }
 
-pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
-	fn upgrade_usuario(&mut self,user1:&Usuario){
+//Funcion auxiliar para obtener un maximo de un vector (u8)
+fn obtener_max<const N:usize>(arr: [u8;N])->Option<u8>{
+	let max_res = BinaryHeap::from(arr);
+	return max_res.peek().copied();
+}
+
+pub trait UsuariosIteratorExt: Iterator + Sized 
+{
+	fn upgrade_usuario(&mut self,user1:&Usuario);
+
+	fn downgrade_usuario(&mut self,user1:&Usuario);
+
+	fn cancelar_suscripcion_usuario(&mut self,user1:&Usuario);
+
+	fn metodo_pago_mas_usado(&self)->Option<Medios_de_pago>;
+	
+	fn suscripcion_mas_contratada(&self)->Option<Suscripciones>;
+	
+	fn metodo_pago_anterior_mas_usado(&self)->Option<Medios_de_pago>;
+	
+	fn suscripcion_anterior_mas_contratada(&self)->Option<Suscripciones>;
+	
+}
+
+impl<'a, I> UsuariosIteratorExt for I
+where
+    I: Iterator<Item = Usuario> + Clone,
+{
+    fn upgrade_usuario(&mut self,user1:&Usuario){
 		for mut user in self{
 			if user == user1.clone() {
 				user.upgrade_suscripcion();
@@ -229,11 +259,12 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 	where
 		Self: Clone,
 	{	
-		if self.clone().next().is_some(){
+		let mut it = self.clone().peekable();
+		if it.peek().is_some(){
 			let mut res : Option<Medios_de_pago>;
 
 			let mut metodos_cant = [0; 5]; 
-			for user in self.clone(){
+			for user in it{
 				if let Some(s) = user.get_suscripcion_actual(){
 					match s.get_medio(){
 						Medios_de_pago::Efectivo => metodos_cant[0] +=1,
@@ -246,6 +277,7 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 			}
 			//Obtener el maximo del array
 			
+			/*
 			let mut max = -1;
 			let mut pos : u8 = 0;
 			for i in 0..4 {
@@ -254,6 +286,8 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 					pos = i as u8;
 				}
 			}
+			*/
+			let pos = if let Some(s) = obtener_max(metodos_cant) {s}else{5};
 
 			//Retornar segun posicion el tipo de pago con mas cantidad
 			
@@ -275,11 +309,12 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 	where
 		Self: Clone,
 	{	
-		if self.clone().next().is_some(){
+		let mut it = self.clone().peekable();
+		if it.peek().is_some(){
 			let mut res : Option<Suscripciones>;
 
 			let mut tipos_cant = [0; 3]; 
-			for user in self.clone(){
+			for user in it{
 				if let Some(s) = user.get_suscripcion_actual(){
 					match s.get_tipo(){
 						Suscripciones::Basic => tipos_cant[0] +=1,
@@ -290,6 +325,7 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 			}
 			//Obtener el maximo del array
 			
+			/*
 			let mut max = -1;
 			let mut pos : u8 = 0;
 			for i in 0..4 {
@@ -298,6 +334,8 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 					pos = i as u8;
 				}
 			}
+			*/
+			let pos = if let Some(s) = obtener_max(tipos_cant) {s}else{5};
 
 			//Retornar segun posicion del tipo de pago con mas cantidad
 			
@@ -317,11 +355,12 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 	where
 		Self: Clone,
 	{	
-		if self.clone().next().is_some(){
+		let mut it = self.clone().peekable();
+		if it.peek().is_some(){
 			let mut res : Option<Medios_de_pago>;
 
 			let mut metodos_cant = [0; 5]; 
-			for user in self.clone(){
+			for user in it{
 				if let Some(s) = user.get_suscripcion_anterior(){
 					match s.get_medio(){
 						Medios_de_pago::Efectivo => metodos_cant[0] +=1,
@@ -334,6 +373,7 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 			}
 			//Obtener el maximo del array
 			
+			/*
 			let mut max = -1;
 			let mut pos : u8 = 0;
 			for i in 0..4 {
@@ -342,6 +382,8 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 					pos = i as u8;
 				}
 			}
+			*/
+			let pos = if let Some(s) = obtener_max(metodos_cant) {s}else{5};
 
 			//Retornar segun posicion el tipo de pago con mas cantidad
 			
@@ -363,11 +405,12 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 	where
 		Self: Clone,
 	{	
-		if self.clone().next().is_some(){
+		let mut it = self.clone().peekable();
+		if it.peek().is_some(){
 			let mut res : Option<Suscripciones>;
 
 			let mut tipos_cant = [0; 3]; 
-			for user in self.clone(){
+			for user in it{
 				if let Some(s) = user.get_suscripcion_anterior(){
 					match s.get_tipo(){
 						Suscripciones::Basic => tipos_cant[0] +=1,
@@ -378,6 +421,7 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 			}
 			//Obtener el maximo del array
 			
+			/*
 			let mut max = -1;
 			let mut pos : u8 = 0;
 			for i in 0..4 {
@@ -386,6 +430,8 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 					pos = i as u8;
 				}
 			}
+			*/
+			let pos = if let Some(s) = obtener_max(tipos_cant) {s}else{5};
 
 			//Retornar segun posicion del tipo de pago con mas cantidad
 			
@@ -401,13 +447,6 @@ pub trait UsuariosIteratorExt: Iterator<Item = Usuario> + Sized {
 		}
 		return None
 	}
-}
-
-impl<I> UsuariosIteratorExt for I
-where
-    I: Iterator<Item = Usuario>,
-{
-    // Usa la implementación por defecto del trait
 }
 
 #[cfg(test)]
@@ -485,10 +524,13 @@ mod test_ejercicio2{
 			  Medios_de_pago::Criptomoneda));
 	
 		let mut usuarios : Vec<Usuario> = Vec::new();
+		usuarios.push(usuario1);
+		//Solucionar error de trait
+		let res = usuarios.iter().suscripcion_mas_contratada();
+
+		//assert!(usuarios.iter().suscripcion_anterior_mas_contratada().is_none());
 		
-		assert!(usuarios.into_iter().suscripcion_anterior_mas_contratada().is_none());
-		//Arreglar problemas de borrowing
-		//assert!(usuarios.into_iter().suscripcion_mas_contratada().is_none());
+		//assert!(usuarios.iter().suscripcion_mas_contratada().is_none());
 		//assert!(usuarios.into_iter().metodo_pago_anterior_mas_usado().is_none());
 		//assert!(usuarios.into_iter().metodo_pago_mas_usado().is_none());
 	
