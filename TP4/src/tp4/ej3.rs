@@ -1,4 +1,3 @@
-use std::borrow::Borrow;
 use std::collections::BinaryHeap;
 
 /*
@@ -200,6 +199,9 @@ impl Usuario{
 	}
 }
 
+//ELIMINAR FUNCIONALIDAD ITERADOR (Ya que no es oblitorio)
+/* 
+
 //Funcion auxiliar para obtener un maximo de un vector (u8)
 fn obtener_max<const N:usize>(arr: [u8;N])->Option<u8>{
 	let max_res = BinaryHeap::from(arr);
@@ -224,13 +226,13 @@ pub trait UsuariosIteratorExt: Iterator + Sized
 	
 }
 
-impl<'a, I> UsuariosIteratorExt for I
+impl<'a,I> UsuariosIteratorExt for I
 where
-    I: Iterator<Item = Usuario> + Clone,
+    I: Iterator<Item =&'a Usuario> + Clone,
 {
     fn upgrade_usuario(&mut self,user1:&Usuario){
 		for mut user in self{
-			if user == user1.clone() {
+			if user == user1 {
 				user.upgrade_suscripcion();
 				break;
 			}
@@ -238,8 +240,8 @@ where
 	}
 
 	fn downgrade_usuario(&mut self,user1:&Usuario){
-		for mut user in self{
-			if user == user1.clone() {
+		for user in self{
+			if user == user1 {
 				user.downgrade_suscripcion();
 				break;
 			}
@@ -247,8 +249,8 @@ where
 	}
 
 	fn cancelar_suscripcion_usuario(&mut self,user1:&Usuario){
-		for mut user in self{
-			if user == user1.clone() {
+		for user in self{
+			if user == user1 {
 				user.cancelar_suscripcion();
 				break;
 			}
@@ -449,9 +451,13 @@ where
 	}
 }
 
+*/
+
 #[cfg(test)]
 mod test_ejercicio2{
-	use super::*;
+	use core::panic;
+
+use super::*;
 
 	#[test]
 	fn operar_suscripcion_usuario(){
@@ -492,6 +498,7 @@ mod test_ejercicio2{
 		}
 	}
 
+	/* 
 	#[test]
 	fn operar_suscripcion_usuarios(){
 		let mut usuario1 = Usuario::new(&"Daniel".to_string() , 
@@ -515,7 +522,7 @@ mod test_ejercicio2{
 			  3, 
 			  120525, 
 			  Medios_de_pago::Efectivo));
-		let mut usuario1 = Usuario::new(&"Dario".to_string() , 
+		let mut usuario4 = Usuario::new(&"Dario".to_string() , 
 	32124 , 
 		&Suscripcion_activa::crear_suscripcion(Suscripciones::Clasic,
 			 183.5,
@@ -524,16 +531,39 @@ mod test_ejercicio2{
 			  Medios_de_pago::Criptomoneda));
 	
 		let mut usuarios : Vec<Usuario> = Vec::new();
-		usuarios.push(usuario1);
-		//Solucionar error de trait
-		let res = usuarios.iter().suscripcion_mas_contratada();
 
-		//assert!(usuarios.iter().suscripcion_anterior_mas_contratada().is_none());
+		//let res = usuarios.into_iter().upgrade_usuario(&usuario1);
+
+		//let res = usuarios.clone().into_iter();
 		
-		//assert!(usuarios.iter().suscripcion_mas_contratada().is_none());
-		//assert!(usuarios.into_iter().metodo_pago_anterior_mas_usado().is_none());
-		//assert!(usuarios.into_iter().metodo_pago_mas_usado().is_none());
-	
+		//Retorno de resultado vacio
+		/* 
+		assert!(res.suscripcion_anterior_mas_contratada().is_none());
+		assert!(res.suscripcion_mas_contratada().is_none());
+		assert!(res.metodo_pago_anterior_mas_usado().is_none());
+		assert!(res.metodo_pago_mas_usado().is_none());
+		
+		usuarios.push(usuario1.clone());
+		usuarios.push(usuario2.clone());
+		usuarios.push(usuario3).clone();
+		usuarios.push(usuario4).clone();
+
+		let res = usuarios.clone().into_iter();
+		
+		//Retorno de resultado
+		assert!(res.suscripcion_anterior_mas_contratada().is_some());
+		assert!(res.suscripcion_mas_contratada().is_some());
+		assert!(res.metodo_pago_anterior_mas_usado().is_some());
+		assert!(res.metodo_pago_mas_usado().is_some());
+
+		usuarios.into_iter().upgrade_usuario(&usuario1);
+		if let Some(user) = usuarios.get(0){
+			assert_eq!(user,&usuario1);
+		}else{
+			panic!("Sin retorno de usuario");
+		}
+		*/
 	}
 
+	*/
 }
