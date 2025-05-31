@@ -11,6 +11,7 @@ pub enum Suscripciones{
 	Super
 }
 #[derive(PartialEq,Debug,Clone)]
+//No se agrego el tipo de dato que contienen cada dato porque no se piden calculos sobre la misma
 pub enum Medios_de_pago{
 	Efectivo,
 	Mercado_pago,
@@ -173,15 +174,17 @@ impl Usuario{
 			suscripcion_anterior : None	
 		}
 	}
-	fn upgrade_suscripcion(&mut self){
+	fn upgrade_suscripcion(&mut self)->bool{
 		if let Some(mut s) = self.get_suscripcion_actual(){
 			if s.upgrade(){
 				self.suscripcion_anterior = self.suscripcion_actual.clone();
 				self.suscripcion_actual = Some(s);
+				return true;
 			}
 		}
+		return false;
 	}
-	fn downgrade_suscripcion(&mut self){
+	fn downgrade_suscripcion(&mut self)->bool{
 		if let Some(mut s) = self.get_suscripcion_actual(){
 			self.suscripcion_anterior = self.suscripcion_actual.clone();
 			if !s.downgrade(){
@@ -189,84 +192,75 @@ impl Usuario{
 			}else{
 				self.suscripcion_actual = Some(s);
 			}
+			return true;
 		}
+		return false;
 	}
-	fn cancelar_suscripcion(&mut self){
+	fn cancelar_suscripcion(&mut self)->bool{
 		if self.suscripcion_actual.is_some(){
 			self.suscripcion_anterior = self.suscripcion_actual.clone();
 			self.suscripcion_actual = None;
+			return true;
 		}
+		return false;
+	}
+	fn es_igual_a(&self,u:&Usuario)->bool{
+		return (self.nombre == u.nombre)&&(self.dni == u.dni);
 	}
 }
-
-//ELIMINAR FUNCIONALIDAD ITERADOR (Ya que no es oblitorio)
-/* 
 
 //Funcion auxiliar para obtener un maximo de un vector (u8)
-fn obtener_max<const N:usize>(arr: [u8;N])->Option<u8>{
-	let max_res = BinaryHeap::from(arr);
-	return max_res.peek().copied();
+fn obtener_max<const N:usize>(arr: [u8;N])->Option<usize>{
+	if arr != [0;N] {
+		let mut max = 0;
+		arr.iter().enumerate().for_each(|(i,cantidad)| {
+			if *cantidad>arr[max] {
+				max = i;
+			}
+		});
+		return Some(max);
+	}
+	return None;
 }
 
-pub trait UsuariosIteratorExt: Iterator + Sized 
-{
-	fn upgrade_usuario(&mut self,user1:&Usuario);
-
-	fn downgrade_usuario(&mut self,user1:&Usuario);
-
-	fn cancelar_suscripcion_usuario(&mut self,user1:&Usuario);
-
-	fn metodo_pago_mas_usado(&self)->Option<Medios_de_pago>;
-	
-	fn suscripcion_mas_contratada(&self)->Option<Suscripciones>;
-	
-	fn metodo_pago_anterior_mas_usado(&self)->Option<Medios_de_pago>;
-	
-	fn suscripcion_anterior_mas_contratada(&self)->Option<Suscripciones>;
-	
+pub struct Plataforma{
+	usuarios : Vec<Usuario>
 }
-
-impl<'a,I> UsuariosIteratorExt for I
-where
-    I: Iterator<Item =&'a Usuario> + Clone,
-{
-    fn upgrade_usuario(&mut self,user1:&Usuario){
-		for mut user in self{
-			if user == user1 {
-				user.upgrade_suscripcion();
-				break;
-			}
-		}
+impl Plataforma{
+	fn new()->Plataforma{
+		return Plataforma { usuarios: Vec::new() }
 	}
-
-	fn downgrade_usuario(&mut self,user1:&Usuario){
-		for user in self{
-			if user == user1 {
-				user.downgrade_suscripcion();
-				break;
-			}
-		}
+	fn agregar(&mut self,u:Usuario){
+		self.usuarios.push(u);
 	}
-
-	fn cancelar_suscripcion_usuario(&mut self,user1:&Usuario){
-		for user in self{
-			if user == user1 {
-				user.cancelar_suscripcion();
-				break;
-			}
-		}
+	fn eliminar(&mut self,u:Usuario){
+		self.usuarios.pop();
 	}
-
+	fn upgrade_usuario(&mut self, usuario: &Usuario) -> bool {
+        match self.usuarios.iter_mut().find(|u| u.es_igual_a(&usuario)) {
+            Some(u) => return u.upgrade_suscripcion(),
+            None => return false,
+        }
+    }
+	fn downgrade_usuario(&mut self, usuario: &Usuario) -> bool {
+        match self.usuarios.iter_mut().find(|u| u.es_igual_a(&usuario)) {
+            Some(u) => return u.downgrade_suscripcion(),
+            None => return false,
+        }
+    }
+	fn cancelar_suscripcion(&mut self, usuario: &Usuario) -> bool {
+        match self.usuarios.iter_mut().find(|u| u.es_igual_a(&usuario)) {
+            Some(u) => return u.cancelar_suscripcion(),
+            None => return false,
+        }
+    }
 	fn metodo_pago_mas_usado(&self)->Option<Medios_de_pago>
-	where
-		Self: Clone,
 	{	
-		let mut it = self.clone().peekable();
-		if it.peek().is_some(){
-			let mut res : Option<Medios_de_pago>;
+		if !self.usuarios.is_empty(){
+			let mut res : Option<Medios_de_pago> = None;
 
-			let mut metodos_cant = [0; 5]; 
-			for user in it{
+			let mut metodos_cant = [0; 5];
+			self.usuarios.iter().for_each(|user| {
 				if let Some(s) = user.get_suscripcion_actual(){
 					match s.get_medio(){
 						Medios_de_pago::Efectivo => metodos_cant[0] +=1,
@@ -276,47 +270,31 @@ where
 						Medios_de_pago::Criptomoneda => metodos_cant[4] +=1,
 					}
 				}
-			}
-			//Obtener el maximo del array
+			});
 			
-			/*
-			let mut max = -1;
-			let mut pos : u8 = 0;
-			for i in 0..4 {
-				if metodos_cant[i] < max {
-					max = metodos_cant[i];
-					pos = i as u8;
+			//Retornar segun posicion el tipo de pago con mas cantidad
+			if let Some(pos) = obtener_max(metodos_cant) {
+				match pos {
+					0 => res = Some(Medios_de_pago::Efectivo),
+					1 => res = Some(Medios_de_pago::Mercado_pago),
+					2 => res = Some(Medios_de_pago::Transferencia_bancaria),
+					3 => res = Some(Medios_de_pago::Tarjeta_de_credito),
+					4 => res = Some(Medios_de_pago::Criptomoneda),
+					_ => res = None,
 				}
 			}
-			*/
-			let pos = if let Some(s) = obtener_max(metodos_cant) {s}else{5};
-
-			//Retornar segun posicion el tipo de pago con mas cantidad
-			
-			match pos {
-			    0 => res = Some(Medios_de_pago::Efectivo),
-			    1 => res = Some(Medios_de_pago::Mercado_pago),
-			    2 => res = Some(Medios_de_pago::Transferencia_bancaria),
-			    3 => res = Some(Medios_de_pago::Tarjeta_de_credito),
-			    4 => res = Some(Medios_de_pago::Criptomoneda),
-				_ => res = None,
-		   	}
-			
 
 			return res;
 		}
 		return None
 	}
 	fn suscripcion_mas_contratada(&self)->Option<Suscripciones>
-	where
-		Self: Clone,
 	{	
-		let mut it = self.clone().peekable();
-		if it.peek().is_some(){
-			let mut res : Option<Suscripciones>;
+		if !self.usuarios.is_empty(){
+			let mut res : Option<Suscripciones> = None;
 
 			let mut tipos_cant = [0; 3]; 
-			for user in it{
+			self.usuarios.iter().for_each(|user| {
 				if let Some(s) = user.get_suscripcion_actual(){
 					match s.get_tipo(){
 						Suscripciones::Basic => tipos_cant[0] +=1,
@@ -324,45 +302,29 @@ where
 						Suscripciones::Super => tipos_cant[2] +=1,
 					}
 				}
-			}
-			//Obtener el maximo del array
+			});
 			
-			/*
-			let mut max = -1;
-			let mut pos : u8 = 0;
-			for i in 0..4 {
-				if tipos_cant[i] < max {
-					max = tipos_cant[i];
-					pos = i as u8;
+			//Retornar segun posicion del tipo de pago con mas cantidad
+			if let Some(pos) = obtener_max(tipos_cant) {
+				match pos {
+					0 => res = Some(Suscripciones::Basic),
+					1 => res = Some(Suscripciones::Clasic),
+					2 => res = Some(Suscripciones::Super),
+					_ => res = None,
 				}
 			}
-			*/
-			let pos = if let Some(s) = obtener_max(tipos_cant) {s}else{5};
-
-			//Retornar segun posicion del tipo de pago con mas cantidad
-			
-			match pos {
-			    0 => res = Some(Suscripciones::Basic),
-			    1 => res = Some(Suscripciones::Clasic),
-			    2 => res = Some(Suscripciones::Super),
-				_ => res = None,
-		   	}
-			
 
 			return res;
 		}
 		return None
 	}
 	fn metodo_pago_anterior_mas_usado(&self)->Option<Medios_de_pago>
-	where
-		Self: Clone,
 	{	
-		let mut it = self.clone().peekable();
-		if it.peek().is_some(){
-			let mut res : Option<Medios_de_pago>;
+		if !self.usuarios.is_empty(){
+			let mut res : Option<Medios_de_pago> = None;
 
 			let mut metodos_cant = [0; 5]; 
-			for user in it{
+			self.usuarios.iter().for_each(|user| {
 				if let Some(s) = user.get_suscripcion_anterior(){
 					match s.get_medio(){
 						Medios_de_pago::Efectivo => metodos_cant[0] +=1,
@@ -372,47 +334,31 @@ where
 						Medios_de_pago::Criptomoneda => metodos_cant[4] +=1,
 					}
 				}
-			}
-			//Obtener el maximo del array
+			});
 			
-			/*
-			let mut max = -1;
-			let mut pos : u8 = 0;
-			for i in 0..4 {
-				if metodos_cant[i] < max {
-					max = metodos_cant[i];
-					pos = i as u8;
+			//Retornar segun posicion el tipo de pago con mas cantidad
+			if let Some(pos) = obtener_max(metodos_cant) {
+				match pos {
+					0 => res = Some(Medios_de_pago::Efectivo),
+					1 => res = Some(Medios_de_pago::Mercado_pago),
+					2 => res = Some(Medios_de_pago::Transferencia_bancaria),
+					3 => res = Some(Medios_de_pago::Tarjeta_de_credito),
+					4 => res = Some(Medios_de_pago::Criptomoneda),
+					_ => res = None,
 				}
 			}
-			*/
-			let pos = if let Some(s) = obtener_max(metodos_cant) {s}else{5};
-
-			//Retornar segun posicion el tipo de pago con mas cantidad
-			
-			match pos {
-			    0 => res = Some(Medios_de_pago::Efectivo),
-			    1 => res = Some(Medios_de_pago::Mercado_pago),
-			    2 => res = Some(Medios_de_pago::Transferencia_bancaria),
-			    3 => res = Some(Medios_de_pago::Tarjeta_de_credito),
-			    4 => res = Some(Medios_de_pago::Criptomoneda),
-				_ => res = None,
-		   	}
-			
 
 			return res;
 		}
 		return None
 	}
 	fn suscripcion_anterior_mas_contratada(&self)->Option<Suscripciones>
-	where
-		Self: Clone,
 	{	
-		let mut it = self.clone().peekable();
-		if it.peek().is_some(){
-			let mut res : Option<Suscripciones>;
+		if !self.usuarios.is_empty(){
+			let mut res : Option<Suscripciones> = None;
 
 			let mut tipos_cant = [0; 3]; 
-			for user in it{
+			self.usuarios.iter().for_each(|user| {
 				if let Some(s) = user.get_suscripcion_anterior(){
 					match s.get_tipo(){
 						Suscripciones::Basic => tipos_cant[0] +=1,
@@ -420,38 +366,24 @@ where
 						Suscripciones::Super => tipos_cant[2] +=1,
 					}
 				}
-			}
+			});
 			//Obtener el maximo del array
-			
-			/*
-			let mut max = -1;
-			let mut pos : u8 = 0;
-			for i in 0..4 {
-				if tipos_cant[i] < max {
-					max = tipos_cant[i];
-					pos = i as u8;
-				}
-			}
-			*/
-			let pos = if let Some(s) = obtener_max(tipos_cant) {s}else{5};
-
+	
 			//Retornar segun posicion del tipo de pago con mas cantidad
-			
-			match pos {
+			if let Some(pos) = obtener_max(tipos_cant) {
+				match pos {
 			    0 => res = Some(Suscripciones::Basic),
 			    1 => res = Some(Suscripciones::Clasic),
 			    2 => res = Some(Suscripciones::Super),
 				_ => res = None,
-		   	}
-			
+				}
+			}		
 
 			return res;
 		}
 		return None
 	}
 }
-
-*/
 
 #[cfg(test)]
 mod test_ejercicio2{
@@ -471,7 +403,7 @@ use super::*;
 			
 		assert_eq!(usuario1,Usuario::new(&"Daniel".to_string() , 64254 , &Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,123.5,5,120325,Medios_de_pago::Transferencia_bancaria)));
 		
-		usuario1.upgrade_suscripcion();
+		assert!(usuario1.upgrade_suscripcion());
 
 		if let Some(s) = usuario1.get_suscripcion_actual(){
 			assert_eq!(s.get_tipo(),Suscripciones::Clasic);
@@ -484,7 +416,7 @@ use super::*;
 			panic!("No se registro/actualizo la suscripcion actual");
 		}
 
-		usuario1.downgrade_suscripcion();
+		assert!(usuario1.downgrade_suscripcion());
 
 		if let Some(s) = usuario1.get_suscripcion_actual(){
 			assert_eq!(s.get_tipo(),Suscripciones::Basic);
@@ -496,11 +428,17 @@ use super::*;
 		}else{
 			panic!("No se registro/actualizo la suscripcion actual");
 		}
+
+		assert!(usuario1.cancelar_suscripcion());
 	}
 
-	/* 
+	/*
+		Realizar mas pruebas en este test
+	 */
+
+
 	#[test]
-	fn operar_suscripcion_usuarios(){
+	fn operar_suscripciones_usuarios(){
 		let mut usuario1 = Usuario::new(&"Daniel".to_string() , 
 		64254 , 
 		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
@@ -508,6 +446,7 @@ use super::*;
 			  5, 
 			  120325, 
 			  Medios_de_pago::Transferencia_bancaria));
+
 		let mut usuario2 = Usuario::new(&"Tobias".to_string() , 
 		93843 , 
 		&Suscripcion_activa::crear_suscripcion(Suscripciones::Super,
@@ -515,6 +454,7 @@ use super::*;
 			  12, 
 			  310325, 
 			  Medios_de_pago::Transferencia_bancaria));
+
 		let mut usuario3 = Usuario::new(&"Marcos".to_string() , 
 		542134 , 
 		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
@@ -522,6 +462,7 @@ use super::*;
 			  3, 
 			  120525, 
 			  Medios_de_pago::Efectivo));
+
 		let mut usuario4 = Usuario::new(&"Dario".to_string() , 
 	32124 , 
 		&Suscripcion_activa::crear_suscripcion(Suscripciones::Clasic,
@@ -530,40 +471,64 @@ use super::*;
 			  120125, 
 			  Medios_de_pago::Criptomoneda));
 	
-		let mut usuarios : Vec<Usuario> = Vec::new();
+		//Plataforma vacia
+		let mut pl1 = Plataforma::new();
 
-		//let res = usuarios.into_iter().upgrade_usuario(&usuario1);
+		assert!(pl1.metodo_pago_mas_usado().is_none());
+		assert!(pl1.metodo_pago_anterior_mas_usado().is_none());
+		assert!(pl1.suscripcion_mas_contratada().is_none());
+		assert!(pl1.suscripcion_anterior_mas_contratada().is_none());
 
-		//let res = usuarios.clone().into_iter();
+		pl1.agregar(usuario1.clone());
+		pl1.agregar(usuario2.clone());
+		pl1.agregar(usuario3);
+		pl1.agregar(usuario4);
 		
-		//Retorno de resultado vacio
-		/* 
-		assert!(res.suscripcion_anterior_mas_contratada().is_none());
-		assert!(res.suscripcion_mas_contratada().is_none());
-		assert!(res.metodo_pago_anterior_mas_usado().is_none());
-		assert!(res.metodo_pago_mas_usado().is_none());
-		
-		usuarios.push(usuario1.clone());
-		usuarios.push(usuario2.clone());
-		usuarios.push(usuario3).clone();
-		usuarios.push(usuario4).clone();
-
-		let res = usuarios.clone().into_iter();
-		
-		//Retorno de resultado
-		assert!(res.suscripcion_anterior_mas_contratada().is_some());
-		assert!(res.suscripcion_mas_contratada().is_some());
-		assert!(res.metodo_pago_anterior_mas_usado().is_some());
-		assert!(res.metodo_pago_mas_usado().is_some());
-
-		usuarios.into_iter().upgrade_usuario(&usuario1);
-		if let Some(user) = usuarios.get(0){
-			assert_eq!(user,&usuario1);
+		 
+		if let Some(tipo) = pl1.metodo_pago_mas_usado(){
+			assert_eq!(tipo,Medios_de_pago::Transferencia_bancaria);
 		}else{
-			panic!("Sin retorno de usuario");
+			panic!("No hubo un retorno esperado");
 		}
-		*/
+		
+		if let Some(tipo) = pl1.suscripcion_mas_contratada(){
+			assert_eq!(tipo,Suscripciones::Basic);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+		assert!(pl1.metodo_pago_anterior_mas_usado().is_none());
+		assert!(pl1.suscripcion_anterior_mas_contratada().is_none());
+
+		pl1.upgrade_usuario(&usuario1);
+		assert!(pl1.upgrade_usuario(&usuario1));
+		assert_eq!(pl1.upgrade_usuario(&usuario2),false);
+
+		if let Some(tipo) = pl1.metodo_pago_mas_usado(){
+			assert_eq!(tipo,Medios_de_pago::Transferencia_bancaria);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+
+		if let Some(tipo) = pl1.metodo_pago_anterior_mas_usado(){
+			assert_eq!(tipo,Medios_de_pago::Transferencia_bancaria);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+		
+		if let Some(tipo) = pl1.suscripcion_mas_contratada(){
+			assert_eq!(tipo,Suscripciones::Super);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+
+		//Replantearse la idea
+		if let Some(tipo) = pl1.suscripcion_anterior_mas_contratada(){
+			assert_eq!(tipo,Suscripciones::Clasic);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+
 	}
 
-	*/
+	
 }
