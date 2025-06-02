@@ -471,13 +471,17 @@ use super::*;
 			  120125, 
 			  Medios_de_pago::Criptomoneda));
 	
+
 		//Plataforma vacia
+
 		let mut pl1 = Plataforma::new();
 
 		assert!(pl1.metodo_pago_mas_usado().is_none());
 		assert!(pl1.metodo_pago_anterior_mas_usado().is_none());
 		assert!(pl1.suscripcion_mas_contratada().is_none());
 		assert!(pl1.suscripcion_anterior_mas_contratada().is_none());
+
+		//Plataforma con usuarios
 
 		pl1.agregar(usuario1.clone());
 		pl1.agregar(usuario2.clone());
