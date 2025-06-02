@@ -71,7 +71,7 @@ impl Producto{
 pub struct ProductoVendido(Producto,u64);
 
 impl ProductoVendido{
-    fn generar_registro(p : &Producto,cant : u64)->ProductoVendido{
+    fn new(p : &Producto,cant : u64)->ProductoVendido{
         return ProductoVendido(p.clone(),cant);
     }
 }
@@ -123,16 +123,26 @@ impl Venta{
         return total;
     }
 
-    fn retornar_venta_por_categoria(&self,categ:&Categorias)->Vec<ProductoVendido>{
-        let mut res : Vec<ProductoVendido> = Vec::new();
+    fn retornar_venta_por_categoria(&self,categ:&Categorias)->Option<Venta>{
+        let mut res_fin : Option<Venta> = None;
+        
         if !self.productos.is_empty(){
+            let mut res : Vec<ProductoVendido> = Vec::new();
             for p in &self.productos{
                 if p.0.categoria_igual_a(categ){
                     res.push(p.clone());
                 }
             }
+            res_fin = Some( Venta{
+                fecha : self.fecha.clone(),
+                cliente : self.cliente.clone(),
+                vendedor : self.vendedor.clone(),
+                medio_pago : self.medio_pago.clone(),
+                productos : res
+                });
         }
-        return res;
+
+        return res_fin;
     }
 
     fn get_vendedor(&self)->Vendedor{
@@ -173,11 +183,13 @@ pub struct Cliente {
 }
 
 impl Cliente{
-    fn new(nom : &String,ape : &String,dir : &String,Dni : u64,correo : &String)->Cliente{
+    fn new(nom : &String,ape : &String,dir : &String,dni_in : u64)->Cliente{
         return Cliente{
-            datos_cliente : Datos_Persona{nombre: nom.clone(),apellido: ape.clone(),direccion: dir.clone(),dni: Dni},
-            correo_newsletter : Some(correo.clone())
-        }        
+            datos_cliente : Datos_Persona{nombre: nom.clone(),apellido: ape.clone(),direccion: dir.clone(),dni: dni_in},
+            correo_newsletter : None        }        
+    }
+    fn asignar_newsletter(&mut self,correo:&String){
+        self.correo_newsletter = Some(correo.clone());
     }
     fn tiene_newsletter(&self)->bool{
         return self.correo_newsletter.is_some();
@@ -236,8 +248,58 @@ impl Sistema{
             newsletter : c.clone()
         }
     }
+    fn definir_categoria(&self,categ:&mut Categorias)->Categorias{
+        return match categ {
+            Categorias::Alimento(_) => Categorias::Alimento(self.categorias_porcentajes.0),
+            Categorias::Bazar(_) => Categorias::Bazar(self.categorias_porcentajes.1),
+            Categorias::Limpieza(_) => Categorias::Limpieza(self.categorias_porcentajes.2),
+            Categorias::Otro(_) => Categorias::Otro(self.categorias_porcentajes.3),
+        }
+
+    }
     fn agregar_venta(&mut self,v:&Venta){
         self.ventas.push(v.clone());
     }
-    //Implementar un generador de registro de ganancias
+    fn retornar_ventas_por_categoria(&self,categ:&Categorias)->Vec<Venta>{
+        let mut res : Vec<Venta> = Vec::new();
+
+        if !self.ventas.is_empty(){
+            for v in &self.ventas{
+                if let Some(v2) = v.retornar_venta_por_categoria(&categ){
+                    res.push(v2);
+                }
+            }
+        }
+
+        return res;
+    }
+    fn retornar_ventas_por_vendedor(&self,ve:&Vendedor)->Vec<Venta>{
+        let mut res : Vec<Venta> = Vec::new();
+
+        if !self.ventas.is_empty(){
+            for v in &self.ventas{
+                if v.get_vendedor() == *ve{
+                    res.push(v.clone());
+                }
+            }
+        }
+
+        return res;
+    }
+}
+
+#[cfg(test)]
+mod test_ejercicio4{    
+use super::*;
+    #[test]
+    fn operar_producto(){
+        let p = Producto::new(&"Shampoo".to_string(),&Categorias::default(),3500.0);
+        assert_eq!(p.obtener_precio_sin_descuento(),3500.0);
+        assert_eq!(p.obtener_precio_con_descuento(),3500.0);
+        assert!(p.categoria_igual_a(&Categorias::default()));
+        let p = Producto::new(&"Shampoo".to_string(),&Categorias::Limpieza(50.0),3500.0);
+        assert_eq!(p.obtener_precio_sin_descuento(),3500.0);
+        assert_eq!(p.obtener_precio_con_descuento(),1750.0);
+        assert!(p.categoria_igual_a(&Categorias::Limpieza(50.0)));
+    }
 }

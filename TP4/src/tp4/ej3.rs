@@ -386,7 +386,7 @@ impl Plataforma{
 }
 
 #[cfg(test)]
-mod test_ejercicio2{
+mod test_ejercicio3{
 	use core::panic;
 
 use super::*;
