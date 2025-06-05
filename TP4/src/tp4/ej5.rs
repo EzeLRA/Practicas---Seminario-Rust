@@ -2,6 +2,8 @@
     Estructuras base para el sistema
 */
 
+use crate::tp4::ej4::Datos_Persona;
+
 #[derive(PartialEq,Debug,Clone)]
 pub struct Blockchain{
     nombre : String,
@@ -31,30 +33,6 @@ impl Criptomoneda{
 }
 
 #[derive(PartialEq,Debug,Clone)]
-pub struct BalancePropio{
-    criptomonedas : Vec<Criptomoneda>,
-    dinero_fiat : f64
-}
-
-impl BalancePropio{
-    fn new()->BalancePropio{
-        return BalancePropio { criptomonedas: Vec::new() , dinero_fiat: 0.0 }
-    }
-    fn agregar_criptomoneda(&mut self,c:&Criptomoneda){
-        self.criptomonedas.push(c.clone());
-    }
-    fn fijar_fiat(&mut self,monto:f64){
-        self.dinero_fiat = monto;
-    }
-    fn contabilizar_fiat(&mut self,monto:f64){
-        self.dinero_fiat += monto;
-    }
-    fn descontabilizar_fiat(&mut self,monto:f64){
-        self.dinero_fiat -= monto;
-    }
-}
-
-#[derive(PartialEq,Debug,Clone)]
 pub struct DatosPersona{
     nombre : String,
     apellido : String,
@@ -76,6 +54,34 @@ pub trait InformacionPersonal{
         return datos.dni;
     }
     fn informacion_correcta(&self, info:&DatosPersona)->bool;
+}
+
+
+#[derive(PartialEq,Debug,Clone)]
+pub struct BalancePropio{
+    criptomonedas : Vec<Criptomoneda>,
+    dinero_fiat : f64
+}
+
+impl BalancePropio{
+    fn new()->BalancePropio{
+        return BalancePropio { criptomonedas: Vec::new() , dinero_fiat: 0.0 }
+    }
+    fn agregar_criptomoneda(&mut self,c:&Criptomoneda){
+        self.criptomonedas.push(c.clone());
+    }
+    fn fijar_fiat(&mut self,monto:f64){
+        self.dinero_fiat = monto;
+    }
+    fn contabilizar_fiat(&mut self,monto:f64){
+        self.dinero_fiat += monto;
+    }
+    fn descontabilizar_fiat(&mut self,monto:f64){
+        self.dinero_fiat -= monto;
+    }
+    fn get_cant_fiat(&self)->f64{
+        return self.dinero_fiat;
+    }
 }
 
 #[derive(PartialEq,Debug,Clone)]
@@ -104,6 +110,14 @@ impl Usuario{
     fn ingresar_monto_fiat(&mut self,monto:f64){
         self.balance.contabilizar_fiat(monto);
     }
+    fn retirar_monto_fiat(&mut self,monto:f64){
+        if self.balance.get_cant_fiat() > 0.0 {
+            self.balance.descontabilizar_fiat(monto);
+        }
+    }
+    fn get_balance_fiat(&self)->f64{
+        return self.balance.get_cant_fiat();
+    }
 }
 
 /*
@@ -114,31 +128,114 @@ impl Usuario{
 pub struct Fecha(u8,u8,u64);
 
 #[derive(PartialEq,Debug,Clone)]
-pub struct Datos_comprobante{
+pub struct Datos_Ingreso{
     datos_usuario : DatosPersona,
     fecha: Fecha,
-    tipo : TiposTransacciones,
     monto : f64
 }
 
-impl InformacionPersonal for Datos_comprobante{
+impl Datos_Ingreso{
+    fn new(datos : &DatosPersona, f : &Fecha , m : f64)->Datos_Ingreso{
+        return Datos_Ingreso { datos_usuario: datos.clone(), fecha: f.clone(), monto: m };
+    }
+    fn get_fecha(&self)->Fecha{
+        return self.fecha.clone();
+    }
+    fn get_monto(&self)->f64{
+        return self.monto;
+    }
+}
+
+impl InformacionPersonal for Datos_Ingreso{
     fn informacion_correcta(&self, info:&DatosPersona)->bool{
         return &self.datos_usuario == info;
     }
 }
 
-/*
-    Agregar propiedades a cada enum 
-*/
+#[derive(PartialEq,Debug,Clone)]
+pub struct Datos_Retiro{
+    datos_genericos : Datos_Ingreso,
+    medio_pago : MediosPago
+}
+
+impl Datos_Retiro{
+    fn new(d:&DatosPersona,fe:&Fecha,monto:f64,medio:&MediosPago)->Datos_Retiro{
+        return Datos_Retiro { datos_genericos: Datos_Ingreso::new(d, fe , monto), medio_pago: medio.clone() }
+    }
+
+    fn get_medio_pago(&self)->MediosPago{
+        return self.medio_pago.clone();
+    }
+}
+
+//Tipos de transacciones implementados
+#[derive(PartialEq,Debug,Clone)]
+pub struct Datos_Operacion_Criptomoneda{
+    datos_genericos : Datos_Ingreso,
+    criptomoneda : Criptomoneda,
+    cotizacion : f64
+}
+
+impl Datos_Operacion_Criptomoneda{
+    fn new(user:&DatosPersona,f:&Fecha,m:f64,c:&Criptomoneda,cotiz:f64)->Datos_Operacion_Criptomoneda{
+        return Datos_Operacion_Criptomoneda { datos_genericos: Datos_Ingreso::new(user, f, m ),
+         criptomoneda: c.clone(), 
+         cotizacion: cotiz };
+    }
+    fn get_criptomoneda(&self)->Criptomoneda{
+        return self.criptomoneda.clone();
+    }
+    fn get_cotizacion(&self)->f64{
+        return self.cotizacion;
+    }
+}
+
+#[derive(PartialEq,Debug,Clone)]
+pub struct Datos_Retiro_Blockchain{
+    datos_criptomoneda : Datos_Operacion_Criptomoneda,
+    blockchain : Blockchain,
+    hash : String
+}
+
+impl Datos_Retiro_Blockchain{
+    fn new(user:&DatosPersona,f:&Fecha,m:f64,c:&Criptomoneda,cotiz:f64,b:&Blockchain)->Datos_Retiro_Blockchain{
+        return Datos_Retiro_Blockchain { datos_criptomoneda: Datos_Operacion_Criptomoneda::new(user, f, m, c, cotiz),
+             blockchain: b.clone(),
+            hash: "Random".to_string() }
+    }
+    fn get_blockchain(&self)->Blockchain{
+        return self.blockchain.clone();
+    }
+    fn get_hash(&self)->String{
+        return self.hash.clone();
+    }
+}
+
+#[derive(PartialEq,Debug,Clone)]
+pub struct Datos_Extraccion_Blockchain{
+    datos_criptomoneda : Datos_Operacion_Criptomoneda,
+    blockchain : Blockchain
+}
+
+impl Datos_Extraccion_Blockchain{
+    fn new(user:&DatosPersona,f:&Fecha,m:f64,c:&Criptomoneda,cotiz:f64,b:&Blockchain)->Datos_Extraccion_Blockchain{
+        return Datos_Extraccion_Blockchain { datos_criptomoneda: Datos_Operacion_Criptomoneda::new(user, f, m, c, cotiz),
+             blockchain: b.clone()
+        }
+    }
+    fn get_blockchain(&self)->Blockchain{
+        return self.blockchain.clone();
+    }
+}
 
 #[derive(PartialEq,Debug,Clone)]
 pub enum TiposTransacciones{
-    IngresoFiat,
-    CompraCriptomoneda,
-    VentaCriptomoneda,
-    RetiroCriptomoneda,
-    RecepcionCriptomoneda,
-    RetiroFiat,
+    IngresoFiat(Datos_Ingreso),
+    CompraCriptomoneda(Datos_Operacion_Criptomoneda),
+    VentaCriptomoneda(Datos_Operacion_Criptomoneda),
+    RetiroCriptomoneda(Datos_Retiro_Blockchain),
+    RecepcionCriptomoneda(Datos_Extraccion_Blockchain),
+    RetiroFiat(Datos_Retiro),
 }
 
 #[derive(PartialEq,Debug,Clone)]
@@ -158,6 +255,32 @@ impl Criptomoneda_disponible{
 #[derive(PartialEq,Debug,Clone)]
 pub struct Plataforma{
     usuarios : Vec<Usuario>,
-    criptomonedas_dispone : Vec<Criptomoneda_disponible> //Datos de la criptomoneda y cotiza
+    criptomonedas_dispone : Vec<Criptomoneda_disponible>, //Datos de la criptomoneda y cotiza
+    registro_transacciones : Vec<TiposTransacciones>
 }
 
+impl Plataforma{
+    fn registrar_transaccion(&mut self,t : &TiposTransacciones){
+        self.registro_transacciones.push(t.clone());
+    }
+    fn ingresar_monto_usuario(&mut self,u1:&Usuario,f:&Fecha,m:f64)->bool{
+        let mut completo = false;
+        if let Some(u) = self.usuarios.iter_mut().find(|user| user.informacion_correcta(&u1.datos)){
+            u.ingresar_monto_fiat(m);
+            let datos = Datos_Ingreso::new(&u.datos, f, m);
+            self.registrar_transaccion(&TiposTransacciones::IngresoFiat(datos));
+            completo = true;
+        }
+        return completo;
+    }
+    fn retirar_monto_usuario(&mut self,u1:&Usuario,f:&Fecha,m:f64,med:&MediosPago)->bool{
+        let mut completo = false;
+        if let Some(u) = self.usuarios.iter_mut().find(|user| user.informacion_correcta(&u1.datos)){
+            u.retirar_monto_fiat(m);
+            let datos = Datos_Retiro::new(&u.datos, f, m,med);
+            self.registrar_transaccion(&TiposTransacciones::RetiroFiat(datos));
+            completo = true;
+        }
+        return completo;
+    }
+}
