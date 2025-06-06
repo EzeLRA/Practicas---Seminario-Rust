@@ -74,6 +74,18 @@ impl ProductoVendido{
     fn new(p : &Producto,cant : u64)->ProductoVendido{
         return ProductoVendido(p.clone(),cant);
     }
+    fn get_cant(&self)->u64{
+        return self.1 ;
+    }
+    fn get_producto(&self)->Producto{
+        return self.0.clone();
+    }
+    fn obtener_monto_descuento(&self)->f64{
+        return self.0.obtener_precio_con_descuento() * (self.1 as f64);
+    }
+    fn obtener_monto_generico(&self)->f64{
+        return self.0.obtener_precio_sin_descuento() * (self.1 as f64);
+    }
 }
 
 #[derive(PartialEq,Debug,Clone)]
@@ -114,9 +126,9 @@ impl Venta{
             let cumple = self.cliente.tiene_newsletter();
             for producto in &self.productos{
                 if cumple {
-                    total += (producto.0.obtener_precio_con_descuento())*(producto.1 as f64);
-                }else {
-                    total += (producto.0.obtener_precio_sin_descuento())*(producto.1 as f64);
+                    total += producto.obtener_monto_descuento();
+                }else{
+                    total += producto.obtener_monto_generico();
                 }
             }
         }
@@ -133,7 +145,7 @@ impl Venta{
                     res.push(p.clone());
                 }
             }
-            //Si la venta no tiene productos entonces la venta se retorna como inexistente
+            //Si la venta no tiene productos de determinada categoria entonces la venta se retorna como inexistente
             if !res.is_empty(){
                 res_fin = Some( Venta{
                     fecha : self.fecha.clone(),
@@ -152,6 +164,9 @@ impl Venta{
         return self.vendedor.clone();
     }
 
+    fn es_igual_a(&self,v:&Venta)->bool{
+        return self == v;
+    }
 }
 
 /*
@@ -297,6 +312,16 @@ impl Sistema{
 
         return res;
     }
+    fn monto_final_venta(&self,v:&Venta)->Option<f64>{
+        let mut res : Option<f64> = None;
+        if let Some(v2) = self.ventas.iter().find(|venta| venta.es_igual_a(&v)){
+            res = Some(v2.monto_total());
+        }
+        return res;
+    }
+    fn otorgar_newsletter(&self,cli:&mut Cliente){
+        cli.asignar_newsletter(&self.newsletter);
+    }
 }
 
 #[cfg(test)]
@@ -325,13 +350,36 @@ use super::*;
     }
 
     #[test]
+    fn operar_venta(){
+        //Personas
+        let cli1 = Cliente::new(&"Lucas".to_string(), &"Daniel".to_string(), &"AvBelgrano".to_string(), 871265);
+        let ven1 = Vendedor::new(&"Tobias".to_string(), &"Serio".to_string(), &"AvBelgrano".to_string(), 237863, 9876, 2, 12000.0);
+
+        //Productos registrados
+        let p1 = Producto::new(&"CocaCola".to_string(), &Categorias::Alimento(25.0), 3500.0);
+        let p2 = Producto::new(&"Escoba".to_string(), &Categorias::Limpieza(30.0), 1000.0);
+        let p3 = Producto::new(&"ElEjemplo".to_string(), &Categorias::Bazar(0.0), 1500.0);
+
+        //Generar ventas
+        let mut v1 = Venta::new(&Fecha::new(05, 02, 2025), &cli1, &ven1, &MediosDePago::Efectivo);
+        v1.agregar_producto(&ProductoVendido::new(&p1, 2));
+        v1.agregar_producto(&ProductoVendido::new(&p2, 1));
+        v1.agregar_producto(&ProductoVendido::new(&p3, 5));
+
+        //Retorno de monto total sin descuento (ya que cli1 no tiene newsletter)
+        assert_eq!(v1.monto_total(),15500.0);
+    }
+
+    #[test]
     fn operar_sistema(){
         //Sistema
         let mut sis = Sistema::new(&CategPorcentajes(0.0, 60.0, 40.0, 0.0), &"correo@example.com".to_string());
 
         //Personas
         let cli1 = Cliente::new(&"Lucas".to_string(), &"Daniel".to_string(), &"AvBelgrano".to_string(), 871265);
-        let cli2 = Cliente::new(&"Mariana".to_string(), &"Santos".to_string(), &"Centenario".to_string(), 2987865);
+        let mut cli2 = Cliente::new(&"Mariana".to_string(), &"Santos".to_string(), &"Centenario".to_string(), 2987865);
+        //Otorga cli2 el newsletter por parte del sistema
+        sis.otorgar_newsletter(&mut cli2);
         let ven1 = Vendedor::new(&"Tobias".to_string(), &"Serio".to_string(), &"AvBelgrano".to_string(), 237863, 9876, 2, 12000.0);
 
         //Productos registrados
@@ -349,15 +397,38 @@ use super::*;
         v2.agregar_producto(&ProductoVendido::new(&p1, 1));
         v2.agregar_producto(&ProductoVendido::new(&p2, 2));
         v2.agregar_producto(&ProductoVendido::new(&p3, 3));
-        //Operar el sistema
+        
+        let v3 = Venta::new(&Fecha::new(25, 8, 2025), &cli1, &ven1, &MediosDePago::TarjetaDébito);  //Sin productos y sin registrar en el sistema
+
+        //Operar en el sistema
         sis.agregar_venta(&v1);
         sis.agregar_venta(&v2);
 
+        //Retorno de ventas por categorias
         let res = sis.retornar_ventas_por_categoria(&sis.definir_categoria(&Categorias::Otro(0.0)));
         assert!(res.is_empty());
 
         let res = sis.retornar_ventas_por_categoria(&sis.definir_categoria(&Categorias::Alimento(0.0)));
         assert!(!res.is_empty());
 
+        //Retorno de ventas por vendedor
+        let res = sis.retornar_ventas_por_vendedor(&ven1);
+        assert!(!res.is_empty());
+
+        let res = sis.retornar_ventas_por_vendedor(&Vendedor::new(&"Matias".to_string(), &"Serio".to_string(), &"AvBelgrano".to_string(), 237863, 9876, 2, 12000.0));
+        assert!(res.is_empty());
+
+        //Retorno monto final (sin descuento)
+        if let Some(monto) = sis.monto_final_venta(&v1){
+            assert_eq!(monto,15500.0);
+        }
+
+        //Retorno monto final (con descuento)
+        if let Some(monto) = sis.monto_final_venta(&v2){
+            assert_eq!(monto,9200.0);
+        }
+
+        //Retorno nulo de una venta no registrada
+        assert!(sis.monto_final_venta(&v3).is_none());
     }
 }
