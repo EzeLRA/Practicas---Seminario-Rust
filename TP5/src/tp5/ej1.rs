@@ -220,11 +220,16 @@ mod testing_consecionaria_auto{
 /***
  * 		IMPLEMENTACION PARA EL TP5 - Ejercicio 1
 **/
+impl ConcesionarioAuto{
+	fn to_string(&self)->String{
+		return self.nombre.clone();
+	}
+}
 
-pub struct ErrorCapacidad;
+pub struct ErrorCapacidad(String);
 impl Display for ErrorCapacidad{
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "Capacidad de insercion de autos superada")
+		write!(f, "La Capacidad de autos para la consecionaria {} fue superada" , self.0)
 	}
 }
 
@@ -233,7 +238,7 @@ pub fn validar_insercion(c: &mut ConcesionarioAuto,auto:&Auto)->Result<bool, Err
 		c.autos.push(auto.clone());
 		return Ok(true);
 	}else{
-		return Err(ErrorCapacidad(&auto.to_string()));
+		return Err(ErrorCapacidad(c.to_string()));
 	}
 }
 
@@ -244,6 +249,7 @@ mod testing_implementacion_ejercicio1{
 	use super::*;
 
 	//Inciso a
+	#[test]
 	fn maxima_capacidad_superada(){
 		let a1 = Auto::new(String::from("asdf"),String::from("aytuiy"),2023,100432.0,Colores::Rojo);
 		let a2 = Auto::new(String::from("BMW"),String::from("ajytjt"),2000,200500.0,Colores::Verde);
@@ -252,12 +258,24 @@ mod testing_implementacion_ejercicio1{
 		let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"trrjrjrtw".to_string(),3);
 
 		//Limite de insersiones
-		assert!(conse1.agregar_auto(&a1));
+
+		//Primera Insercion(No notifica de un error)
+		let r = validar_insercion(&mut conse1,&a1); 
+		match r {
+			Ok(mov) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
 		assert!(conse1.agregar_auto(&a2));
 		assert!(conse1.agregar_auto(&a3));
-		let ult_operacion = conse1.agregar_auto(&a4);
 		
-
+		//Ultima insercion(Avisa del error)
+		/*	//Descomentar seccion para hacer la validacion 
+		let r = validar_insercion(&mut conse1,&a4); 
+		match r {
+			Ok(_dat) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+		*/
 	}
 
 	//Inciso b

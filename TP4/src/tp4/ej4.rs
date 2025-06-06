@@ -133,13 +133,16 @@ impl Venta{
                     res.push(p.clone());
                 }
             }
-            res_fin = Some( Venta{
-                fecha : self.fecha.clone(),
-                cliente : self.cliente.clone(),
-                vendedor : self.vendedor.clone(),
-                medio_pago : self.medio_pago.clone(),
-                productos : res
+            //Si la venta no tiene productos entonces la venta se retorna como inexistente
+            if !res.is_empty(){
+                res_fin = Some( Venta{
+                    fecha : self.fecha.clone(),
+                    cliente : self.cliente.clone(),
+                    vendedor : self.vendedor.clone(),
+                    medio_pago : self.medio_pago.clone(),
+                    productos : res
                 });
+            }
         }
 
         return res_fin;
@@ -162,6 +165,14 @@ pub struct Datos_Persona {
     dni : u64
 }
 
+impl Datos_Persona{
+    fn validar_datos(&self,datos : &Datos_Persona)->bool{
+        return (self.nombre == datos.nombre) &&
+            (self.apellido == datos.apellido) &&
+            (self.direccion == datos.direccion) &&
+            (self.dni == datos.dni);
+    } 
+}
 pub trait DatosPersona {
     fn get_nombre(&self , datos:&Datos_Persona)->String{
         return datos.nombre.clone();
@@ -248,7 +259,7 @@ impl Sistema{
             newsletter : c.clone()
         }
     }
-    fn definir_categoria(&self,categ:&mut Categorias)->Categorias{
+    fn definir_categoria(&self,categ:&Categorias)->Categorias{
         return match categ {
             Categorias::Alimento(_) => Categorias::Alimento(self.categorias_porcentajes.0),
             Categorias::Bazar(_) => Categorias::Bazar(self.categorias_porcentajes.1),
@@ -301,5 +312,52 @@ use super::*;
         assert_eq!(p.obtener_precio_sin_descuento(),3500.0);
         assert_eq!(p.obtener_precio_con_descuento(),1750.0);
         assert!(p.categoria_igual_a(&Categorias::Limpieza(50.0)));
+    }
+
+    #[test]
+    fn validar_informacion(){
+        let cli1 = Cliente::new(&"Marcos".to_string(), &"Lupe".to_string(), &"Av1".to_string(), 124341);
+        let vendedor1 = Vendedor::new(&"Julieta".to_string(), &"Murias".to_string(), &"Cantilo".to_string(), 645634, 1234,1, 10000.0);
+        assert!(cli1.datos_cliente.validar_datos(&cli1.datos_cliente));
+        assert!(vendedor1.datos_vendedor.validar_datos(&vendedor1.datos_vendedor));
+        assert!(!cli1.datos_cliente.validar_datos(&vendedor1.datos_vendedor));
+        assert!(!vendedor1.datos_vendedor.validar_datos(&cli1.datos_cliente));
+    }
+
+    #[test]
+    fn operar_sistema(){
+        //Sistema
+        let mut sis = Sistema::new(&CategPorcentajes(0.0, 60.0, 40.0, 0.0), &"correo@example.com".to_string());
+
+        //Personas
+        let cli1 = Cliente::new(&"Lucas".to_string(), &"Daniel".to_string(), &"AvBelgrano".to_string(), 871265);
+        let cli2 = Cliente::new(&"Mariana".to_string(), &"Santos".to_string(), &"Centenario".to_string(), 2987865);
+        let ven1 = Vendedor::new(&"Tobias".to_string(), &"Serio".to_string(), &"AvBelgrano".to_string(), 237863, 9876, 2, 12000.0);
+
+        //Productos registrados
+        let p1 = Producto::new(&"CocaCola".to_string(), &sis.definir_categoria(&Categorias::Alimento(0.0)), 3500.0);
+        let p2 = Producto::new(&"Escoba".to_string(), &sis.definir_categoria(&Categorias::Limpieza(0.0)), 1000.0);
+        let p3 = Producto::new(&"ElEjemplo".to_string(), &Categorias::Bazar(0.0), 1500.0);
+
+        //Generar ventas
+        let mut v1 = Venta::new(&Fecha::new(05, 02, 2025), &cli1, &ven1, &MediosDePago::Efectivo);
+        v1.agregar_producto(&ProductoVendido::new(&p1, 2));
+        v1.agregar_producto(&ProductoVendido::new(&p2, 1));
+        v1.agregar_producto(&ProductoVendido::new(&p3, 5));
+
+        let mut v2 = Venta::new(&Fecha::new(15, 6, 2025), &cli2, &ven1, &MediosDePago::TarjetaDébito);
+        v2.agregar_producto(&ProductoVendido::new(&p1, 1));
+        v2.agregar_producto(&ProductoVendido::new(&p2, 2));
+        v2.agregar_producto(&ProductoVendido::new(&p3, 3));
+        //Operar el sistema
+        sis.agregar_venta(&v1);
+        sis.agregar_venta(&v2);
+
+        let res = sis.retornar_ventas_por_categoria(&sis.definir_categoria(&Categorias::Otro(0.0)));
+        assert!(res.is_empty());
+
+        let res = sis.retornar_ventas_por_categoria(&sis.definir_categoria(&Categorias::Alimento(0.0)));
+        assert!(!res.is_empty());
+
     }
 }
