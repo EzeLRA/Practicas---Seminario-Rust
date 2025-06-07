@@ -226,6 +226,20 @@ impl ConcesionarioAuto{
 	}
 }
 
+pub enum ErrorDeBaja{
+	Inexistente(String),
+	EstructuraVacia(String)
+}
+
+impl Display for ErrorDeBaja{
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self{
+			ErrorDeBaja::Inexistente(val) => write!(f, "No se encontro el auto en la consecionaria {} ",val),
+			ErrorDeBaja::EstructuraVacia(val) => write!(f, "La consecionaria {} no dispone de autos ",val)
+		}
+	}
+}
+
 pub struct ErrorCapacidad(String);
 impl Display for ErrorCapacidad{
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -239,6 +253,22 @@ pub fn validar_insercion(c: &mut ConcesionarioAuto,auto:&Auto)->Result<bool, Err
 		return Ok(true);
 	}else{
 		return Err(ErrorCapacidad(c.to_string()));
+	}
+}
+
+pub fn validar_eliminacion(c: &mut ConcesionarioAuto, auto:&Auto)->Result<bool,ErrorDeBaja>{
+	if !c.autos.is_empty() {
+		for i in 0..c.autos.len(){
+			if let Some(a) = c.autos.get(i){
+				if a.es_igual_a(&auto) {
+					c.autos.remove(i);
+					return Ok(true);
+				}
+			}
+		}
+		return Err(ErrorDeBaja::Inexistente(c.to_string()));
+	}else{
+		return Err(ErrorDeBaja::EstructuraVacia(c.to_string()));
 	}
 }
 
@@ -278,8 +308,51 @@ mod testing_implementacion_ejercicio1{
 		*/
 	}
 
-	//Inciso b
-	//Ya se hace la operacion arriba (Averiguar que cosas extras se puede implementar)
+	//Inciso b se hace lo de arriba pero con cobertura de errores con contexto
+	#[test]
+	fn operatoria_contextual_consecionaria(){
+		//Autos
+		let a1 = Auto::new(String::from("asdf"),String::from("aytuiy"),2023,100432.0,Colores::Rojo);
+		let a2 = Auto::new(String::from("BMW"),String::from("ajytjt"),2000,200500.0,Colores::Verde);
+		let a3 = Auto::new(String::from("BMW"),String::from("ajthrth"),2000,250000.0,Colores::Rojo);
+		let a4 = Auto::new(String::from("Toyota"),String::from("artjrtjtt"),2000,200000.0,Colores::Azul);
+		
+		//Consecionaria
+		let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),3);
+		
+		//Limite de insersiones(ya probado arriba)
+		match validar_insercion(&mut conse1, &a1) {
+			Ok(res) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+		validar_insercion(&mut conse1, &a2);
+		validar_insercion(&mut conse1, &a3);
+
+		//Borra auto "a1"
+		match validar_eliminacion(&mut conse1, &a1) {
+			Ok(res) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Borra auto "a4" (Error de inexsistencia) ; Descomentar para probar
+		/* 
+		match validar_eliminacion(&mut conse1, &a4) {
+			Ok(res) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+		*/
+		validar_eliminacion(&mut conse1, &a2);
+		validar_eliminacion(&mut conse1, &a3);
+
+		//Borra auto "a4" (Error de estructura vacia) ; Descomentar para probar
+		/* 
+		match validar_eliminacion(&mut conse1, &a4) {
+			Ok(res) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+		*/
+		
+	}
 
 	//Inciso c
 	//fn respaldar_informacion()
