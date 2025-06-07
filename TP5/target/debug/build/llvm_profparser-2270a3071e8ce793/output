@@ -1,0 +1,11 @@
+cargo::rustc-check-cfg=cfg(llvm_11)
+cargo::rustc-check-cfg=cfg(llvm_12)
+cargo::rustc-check-cfg=cfg(llvm_13)
+cargo::rustc-check-cfg=cfg(llvm_14)
+cargo::rustc-check-cfg=cfg(llvm_15)
+cargo::rustc-check-cfg=cfg(llvm_16)
+cargo::rustc-check-cfg=cfg(llvm_17)
+cargo::rustc-check-cfg=cfg(llvm_18)
+cargo::rustc-check-cfg=cfg(llvm_19)
+cargo::rustc-check-cfg=cfg(llvm_20)
+cargo:rustc-cfg=llvm_19

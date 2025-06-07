@@ -1,4 +1,6 @@
 use std::fmt::Display;
+//Se debe importar serde para su uso "cargo add serde"
+use serde::{Serialize, Deserialize};
 
 /**
  * 		Extraccion de ejercicio 7 de TP3
