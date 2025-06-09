@@ -1,0 +1,12 @@
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/deps/libmime_guess-cdbbf80145f1980d.rmeta: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mime_guess-2.0.5/src/lib.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mime_guess-2.0.5/src/impl_bin_search.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mime_guess-2.0.5/src/mime_types.rs /home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/build/mime_guess-1c2d597b59f1291d/out/mime_types_generated.rs
+
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/deps/libmime_guess-cdbbf80145f1980d.rlib: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mime_guess-2.0.5/src/lib.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mime_guess-2.0.5/src/impl_bin_search.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mime_guess-2.0.5/src/mime_types.rs /home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/build/mime_guess-1c2d597b59f1291d/out/mime_types_generated.rs
+
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/deps/mime_guess-cdbbf80145f1980d.d: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mime_guess-2.0.5/src/lib.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mime_guess-2.0.5/src/impl_bin_search.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mime_guess-2.0.5/src/mime_types.rs /home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/build/mime_guess-1c2d597b59f1291d/out/mime_types_generated.rs
+
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mime_guess-2.0.5/src/lib.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mime_guess-2.0.5/src/impl_bin_search.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mime_guess-2.0.5/src/mime_types.rs:
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/build/mime_guess-1c2d597b59f1291d/out/mime_types_generated.rs:
+
+# env-dep:MIME_TYPES_GENERATED_PATH=/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/build/mime_guess-1c2d597b59f1291d/out/mime_types_generated.rs

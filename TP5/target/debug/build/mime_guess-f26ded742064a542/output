@@ -1,1 +1,0 @@
-cargo:rustc-env=MIME_TYPES_GENERATED_PATH=/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/target/debug/build/mime_guess-f26ded742064a542/out/mime_types_generated.rs
