@@ -2,8 +2,6 @@
     Estructuras base para el sistema
 */
 
-use crate::tp4::ej4::Datos_Persona;
-
 #[derive(PartialEq,Debug,Clone)]
 pub struct Blockchain{
     nombre : String,
@@ -23,12 +21,20 @@ pub struct Criptomoneda{
     blockchains : Vec<Blockchain>
 }
 
+//Agregar funcionalidad para dar de baja una blockchain a la que ya no pertenece por transaccion
+
 impl Criptomoneda{
     fn new(nom:&String,pre:&String)->Criptomoneda{
         return Criptomoneda { nombre: nom.clone(), prefijo: pre.clone(), blockchains: Vec::new()}
     }
     fn agregar_blockchain(&mut self,b:&Blockchain){
         self.blockchains.push(b.clone());
+    }
+    fn get_nombre(&self)->String{
+        return self.nombre.clone();
+    }
+    fn get_prefijo(&self)->String{
+        return self.prefijo.clone();
     }
 }
 
@@ -56,19 +62,18 @@ pub trait InformacionPersonal{
     fn informacion_correcta(&self, info:&DatosPersona)->bool;
 }
 
+#[derive(PartialEq,Debug,Clone)]
+pub struct Criptomoneda_dispone(String,f64);
 
 #[derive(PartialEq,Debug,Clone)]
 pub struct BalancePropio{
-    criptomonedas : Vec<Criptomoneda>,
+    criptomonedas : Vec<Criptomoneda_dispone>,
     dinero_fiat : f64
 }
 
 impl BalancePropio{
     fn new()->BalancePropio{
         return BalancePropio { criptomonedas: Vec::new() , dinero_fiat: 0.0 }
-    }
-    fn agregar_criptomoneda(&mut self,c:&Criptomoneda){
-        self.criptomonedas.push(c.clone());
     }
     fn fijar_fiat(&mut self,monto:f64){
         self.dinero_fiat = monto;
@@ -258,6 +263,11 @@ pub struct Plataforma{
     criptomonedas_dispone : Vec<Criptomoneda_disponible>, //Datos de la criptomoneda y cotiza
     registro_transacciones : Vec<TiposTransacciones>
 }
+/*
+    incisos:
+    Un modulo debe contabilizar las ventas y compras hechas de criptomonedas
+    Un modulo debe contabilizar las solicitudes de ventas y compras de criptomonedas
+*/
 
 impl Plataforma{
     fn registrar_transaccion(&mut self,t : &TiposTransacciones){
