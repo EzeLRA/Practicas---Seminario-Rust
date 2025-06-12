@@ -22,13 +22,31 @@ pub struct Criptomoneda{
 }
 
 //Agregar funcionalidad para dar de baja una blockchain a la que ya no pertenece por transaccion
+//
 
 impl Criptomoneda{
     fn new(nom:&String,pre:&String)->Criptomoneda{
         return Criptomoneda { nombre: nom.clone(), prefijo: pre.clone(), blockchains: Vec::new()}
     }
-    fn agregar_blockchain(&mut self,b:&Blockchain){
-        self.blockchains.push(b.clone());
+    fn agregar_blockchain(&mut self,b:&Blockchain)->bool{
+        let mut pude = false;
+        
+        if self.blockchains.iter().find(|&blockchain| blockchain == b ).is_none() {
+            self.blockchains.push(b.clone());
+            pude = true;
+        }
+
+        return pude;
+    }
+    fn eliminar_blockchain(&mut self,b:&Blockchain)->bool{
+        let mut pude = false;
+        
+        if let Some(pos) = self.blockchains.iter().position(|blockchain| blockchain == b){
+            self.blockchains.remove(pos);
+            pude = true;
+        }
+
+        return pude;
     }
     fn get_nombre(&self)->String{
         return self.nombre.clone();
@@ -63,11 +81,33 @@ pub trait InformacionPersonal{
 }
 
 #[derive(PartialEq,Debug,Clone)]
-pub struct Criptomoneda_dispone(String,f64);
+pub struct CriptomonedaDispone(String,f64);
+
+impl CriptomonedaDispone{
+    //Sin limite de ingreso maximo
+    fn contabilizar(&mut self,monto:f64){
+        self.1 += monto;
+    }
+    //Con limite de extracion(Sin saldo negativo)
+    fn descontabilizar(&mut self,monto:f64)->bool{
+        let mut pude = false;
+        if self.1 <= monto {
+            self.1 -= monto;
+            pude = true;
+        }
+        return pude;
+    }
+    fn es_igual_a(&self,nom:&String)->bool{
+        return self.0 == nom.clone();
+    }
+    fn get_monto(&self)->f64{
+        return self.1;
+    }
+}
 
 #[derive(PartialEq,Debug,Clone)]
 pub struct BalancePropio{
-    criptomonedas : Vec<Criptomoneda_dispone>,
+    criptomonedas : Vec<CriptomonedaDispone>,
     dinero_fiat : f64
 }
 
@@ -78,11 +118,40 @@ impl BalancePropio{
     fn fijar_fiat(&mut self,monto:f64){
         self.dinero_fiat = monto;
     }
+    //Sin limite de ingreso maximo
     fn contabilizar_fiat(&mut self,monto:f64){
         self.dinero_fiat += monto;
     }
-    fn descontabilizar_fiat(&mut self,monto:f64){
-        self.dinero_fiat -= monto;
+    //Con limite de extracion(Sin saldo negativo)
+    fn descontabilizar_fiat(&mut self,monto:f64)->bool{
+        let mut pude = false;
+        if self.dinero_fiat <= monto {
+            self.dinero_fiat -= monto;
+            pude = true;
+        }
+        return pude;
+    }
+    fn contabilizar_criptomoneda(&mut self,nom:&String,monto:f64)->bool{
+        let mut pude = false;
+        
+        if let Some(dato) = self.criptomonedas.iter_mut().find(|cripto| cripto.es_igual_a(&nom)){
+            dato.contabilizar(monto);
+            pude = true;
+        }
+
+        return pude;
+    }
+    fn descontabilizar_criptomoneda(&mut self,nom:&String,monto:f64)->bool{
+        let mut pude = false;
+        
+        if let Some(pos) = self.criptomonedas.iter().position(|cripto| cripto.es_igual_a(&nom)){
+            pude = self.criptomonedas[pos].descontabilizar(monto);
+            if self.criptomonedas[pos].get_monto() <= 0.0 {
+                self.criptomonedas.remove(pos);
+            }
+        }
+
+        return pude;
     }
     fn get_cant_fiat(&self)->f64{
         return self.dinero_fiat;
