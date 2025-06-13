@@ -1,3 +1,15 @@
+use rand::{thread_rng, Rng};
+use rand::distributions::Alphanumeric;
+
+//Funcion auxiliar para generar un "hash simulado"
+pub fn aleatorio(tam: usize) -> String {
+    let rng = thread_rng();
+    rng.sample_iter(&Alphanumeric)
+        .take(tam)
+        .map(char::from)
+        .collect()
+}
+
 /*
     Estructuras base para el sistema
 */
@@ -12,6 +24,12 @@ impl Blockchain{
     fn new(nom:&String,pre:&String)->Blockchain{
         return Blockchain { nombre: nom.clone(), prefijo: pre.clone() }
     }
+    fn es_igual_a(&self,nom:&String)->bool{
+        return &self.nombre == nom;
+    }
+    fn generar_hash(tam:usize)->String{
+        aleatorio(tam)
+    }
 }
 
 #[derive(PartialEq,Debug,Clone)]
@@ -20,9 +38,6 @@ pub struct Criptomoneda{
     prefijo : String,
     blockchains : Vec<Blockchain>
 }
-
-//Agregar funcionalidad para dar de baja una blockchain a la que ya no pertenece por transaccion
-//
 
 impl Criptomoneda{
     fn new(nom:&String,pre:&String)->Criptomoneda{
@@ -47,6 +62,9 @@ impl Criptomoneda{
         }
 
         return pude;
+    }
+    fn blockchain_encontrado(&self,nom:&String)->bool{
+        return self.blockchains.iter().find(|&blockchain| blockchain.es_igual_a(nom)).is_some()
     }
     fn get_nombre(&self)->String{
         return self.nombre.clone();
@@ -91,7 +109,7 @@ impl CriptomonedaDispone{
     //Con limite de extracion(Sin saldo negativo)
     fn descontabilizar(&mut self,monto:f64)->bool{
         let mut pude = false;
-        if self.1 <= monto {
+        if self.1 >= monto {
             self.1 -= monto;
             pude = true;
         }
@@ -125,11 +143,14 @@ impl BalancePropio{
     //Con limite de extracion(Sin saldo negativo)
     fn descontabilizar_fiat(&mut self,monto:f64)->bool{
         let mut pude = false;
-        if self.dinero_fiat <= monto {
+        if self.dinero_fiat >= monto {
             self.dinero_fiat -= monto;
             pude = true;
         }
         return pude;
+    }
+    fn agregar_criptomoneda(&mut self,nom:&String,monto:f64){
+        self.criptomonedas.push(CriptomonedaDispone(nom.clone(),monto));
     }
     fn contabilizar_criptomoneda(&mut self,nom:&String,monto:f64)->bool{
         let mut pude = false;
@@ -181,16 +202,53 @@ impl Usuario{
     fn cambiar_verificacion(&mut self){
         self.validado = !self.validado;
     }
+    //Fiat moneda
     fn ingresar_monto_fiat(&mut self,monto:f64){
         self.balance.contabilizar_fiat(monto);
     }
-    fn retirar_monto_fiat(&mut self,monto:f64){
-        if self.balance.get_cant_fiat() > 0.0 {
-            self.balance.descontabilizar_fiat(monto);
-        }
+    fn retirar_monto_fiat(&mut self,monto:f64)->bool{
+        return self.balance.descontabilizar_fiat(monto);
     }
     fn get_balance_fiat(&self)->f64{
         return self.balance.get_cant_fiat();
+    }
+    //Criptomoneda(Los montos se basan en lo que le proporcione el sistema)
+    fn comprar_criptomoneda(&mut self,nom:&String,montoCompra:f64,montoComprado:f64)->bool{
+        let mut pude = false;
+        if self.validado {
+            pude = self.retirar_monto_fiat(montoCompra);
+            if pude {
+                if !self.balance.contabilizar_criptomoneda(nom,montoComprado){
+                    self.balance.agregar_criptomoneda(nom,montoComprado);
+                }
+            }
+        }
+        return pude;
+    }
+    fn vender_criptomoneda(&mut self,nom:&String,montoVenta:f64,gananciaObtenida:f64)->bool{
+        let mut pude = false;
+        if self.validado {
+            pude = self.balance.descontabilizar_criptomoneda(nom,montoVenta);            
+            if pude {
+                self.balance.contabilizar_fiat(gananciaObtenida);
+            }
+        }
+        return pude;
+    }
+    //Transacciones a blockchains
+    fn criptomoneda_a_blockchain(&mut self,nomCripto:&String,monto:f64,nomBlockchain:&String,cripto : &Criptomoneda)->bool{
+        let mut pude = false;
+        if cripto.blockchain_encontrado(nomBlockchain){
+            pude = self.balance.descontabilizar_criptomoneda(nomCripto,monto);
+        }
+        return pude;
+    }
+    fn blockchain_a_criptomoneda(&mut self,nomCripto:&String,monto:f64,nomBlockchain:&String,cripto : &Criptomoneda)->bool{
+        let pude = cripto.blockchain_encontrado(nomBlockchain);
+        if pude {
+            self.balance.contabilizar_criptomoneda(nomCripto,monto);
+        }
+        return pude;
     }
 }
 
@@ -325,6 +383,13 @@ impl Criptomoneda_disponible{
         return self.1;
     }
 }
+
+
+
+/*
+    Estructura principal : Sistema
+*/
+
 
 #[derive(PartialEq,Debug,Clone)]
 pub struct Plataforma{
