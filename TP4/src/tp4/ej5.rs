@@ -310,9 +310,10 @@ pub struct Datos_Operacion_Criptomoneda{
 
 impl Datos_Operacion_Criptomoneda{
     fn new(user:&DatosPersona,f:&Fecha,m:f64,c:&Criptomoneda,cotiz:f64)->Datos_Operacion_Criptomoneda{
-        return Datos_Operacion_Criptomoneda { datos_genericos: Datos_Ingreso::new(user, f, m ),
-         criptomoneda: c.clone(), 
-         cotizacion: cotiz };
+        return Datos_Operacion_Criptomoneda { 
+            datos_genericos: Datos_Ingreso::new(user, f, m ),
+            criptomoneda: c.clone(),
+            cotizacion: cotiz };
     }
     fn get_criptomoneda(&self)->Criptomoneda{
         return self.criptomoneda.clone();
@@ -382,6 +383,15 @@ impl Criptomoneda_disponible{
     fn get_cotiza(&self)->f64{
         return self.1;
     }
+    //Considerar que son calculos especificos
+    //Retorna equivalente (dinero fiat a criptomoneda)
+    fn calcular_monto_compra(&self,monto:f64)->f64{
+        return monto/self.1;
+    }
+    //Retorna equivalente (criptomoneda a dinero fiat)
+    fn calcular_monto_venta(&self,monto:f64)->f64{
+        return monto*self.1;
+    }
 }
 
 
@@ -404,9 +414,39 @@ pub struct Plataforma{
 */
 
 impl Plataforma{
+    //Funciones secundarias
+    fn eliminar_criptomoneda(&mut self,cripto:&Criptomoneda)->bool{
+        let mut pude = false;
+        
+        if let Some(pos) = self.criptomonedas_dispone.iter().position(|c| c.0.get_nombre() == cripto.get_nombre()){
+            pude = true;
+            self.criptomonedas_dispone.remove(pos);
+        }       
+
+        return pude;
+    }
+    fn registrar_criptomoneda(&mut self,cripto:&Criptomoneda,cotiza:f64)->bool{
+        let mut pude = false;
+        
+        if self.criptomonedas_dispone.iter().find(|&c| c.0.get_nombre() == cripto.get_nombre() ).is_none(){
+            self.criptomonedas_dispone.push(Criptomoneda_disponible(cripto.clone(),cotiza));
+            pude = true;
+        }        
+
+        return pude;
+    }
+    fn obtener_cotizacion_criptomoneda(&self,nom:&String)->f64{
+        let mut total = 0.0;
+        if let Some(cr) = self.criptomonedas_dispone.iter().find(|&c| &c.0.get_nombre() == nom){
+            total = cr.get_cotiza();
+        }
+        return total;
+    }
     fn registrar_transaccion(&mut self,t : &TiposTransacciones){
         self.registro_transacciones.push(t.clone());
     }
+
+    //Funciones primarias
     fn ingresar_monto_usuario(&mut self,u1:&Usuario,f:&Fecha,m:f64)->bool{
         let mut completo = false;
         if let Some(u) = self.usuarios.iter_mut().find(|user| user.informacion_correcta(&u1.datos)){
@@ -414,6 +454,25 @@ impl Plataforma{
             let datos = Datos_Ingreso::new(&u.datos, f, m);
             self.registrar_transaccion(&TiposTransacciones::IngresoFiat(datos));
             completo = true;
+        }
+        return completo;
+    }
+    fn comprar_criptomoneda_usuario(&mut self,u1:&Usuario,f:&Fecha,montoCompra:f64,nom:&String)->bool{
+        let mut completo = false;
+        if let Some(u) = self.usuarios.iter_mut().find(|user| user.informacion_correcta(&u1.datos)){
+            
+            if let Some(cr) = self.criptomonedas_dispone.iter().find(|&c| &c.0.get_nombre() == nom){
+                //Compra
+                let montoObtenido = cr.calcular_monto_compra(montoCompra);
+                completo = u.comprar_criptomoneda(nom,montoCompra,montoObtenido);
+
+                if completo {
+                    //Generacion de comprobante
+                    let datos = Datos_Operacion_Criptomoneda::new(&u.datos.clone(),&f.clone(),montoObtenido,&cr.0.clone(),cr.get_cotiza());
+                    self.registrar_transaccion(&TiposTransacciones::CompraCriptomoneda(datos));
+                }
+                
+            }
         }
         return completo;
     }
