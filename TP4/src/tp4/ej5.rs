@@ -27,7 +27,7 @@ impl Blockchain{
     fn es_igual_a(&self,nom:&String)->bool{
         return &self.nombre == nom;
     }
-    fn generar_hash(tam:usize)->String{
+    fn generar_hash(&self,tam:usize)->String{
         aleatorio(tam)
     }
 }
@@ -63,8 +63,15 @@ impl Criptomoneda{
 
         return pude;
     }
+    fn dispone_blockchains(&self)->bool{
+        return !self.blockchains.is_empty();
+    }
     fn blockchain_encontrado(&self,nom:&String)->bool{
-        return self.blockchains.iter().find(|&blockchain| blockchain.es_igual_a(nom)).is_some()
+        let mut res = self.dispone_blockchains();
+        if res{
+            res = self.blockchains.iter().find(|&blockchain| blockchain.es_igual_a(nom)).is_some();
+        }
+        return res;
     }
     fn get_blockchain(&self,nom:&String)->Option<Blockchain>{
         let mut res : Option<Blockchain> = None;
@@ -79,30 +86,6 @@ impl Criptomoneda{
     fn get_prefijo(&self)->String{
         return self.prefijo.clone();
     }
-}
-
-#[derive(PartialEq,Debug,Clone)]
-pub struct DatosPersona{
-    nombre : String,
-    apellido : String,
-    email : String,
-    dni : u64
-}
-
-pub trait InformacionPersonal{
-    fn get_nombre(&self, datos : &DatosPersona)->String{
-        return datos.nombre.clone();
-    }
-    fn get_apellido(&self, datos: &DatosPersona)->String{
-        return datos.apellido.clone();
-    }
-    fn get_email(&self, datos : &DatosPersona)->String{
-        return datos.email.clone();
-    }
-    fn get_dni(&self, datos : &DatosPersona)->u64{
-        return datos.dni;
-    }
-    fn informacion_correcta(&self, info:&DatosPersona)->bool;
 }
 
 #[derive(PartialEq,Debug,Clone)]
@@ -186,6 +169,38 @@ impl BalancePropio{
     }
 }
 
+
+
+
+
+/*
+    Estructura abstracta datos personales y usuario no abstracta
+*/
+
+#[derive(PartialEq,Debug,Clone)]
+pub struct DatosPersona{
+    nombre : String,
+    apellido : String,
+    email : String,
+    dni : u64
+}
+
+pub trait InformacionPersonal{
+    fn get_nombre(&self, datos : &DatosPersona)->String{
+        return datos.nombre.clone();
+    }
+    fn get_apellido(&self, datos: &DatosPersona)->String{
+        return datos.apellido.clone();
+    }
+    fn get_email(&self, datos : &DatosPersona)->String{
+        return datos.email.clone();
+    }
+    fn get_dni(&self, datos : &DatosPersona)->u64{
+        return datos.dni;
+    }
+    fn informacion_correcta(&self, info:&DatosPersona)->bool;
+}
+
 #[derive(PartialEq,Debug,Clone)]
 pub struct Usuario{
     datos : DatosPersona,
@@ -203,7 +218,7 @@ impl Usuario{
     fn new(nom:&String,ape:&String,mail:&String,dni_in:u64)->Usuario{
         return Usuario { datos: DatosPersona { nombre: nom.clone(), apellido: ape.clone(), email: mail.clone(), dni: dni_in} , validado: false, balance: BalancePropio::new()}
     }
-    fn obtener_verificacion(&self)->bool{
+    fn is_verificado(&self)->bool{
         return self.validado;
     }
     fn cambiar_verificacion(&mut self){
@@ -259,9 +274,12 @@ impl Usuario{
     }
 }
 
+
+
 /*
-    Estructura pertenciente al sistema
+    Estructuras pertenciente al sistema
 */
+
 
 #[derive(PartialEq,Debug,Clone)]
 pub struct Fecha(u8,u8,u64);
@@ -341,7 +359,7 @@ impl Datos_Retiro_Blockchain{
     fn new(user:&DatosPersona,f:&Fecha,m:f64,c:&Criptomoneda,cotiz:f64,b:&Blockchain)->Datos_Retiro_Blockchain{
         return Datos_Retiro_Blockchain { datos_criptomoneda: Datos_Operacion_Criptomoneda::new(user, f, m, c, cotiz),
              blockchain: b.clone(),
-            hash: Blockchain::generar_hash(5) }
+            hash: b.generar_hash(5) }
     }
     fn get_blockchain(&self)->Blockchain{
         return self.blockchain.clone();
@@ -414,11 +432,6 @@ pub struct Plataforma{
     criptomonedas_dispone : Vec<Criptomoneda_disponible>, //Datos de la criptomoneda y cotiza
     registro_transacciones : Vec<TiposTransacciones>
 }
-/*
-    incisos:
-    Un modulo debe contabilizar las ventas y compras hechas de criptomonedas
-    Un modulo debe contabilizar las solicitudes de ventas y compras de criptomonedas
-*/
 
 impl Plataforma{
     //Funciones secundarias
@@ -551,5 +564,92 @@ impl Plataforma{
             completo = true;
         }
         return completo;
+    }
+}
+
+
+
+
+
+
+/*
+ *
+        Seccion de testing
+ *
+*/
+
+#[cfg(test)]
+mod test_ejercicio5{    
+    use super::*;
+
+    #[test]
+    fn prueba_blockchain(){
+        let nom = "Block81".to_string();
+        let b = Blockchain::new(&nom,&"BLO".to_string());
+        assert_eq!(b,Blockchain::new(&nom,&"BLO".to_string()));
+        assert!(b.es_igual_a(&nom));
+        assert!(!b.generar_hash(5).is_empty());
+    }
+
+    #[test]
+    fn prueba_criptomoneda(){
+        let c = Criptomoneda::new(&"Cripton1".to_string(),&"CRP".to_string());
+        assert_eq!(c,Criptomoneda::new(&"Cripton1".to_string(),&"CRP".to_string()));
+        assert!(!c.dispone_blockchains());
+        assert!(!c.get_nombre().is_empty());
+        assert!(!c.get_prefijo().is_empty());
+    }
+
+    #[test]
+    fn conexiones_cripto_blockchain(){
+        //Criptomoneda
+        let mut c = Criptomoneda::new(&"Cripton2".to_string(),&"CRP2".to_string());
+        //Blockchains
+        let b1 = Blockchain::new(&"Block81".to_string(),&"BLO81".to_string());
+        let b2 = Blockchain::new(&"Block87".to_string(),&"BLO87".to_string());
+        let b3 = Blockchain::new(&"Block19".to_string(),&"BLO19".to_string());
+
+        //Se le agregan las conexiones con blockchains
+        assert!(c.agregar_blockchain(&b1));
+        assert!(c.agregar_blockchain(&b2));
+        assert!(c.agregar_blockchain(&b3));
+        assert!(!c.agregar_blockchain(&b1));    //Ya existe un vinculo por lo que no existe una revinculacion
+        assert!(c.dispone_blockchains());
+
+        //Busqueda de una blockchain
+        let nom = "Block81".to_string();
+        assert!(c.blockchain_encontrado(&nom));
+        assert!(c.get_blockchain(&nom).is_some());
+        let nom = "Block31".to_string();
+        assert!(c.get_blockchain(&nom).is_none());
+        
+        //Desvinculacion y busqueda de blockchain
+        let nom = "Block81".to_string();
+        assert!(c.eliminar_blockchain(&b1));
+        assert!(!c.eliminar_blockchain(&b1));   //No se hace una desvinculacion para un blockchain inexistente
+        assert!(!c.blockchain_encontrado(&nom));
+        assert!(c.get_blockchain(&nom).is_none());
+
+        //Desvinculacion total 
+        assert!(c.eliminar_blockchain(&b2));
+        assert!(c.eliminar_blockchain(&b3));
+        assert!(!c.dispone_blockchains());
+    }
+
+    #[test]
+    fn prueba_datos_personales_usuario(){
+        let datos = DatosPersona{nombre : "Marcos".to_string(),apellido : "Deltodo".to_string(),email : "exmpl@example.com".to_string(),dni : 1234876};
+        let mut us1 = Usuario::new(&datos.nombre,&datos.apellido,&datos.email,datos.dni);
+
+        //Informacion correcta
+        assert!(us1.informacion_correcta(&datos));
+        assert!(!us1.get_nombre(&us1.datos).is_empty());
+        assert!(!us1.get_apellido(&us1.datos).is_empty());
+        assert!(!us1.get_email(&us1.datos).is_empty());
+        assert_eq!(us1.get_dni(&us1.datos),1234876);
+
+        assert!(!us1.is_verificado());
+        us1.cambiar_verificacion();
+        assert!(us1.is_verificado());
     }
 }
