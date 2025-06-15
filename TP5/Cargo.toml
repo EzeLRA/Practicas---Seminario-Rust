@@ -5,5 +5,4 @@ edition = "2024"
 
 [dependencies]
 serde = "1.0.219"
-cargo-tarpaulin = "0.32.7"
 openssl = "0.10.73"

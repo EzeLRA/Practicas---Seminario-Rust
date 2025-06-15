@@ -66,6 +66,13 @@ impl Criptomoneda{
     fn blockchain_encontrado(&self,nom:&String)->bool{
         return self.blockchains.iter().find(|&blockchain| blockchain.es_igual_a(nom)).is_some()
     }
+    fn get_blockchain(&self,nom:&String)->Option<Blockchain>{
+        let mut res : Option<Blockchain> = None;
+        if let Some(b) = self.blockchains.iter().find(|&blockchain| blockchain.es_igual_a(nom)){
+            res = Some(b.clone());
+        }
+        return res;
+    }
     fn get_nombre(&self)->String{
         return self.nombre.clone();
     }
@@ -334,7 +341,7 @@ impl Datos_Retiro_Blockchain{
     fn new(user:&DatosPersona,f:&Fecha,m:f64,c:&Criptomoneda,cotiz:f64,b:&Blockchain)->Datos_Retiro_Blockchain{
         return Datos_Retiro_Blockchain { datos_criptomoneda: Datos_Operacion_Criptomoneda::new(user, f, m, c, cotiz),
              blockchain: b.clone(),
-            hash: "Random".to_string() }
+            hash: Blockchain::generar_hash(5) }
     }
     fn get_blockchain(&self)->Blockchain{
         return self.blockchain.clone();
@@ -475,6 +482,65 @@ impl Plataforma{
             }
         }
         return completo;
+    }
+    fn vender_criptomoneda_usuario(&mut self,u1:&Usuario,f:&Fecha,montoVenta:f64,nom:&String)->bool{
+        let mut completo = false;
+        if let Some(u) = self.usuarios.iter_mut().find(|user| user.informacion_correcta(&u1.datos)){
+            
+            if let Some(cr) = self.criptomonedas_dispone.iter().find(|&c| &c.0.get_nombre() == nom){
+                //Venta
+                let montoObtenido = cr.calcular_monto_venta(montoVenta);
+                completo = u.vender_criptomoneda(nom,montoVenta,montoObtenido);
+
+                if completo {
+                    //Generacion de comprobante
+                    let datos = Datos_Operacion_Criptomoneda::new(&u.datos.clone(),&f.clone(),montoVenta,&cr.0.clone(),cr.get_cotiza());
+                    self.registrar_transaccion(&TiposTransacciones::VentaCriptomoneda(datos));
+                }
+                
+            }
+        }
+        return completo;
+    }
+    fn criptomoneda_a_blockchain_usuario(&mut self,u1:&Usuario,f:&Fecha,montoTransaccion:f64,nomCripto:&String,nomBlockchain:&String)->bool{
+        let mut pude = false;
+        
+        if let Some(u) = self.usuarios.iter_mut().find(|user| user.informacion_correcta(&u1.datos)){
+            if let Some(cr) = self.criptomonedas_dispone.iter().find(|&c| &c.0.get_nombre() == nomCripto){
+                //Buscar blockchain en la criptomoneda
+                pude = u.criptomoneda_a_blockchain(nomCripto,montoTransaccion,nomBlockchain,&cr.0);
+
+                //Generar comprobante
+                if pude {
+                    if let Some(b) = cr.0.get_blockchain(nomBlockchain){
+                        let datos = Datos_Retiro_Blockchain::new(&u.datos.clone(),&f.clone(),montoTransaccion,&cr.0.clone(),cr.get_cotiza(),&b);
+                        self.registrar_transaccion(&TiposTransacciones::RetiroCriptomoneda(datos));
+                    }
+                }
+            }
+        }
+
+        return pude;
+    }
+    fn blockchain_a_criptomoneda_usuario(&mut self,u1:&Usuario,f:&Fecha,montoTransaccion:f64,nomCripto:&String,nomBlockchain:&String)->bool{
+        let mut pude = false;
+        
+        if let Some(u) = self.usuarios.iter_mut().find(|user| user.informacion_correcta(&u1.datos)){
+            if let Some(cr) = self.criptomonedas_dispone.iter().find(|&c| &c.0.get_nombre() == nomCripto){
+                //Buscar blockchain en la criptomoneda
+                pude = u.blockchain_a_criptomoneda(nomCripto,montoTransaccion,nomBlockchain,&cr.0);
+
+                //Generar comprobante
+                if pude {
+                    if let Some(b) = cr.0.get_blockchain(nomBlockchain){
+                        let datos = Datos_Extraccion_Blockchain::new(&u.datos.clone(),&f.clone(),montoTransaccion,&cr.0.clone(),cr.get_cotiza(),&b);
+                        self.registrar_transaccion(&TiposTransacciones::RecepcionCriptomoneda(datos));
+                    }
+                }
+            }
+        }
+
+        return pude;
     }
     fn retirar_monto_usuario(&mut self,u1:&Usuario,f:&Fecha,m:f64,med:&MediosPago)->bool{
         let mut completo = false;
