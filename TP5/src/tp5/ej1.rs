@@ -1,4 +1,6 @@
-use std::fmt::Display;
+use std::fmt::{write, Display};
+use std::{fs::File,io::{Error,Read,Write}};
+use std::path::Path;
 //Se debe importar serde para su uso "cargo add serde"
 use serde::{Serialize, Deserialize};
 
@@ -12,7 +14,7 @@ use serde::{Serialize, Deserialize};
 */
 
 //Enum
-#[derive(Debug , Clone)]
+#[derive(Debug , Clone, serde::Serialize)]
 pub enum Colores{	
 	//Primarios
 	Rojo,
@@ -43,7 +45,7 @@ impl Colores{
 }
 
 //Atributos
-#[derive(Debug , Clone)]
+#[derive(Debug , Clone , serde::Serialize)]
 pub struct Auto{
     marca : String,
     modelo : String,
@@ -52,7 +54,7 @@ pub struct Auto{
     color : Colores
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone,serde::Serialize)]
 pub struct ConcesionarioAuto{
 	nombre : String,
 	direccion : String,
@@ -125,17 +127,20 @@ impl ConcesionarioAuto{
 		}
 	}
 	//Elimina la primer ocurrencia para un auto con las caracteristicas exactas
-	pub fn eliminar_auto(&mut self,a1:&Auto){
+	pub fn eliminar_auto(&mut self,a1:&Auto)->bool{
+		let mut pude = false;
 		if !self.autos.is_empty() {
 			for i in 0..self.autos.len(){
 				if let Some(auto) = self.autos.get(i){
 					if auto.es_igual_a(&a1) {
 						self.autos.remove(i);
+						pude = true;
 						break;
 					}
 				}
 			}
 		}
+		return pude;
 	}
 	//Se considera que la estructura no tendra un gran impacto en la performance(segun tamanio)
 	//Busca un auto con las caracteristicas exactas
@@ -219,6 +224,9 @@ mod testing_consecionaria_auto{
 	}
 }
 
+
+
+
 /***
  * 		IMPLEMENTACION PARA EL TP5 - Ejercicio 1
 **/
@@ -226,59 +234,106 @@ impl ConcesionarioAuto{
 	fn to_string(&self)->String{
 		return self.nombre.clone();
 	}
+	fn get_cantAutos(&self)->u32{
+		return self.autos.len() as u32;
+	}
+	fn is_Lleno(&self)->bool{
+		return self.autos.len() as u32 == self.capacidad;
+	}
+	fn is_Vacio(&self)->bool{
+		return self.autos.is_empty();
+	}
 }
 
-pub enum ErrorDeBaja{
+/*
+	Tipos de errores
+*/
+pub enum error_baja{
 	Inexistente(String),
 	EstructuraVacia(String)
 }
 
-impl Display for ErrorDeBaja{
+impl Display for error_baja{
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self{
-			ErrorDeBaja::Inexistente(val) => write!(f, "No se encontro el auto en la consecionaria {} ",val),
-			ErrorDeBaja::EstructuraVacia(val) => write!(f, "La consecionaria {} no dispone de autos ",val)
+			error_baja::Inexistente(val) => write!(f, "No se encontro el auto en la consecionaria {} ",val),
+			error_baja::EstructuraVacia(val) => write!(f, "La consecionaria {} no dispone de autos ",val)
 		}
 	}
 }
 
-pub struct ErrorCapacidad(String);
-impl Display for ErrorCapacidad{
+pub struct error_capacidad(String);
+impl Display for error_capacidad{
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "La Capacidad de autos para la consecionaria {} fue superada" , self.0)
 	}
 }
 
-pub fn validar_insercion(c: &mut ConcesionarioAuto,auto:&Auto)->Result<bool, ErrorCapacidad>{
-	if (c.autos.len() as u32) < c.capacidad {
-		c.autos.push(auto.clone());
-		return Ok(true);
-	}else{
-		return Err(ErrorCapacidad(c.to_string()));
+pub enum Errores{
+	ErrorBaja(error_baja),
+	ErrorCapacidad(error_capacidad)
+}
+impl Display for Errores{
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Errores::ErrorBaja(err) => write!(f,"{}",err),
+			Errores::ErrorCapacidad(err) => write!(f,"{}",err)
+		}
 	}
 }
 
-pub fn validar_eliminacion(c: &mut ConcesionarioAuto, auto:&Auto)->Result<bool,ErrorDeBaja>{
-	if !c.autos.is_empty() {
-		for i in 0..c.autos.len(){
-			if let Some(a) = c.autos.get(i){
-				if a.es_igual_a(&auto) {
-					c.autos.remove(i);
-					return Ok(true);
-				}
+//Estructura auxiliar para el manejo de la informacion de los archivos
+#[derive(Debug)]
+pub struct Archivo_respaldable{
+	informacion : ConcesionarioAuto,
+	path : String,
+	autoguardado : bool 
+}
+
+impl Archivo_respaldable{
+	fn new(dato:&ConcesionarioAuto,dir:String,estado:bool)->Archivo_respaldable{
+		return Archivo_respaldable { informacion: dato.clone(), path: dir , autoguardado : estado};
+	}
+	fn existe_archivo(&self)->bool{
+		return Path::new(&self.path.clone()).exists();
+	}
+	/*	Generalizar el tipo de error 
+	fn respaldar_informacion(&self)->Result<(),Err>{
+		if self.existe_archivo(){
+			let mut file = File::open(&self.path.clone())?;
+			let serializado = serde_json::to_string(&self.informacion)?;
+			file.write_all(&serializado.as_bytes());
+		}else{
+			let mut file = File::create(&self.path.clone())?;
+			let serializado = serde_json::to_string(&self.informacion)?;
+			file.write_all(&serializado.as_bytes());
+		}
+	}
+	*/
+	fn validar_insercion(&mut self,auto:&Auto)->Result<bool, Errores>{
+		if !self.informacion.is_Lleno() {
+			self.informacion.agregar_auto(&auto);
+			return Ok(true);
+		}else{
+			return Err(Errores::ErrorCapacidad(error_capacidad(self.informacion.to_string()) ));
+		}
+	}
+	fn validar_eliminacion(&mut self, a:&Auto)->Result<bool,Errores>{
+		if !self.informacion.is_Vacio() {
+			let mut pude = self.informacion.eliminar_auto(&a);
+			if pude {return Ok(pude)}else{
+				return Err(Errores::ErrorBaja(error_baja::Inexistente(self.informacion.to_string())) );
 			}
 		}
-		return Err(ErrorDeBaja::Inexistente(c.to_string()));
-	}else{
-		return Err(ErrorDeBaja::EstructuraVacia(c.to_string()));
+		return Err(Errores::ErrorBaja(error_baja::EstructuraVacia(self.informacion.to_string())) );
 	}
 }
-
-
 
 #[cfg(test)]
 mod testing_implementacion_ejercicio1{
-	use super::*;
+use super::*;
+
+	//Se implementa la estructura "Archivo respaldable" como un "influyente" entre el archivo JSON y el struct que se dispone 
 
 	//Inciso a
 	#[test]
@@ -289,30 +344,40 @@ mod testing_implementacion_ejercicio1{
 		let a4 = Auto::new(String::from("Toyota"),String::from("artjrtjtt"),2000,200000.0,Colores::Azul);
 		let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"trrjrjrtw".to_string(),3);
 
+		//No se hacen guardados en el archivo , solo validaciones de modificaciones
+		let mut archivo1 = Archivo_respaldable::new(&conse1, "".to_string(),false);
+
 		//Limite de insersiones
 
 		//Primera Insercion(No notifica de un error)
-		let r = validar_insercion(&mut conse1,&a1); 
+		let r = archivo1.validar_insercion(&a1); 
 		match r {
 			Ok(mov) => assert!(true),
 			Err(e) => {println!("error: {}", e); assert!(false);}
 		}
-		assert!(conse1.agregar_auto(&a2));
-		assert!(conse1.agregar_auto(&a3));
+
+		//Llenado de la consecionaria
+		archivo1.validar_insercion(&a2);
+		let r = archivo1.validar_insercion(&a3); 
+		match r {
+			Ok(mov) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
 		
 		//Ultima insercion(Avisa del error)
-		/*	//Descomentar seccion para hacer la validacion 
-		let r = validar_insercion(&mut conse1,&a4); 
+		/*  	//Descomentar seccion para hacer la validacion 
+		let r = archivo1.validar_insercion(&a4); 
 		match r {
-			Ok(_dat) => assert!(true),
+			Ok(mov) => assert!(true),
 			Err(e) => {println!("error: {}", e); assert!(false);}
 		}
 		*/
+		
 	}
 
-	//Inciso b se hace lo de arriba pero con cobertura de errores con contexto
+	//Inciso b
 	#[test]
-	fn operatoria_contextual_consecionaria(){
+	fn eliminacion_de_un_auto(){
 		//Autos
 		let a1 = Auto::new(String::from("asdf"),String::from("aytuiy"),2023,100432.0,Colores::Rojo);
 		let a2 = Auto::new(String::from("BMW"),String::from("ajytjt"),2000,200500.0,Colores::Verde);
@@ -322,33 +387,31 @@ mod testing_implementacion_ejercicio1{
 		//Consecionaria
 		let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),3);
 		
-		//Limite de insersiones(ya probado arriba)
-		match validar_insercion(&mut conse1, &a1) {
-			Ok(res) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
-		}
-		validar_insercion(&mut conse1, &a2);
-		validar_insercion(&mut conse1, &a3);
+		let mut archivo1 = Archivo_respaldable::new(&conse1, "".to_string(),false);
+
+		archivo1.validar_insercion(&a1);
+		archivo1.validar_insercion(&a2);
+		archivo1.validar_insercion(&a3);
 
 		//Borra auto "a1"
-		match validar_eliminacion(&mut conse1, &a1) {
+		match archivo1.validar_eliminacion(&a1) {
 			Ok(res) => assert!(true),
 			Err(e) => {println!("error: {}", e); assert!(false);}
 		}
 
 		//Borra auto "a4" (Error de inexsistencia) ; Descomentar para probar
-		/* 
-		match validar_eliminacion(&mut conse1, &a4) {
+		/*  
+		match archivo1.validar_eliminacion(&a4) {
 			Ok(res) => assert!(true),
 			Err(e) => {println!("error: {}", e); assert!(false);}
 		}
 		*/
-		validar_eliminacion(&mut conse1, &a2);
-		validar_eliminacion(&mut conse1, &a3);
+		archivo1.validar_eliminacion(&a2);
+		archivo1.validar_eliminacion(&a3);
 
 		//Borra auto "a4" (Error de estructura vacia) ; Descomentar para probar
 		/* 
-		match validar_eliminacion(&mut conse1, &a4) {
+		match archivo1.validar_eliminacion(&a4) {
 			Ok(res) => assert!(true),
 			Err(e) => {println!("error: {}", e); assert!(false);}
 		}
@@ -356,7 +419,5 @@ mod testing_implementacion_ejercicio1{
 		
 	}
 
-	//Inciso c
-	//fn respaldar_informacion()
-	//fn modificar_informacion()
+	
 }
