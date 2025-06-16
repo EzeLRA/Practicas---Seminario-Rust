@@ -3,6 +3,7 @@ use std::{fs::File,io::{Error,Read,Write}};
 use std::path::Path;
 //Se debe importar serde para su uso "cargo add serde"
 use serde::{Serialize, Deserialize};
+use serde_json;
 
 /**
  * 		Extraccion de ejercicio 7 de TP3
@@ -271,20 +272,35 @@ impl Display for error_capacidad{
 
 pub enum Errores{
 	ErrorBaja(error_baja),
-	ErrorCapacidad(error_capacidad)
-	ErrorIO,
-	ErrorSerde
+	ErrorCapacidad(error_capacidad),
+	ErrorIO(io::Error),
+	ErrorSerde(serde_json::Error)
 }
 impl Display for Errores{
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
 			Errores::ErrorBaja(err) => write!(f,"{}",err),
 			Errores::ErrorCapacidad(err) => write!(f,"{}",err)
+		        Errores::ErrorIO(err) => write!(f, "Error de E/S al guardar: {}", e),
+                        Errores::ErrorSerde(err) => write!(f, "Error de serialización: {}", e),
 		}
 	}
 }
+//Implementacion para el uso del operador (?)
+impl std::error::Error for Errores {}
 
+//Implementacion automatica errores subyacentes
+impl From<io::Error> for Errores {
+    fn from(err: io::Error) -> Self {
+        Errores::ErrorIO(err)
+    }
+}
 
+impl From<serde_json::Error> for Errores {
+    fn from(err: serde_json::Error) -> Self {
+        Errores::ErrorSerde(err)
+    }
+}
 
 
 
