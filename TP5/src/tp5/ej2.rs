@@ -4,7 +4,7 @@
 /*
     Estructuras : Cancion , Generos y PlayList
 */
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Serialize, Deserialize )]
 pub enum Generos{
     Rock,
     Pop,
@@ -12,13 +12,13 @@ pub enum Generos{
     Jazz,
     Otros
 }
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Serialize, Deserialize )]
 pub struct Cancion{
     titulo : String,
     artista : String,
     genero : Generos
 }
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize )]
 pub struct PlayList{
     nombre: String,
     canciones : Vec<Cancion>
