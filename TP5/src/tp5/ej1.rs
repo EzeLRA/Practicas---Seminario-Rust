@@ -272,6 +272,8 @@ impl Display for error_capacidad{
 pub enum Errores{
 	ErrorBaja(error_baja),
 	ErrorCapacidad(error_capacidad)
+	ErrorIO,
+	ErrorSerde
 }
 impl Display for Errores{
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -281,6 +283,10 @@ impl Display for Errores{
 		}
 	}
 }
+
+
+
+
 
 //Estructura auxiliar para el manejo de la informacion de los archivos
 #[derive(Debug)]
