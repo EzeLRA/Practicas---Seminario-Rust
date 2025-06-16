@@ -15,7 +15,7 @@ use serde_json;
 */
 
 //Enum
-#[derive(Debug , Clone, serde::Serialize)]
+#[derive(Debug , Clone, Serialize, Deserialize)]
 pub enum Colores{	
 	//Primarios
 	Rojo,
@@ -46,7 +46,7 @@ impl Colores{
 }
 
 //Atributos
-#[derive(Debug , Clone , serde::Serialize)]
+#[derive(Debug , Clone , Serialize, Deserialize)]
 pub struct Auto{
     marca : String,
     modelo : String,
@@ -55,7 +55,7 @@ pub struct Auto{
     color : Colores
 }
 
-#[derive(Debug,Clone,serde::Serialize)]
+#[derive(Debug,Clone,Serialize, Deserialize)]
 pub struct ConcesionarioAuto{
 	nombre : String,
 	direccion : String,
@@ -281,8 +281,8 @@ impl Display for Errores{
 		match self {
 			Errores::ErrorBaja(err) => write!(f,"{}",err),
 			Errores::ErrorCapacidad(err) => write!(f,"{}",err)
-		        Errores::ErrorIO(err) => write!(f, "Error de E/S al guardar: {}", e),
-                        Errores::ErrorSerde(err) => write!(f, "Error de serialización: {}", e),
+		        Errores::ErrorIO(err) => write!(f, "Error de E/S al guardar: {}", err),
+                        Errores::ErrorSerde(err) => write!(f, "Error de serialización: {}", err),
 		}
 	}
 }
@@ -305,7 +305,7 @@ impl From<serde_json::Error> for Errores {
 
 
 //Estructura auxiliar para el manejo de la informacion de los archivos
-#[derive(Debug)]
+#[derive(Debug ,Serialize, Deserialize )]
 pub struct Archivo_respaldable{
 	informacion : ConcesionarioAuto,
 	path : String,
