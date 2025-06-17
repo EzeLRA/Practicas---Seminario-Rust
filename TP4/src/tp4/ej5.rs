@@ -30,6 +30,9 @@ impl Blockchain{
     fn generar_hash(&self,tam:usize)->String{
         aleatorio(tam)
     }
+    fn get_nombre(&self)->String{
+        return self.nombre.clone();
+    }
 }
 
 #[derive(PartialEq,Debug,Clone)]
@@ -167,6 +170,9 @@ impl BalancePropio{
     fn get_cant_fiat(&self)->f64{
         return self.dinero_fiat;
     }
+    fn tiene_criptomonedas(&self)->bool{
+        return !self.criptomonedas.is_empty();
+    }
 }
 
 
@@ -231,6 +237,9 @@ impl Usuario{
     fn retirar_monto_fiat(&mut self,monto:f64)->bool{
         return self.balance.descontabilizar_fiat(monto);
     }
+    fn dispone_criptomonedas(&self)->bool{
+        return self.balance.tiene_criptomonedas();
+    }
     fn get_balance_fiat(&self)->f64{
         return self.balance.get_cant_fiat();
     }
@@ -266,9 +275,9 @@ impl Usuario{
         return pude;
     }
     fn blockchain_a_criptomoneda(&mut self,nomCripto:&String,monto:f64,nomBlockchain:&String,cripto : &Criptomoneda)->bool{
-        let pude = cripto.blockchain_encontrado(nomBlockchain);
+        let mut pude = cripto.blockchain_encontrado(nomBlockchain);
         if pude {
-            self.balance.contabilizar_criptomoneda(nomCripto,monto);
+            pude = self.balance.contabilizar_criptomoneda(nomCripto,monto);
         }
         return pude;
     }
@@ -403,6 +412,7 @@ pub enum MediosPago{
 }
 
 #[derive(PartialEq,Debug,Clone)]
+//Valor(Unidad) = Se ingresa el monto equivalente en fiat
 pub struct Criptomoneda_disponible(Criptomoneda,f64);
 impl Criptomoneda_disponible{
     fn get_cotiza(&self)->f64{
@@ -652,4 +662,86 @@ mod test_ejercicio5{
         us1.cambiar_verificacion();
         assert!(us1.is_verificado());
     }
+
+    //Prueba de operatoria sin uso del sistema
+    #[test]
+    fn operatoria_balance_usuario(){
+        //Usuario
+        let datos = DatosPersona{nombre : "Marcos".to_string(),apellido : "Deltodo".to_string(),email : "exmpl@example.com".to_string(),dni : 1234876};
+        let mut us1 = Usuario::new(&datos.nombre,&datos.apellido,&datos.email,datos.dni);
+
+        //Monto vacio de dinero fiat
+        assert_eq!(us1.get_balance_fiat(),0.0);
+
+        //Ingreso dinero fiat
+        us1.ingresar_monto_fiat(10000.0);
+        assert_eq!(us1.get_balance_fiat(),10000.0);
+
+        //Retiro de monto
+        assert!(!us1.retirar_monto_fiat(20000.0));
+        assert!(us1.retirar_monto_fiat(10000.0));
+        assert_eq!(us1.get_balance_fiat(),0.0);  
+
+
+
+        //Simulacion de compra de criptomonedas
+        assert!(!us1.is_verificado());
+        us1.cambiar_verificacion();
+        assert!(us1.is_verificado());
+        us1.ingresar_monto_fiat(20000.0);
+
+        //Criptomonedas
+        let c1 = Criptomoneda::new(&"Cripton".to_string(),&"CRP".to_string());
+        let c2 = Criptomoneda::new(&"MineCoin".to_string(),&"MIN".to_string());
+        let c3 = Criptomoneda::new(&"Bitcoin".to_string(),&"BTC".to_string());
+
+        assert!(us1.comprar_criptomoneda(&c1.get_nombre(),5000.0,10.0));
+        assert!(us1.comprar_criptomoneda(&c2.get_nombre(),5000.0,40.0));
+        assert!(!us1.comprar_criptomoneda(&c3.get_nombre(),25000.0,10.0));
+        assert!(us1.comprar_criptomoneda(&c3.get_nombre(),10000.0,10.0));
+        assert_eq!(us1.get_balance_fiat(),0.0); 
+
+        //Simulacion de venta de criptomonedas
+        assert!(us1.vender_criptomoneda(&c3.get_nombre(),5.0,20000.0));
+        assert!(!us1.vender_criptomoneda(&"Robux".to_string(),10.0,10000.0));
+        assert!(us1.vender_criptomoneda(&c1.get_nombre(),10.0,8000.0));
+        assert!(!us1.vender_criptomoneda(&c1.get_nombre(),10.0,8000.0));
+        assert!(us1.get_balance_fiat()>0.0);
+    }
+
+    //Prueba de transacciones sin el uso del sistema
+    #[test]
+    fn transacciones_blockchain_usuario(){
+        //Usuario
+        let datos = DatosPersona{nombre : "Marcos".to_string(),apellido : "Deltodo".to_string(),email : "exmpl@example.com".to_string(),dni : 1234876};
+        let mut us1 = Usuario::new(&datos.nombre,&datos.apellido,&datos.email,datos.dni);
+
+        //Criptomoneda
+        let mut c = Criptomoneda::new(&"Cripton2".to_string(),&"CRP2".to_string());
+        //Blockchains
+        let b1 = Blockchain::new(&"Block81".to_string(),&"BLO81".to_string());
+        let b2 = Blockchain::new(&"Block87".to_string(),&"BLO87".to_string());
+        let b3 = Blockchain::new(&"Block19".to_string(),&"BLO19".to_string());
+
+        c.agregar_blockchain(&b1);
+        c.agregar_blockchain(&b2);
+        c.agregar_blockchain(&b3);
+
+        //Ingreso de monto fiat
+        us1.ingresar_monto_fiat(10000.0);
+        //Compra de criptomoneda
+        us1.cambiar_verificacion();
+        assert!(!us1.dispone_criptomonedas());
+        assert!(us1.comprar_criptomoneda(&c.get_nombre(),10000.0,100.0));
+
+        //Transaccion
+        assert!(us1.criptomoneda_a_blockchain(&c.get_nombre(),50.0,&b1.get_nombre(),&c));
+        assert!(!us1.criptomoneda_a_blockchain(&"BitCoin".to_string(),50.0,&b1.get_nombre(),&c));
+        assert!(!us1.criptomoneda_a_blockchain(&c.get_nombre(),50.0,&"Block1".to_string(),&c));
+
+        assert!(us1.blockchain_a_criptomoneda(&c.get_nombre(),50.0,&b1.get_nombre(),&c));
+        assert!(!us1.blockchain_a_criptomoneda(&"BitCoin".to_string(),50.0,&b1.get_nombre(),&c));
+        assert!(!us1.blockchain_a_criptomoneda(&c.get_nombre(),50.0,&"Block1".to_string(),&c));
+    }
+
 }
