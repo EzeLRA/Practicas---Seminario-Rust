@@ -1,4 +1,4 @@
-ccuse crate::tp5::ej3Fecha::Fecha;
+use crate::tp5::ej3Fecha::Fecha;
 use std::{fs::File, io::{Error, Read, Write}};
 use serde::{Deserialize, Serialize};
 /**

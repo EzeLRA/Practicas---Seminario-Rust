@@ -1,5 +1,6 @@
 use std::fmt::{write, Display};
-use std::{fs::File,io::{Error,Read,Write}};
+use std::io;
+use std::{fs::{File,OpenOptions}, io::{Error,Read,Write}};
 use std::path::Path;
 //Se debe importar serde para su uso "cargo add serde"
 use serde::{Serialize, Deserialize};
@@ -249,6 +250,7 @@ impl ConcesionarioAuto{
 /*
 	Tipos de errores
 */
+#[derive(Debug)]
 pub enum error_baja{
 	Inexistente(String),
 	EstructuraVacia(String)
@@ -263,6 +265,7 @@ impl Display for error_baja{
 	}
 }
 
+#[derive(Debug)]
 pub struct error_capacidad(String);
 impl Display for error_capacidad{
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -270,6 +273,7 @@ impl Display for error_capacidad{
 	}
 }
 
+#[derive(Debug)]
 pub enum Errores{
 	ErrorBaja(error_baja),
 	ErrorCapacidad(error_capacidad),
@@ -280,9 +284,9 @@ impl Display for Errores{
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
 			Errores::ErrorBaja(err) => write!(f,"{}",err),
-			Errores::ErrorCapacidad(err) => write!(f,"{}",err)
-		        Errores::ErrorIO(err) => write!(f, "Error de E/S al guardar: {}", err),
-                        Errores::ErrorSerde(err) => write!(f, "Error de serialización: {}", err),
+			Errores::ErrorCapacidad(err) => write!(f,"{}",err),
+		    Errores::ErrorIO(err) => write!(f, "Error de E/S al guardar: {}", err),
+            Errores::ErrorSerde(err) => write!(f, "Error de serialización: {}", err)
 		}
 	}
 }
@@ -319,35 +323,67 @@ impl Archivo_respaldable{
 	fn existe_archivo(&self)->bool{
 		return Path::new(&self.path.clone()).exists();
 	}
-	/*	Generalizar el tipo de error 
-	fn respaldar_informacion(&self)->Result<(),Err>{
-		if self.existe_archivo(){
-			let mut file = File::open(&self.path.clone())?;
-			let serializado = serde_json::to_string(&self.informacion)?;
-			file.write_all(&serializado.as_bytes());
-		}else{
-			let mut file = File::create(&self.path.clone())?;
-			let serializado = serde_json::to_string(&self.informacion)?;
-			file.write_all(&serializado.as_bytes());
-		}
+	
+	fn rescatar_informacion(&self)-> Result<ConcesionarioAuto,Errores>{
+		let mut file = File::open(self.path.clone())?;
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        let consecionaria  = serde_json::from_str(&buf)?;
+        Ok(consecionaria) 
 	}
-	*/
-	fn validar_insercion(&mut self,auto:&Auto)->Result<bool, Errores>{
+
+	fn respaldar_informacion(&self) -> Result<(), Errores> {
+        // Apertura/Creación del archivo (Se utiliza OpenOptions para la apertura y edicion de un archivo existente)
+        let mut file = if self.existe_archivo() {
+        	// Abrir en modo lectura/escritura si existe
+        	OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open(&self.path)
+            .map_err(Errores::ErrorIO)?
+    	} else {
+        	// Crear nuevo archivo si no existe
+        	File::create(&self.path).map_err(Errores::ErrorIO)?
+    	};
+
+        // Serialización de la informacion
+        let serializado = serde_json::to_string(&self.informacion)
+            .map_err(Errores::ErrorSerde)?;
+
+        // Escritura en el archivo
+        file.write_all(serializado.as_bytes())
+            .map_err(Errores::ErrorIO)?;
+
+        Ok(())
+    }
+	
+	fn validar_insercion(&mut self,auto:&Auto)->Result<(), Errores>{
 		if !self.informacion.is_Lleno() {
 			self.informacion.agregar_auto(&auto);
-			return Ok(true);
 		}else{
 			return Err(Errores::ErrorCapacidad(error_capacidad(self.informacion.to_string()) ));
 		}
+
+		if self.autoguardado{
+			self.respaldar_informacion()?;
+		}
+
+		Ok(())
 	}
-	fn validar_eliminacion(&mut self, a:&Auto)->Result<bool,Errores>{
+	fn validar_eliminacion(&mut self, a:&Auto)->Result<(),Errores>{
 		if !self.informacion.is_Vacio() {
 			let mut pude = self.informacion.eliminar_auto(&a);
-			if pude {return Ok(pude)}else{
+			if !pude {
 				return Err(Errores::ErrorBaja(error_baja::Inexistente(self.informacion.to_string())) );
 			}
+		}else{
+			return Err(Errores::ErrorBaja(error_baja::EstructuraVacia(self.informacion.to_string())) );
 		}
-		return Err(Errores::ErrorBaja(error_baja::EstructuraVacia(self.informacion.to_string())) );
+
+		if self.autoguardado{
+			self.respaldar_informacion()?;
+		}
+		Ok(())
 	}
 }
 
@@ -357,7 +393,6 @@ use super::*;
 
 	//Se implementa la estructura "Archivo respaldable" como un "influyente" entre el archivo JSON y el struct que se dispone 
 
-	//Inciso a
 	#[test]
 	fn maxima_capacidad_superada(){
 		let a1 = Auto::new(String::from("asdf"),String::from("aytuiy"),2023,100432.0,Colores::Rojo);
@@ -397,7 +432,6 @@ use super::*;
 		
 	}
 
-	//Inciso b
 	#[test]
 	fn eliminacion_de_un_auto(){
 		//Autos
@@ -441,5 +475,71 @@ use super::*;
 		
 	}
 
+	#[test]
+	fn operatoria_archivo_sin_autoguardado(){
+		//Autos
+		let a1 = Auto::new(String::from("ffds"),String::from("yjyjy"),2023,100432.0,Colores::Azul);
+		let a2 = Auto::new(String::from("BMW"),String::from("avcvbvt"),2000,200500.0,Colores::Verde);
+		let a3 = Auto::new(String::from("BMW"),String::from("ajmujmuh"),2000,250000.0,Colores::Rojo);
+		let a4 = Auto::new(String::from("Toyota"),String::from("arttt"),2000,200000.0,Colores::Azul);
+		
+		//Consecionaria
+		let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),3);
+		
+		let mut archivo1 = Archivo_respaldable::new(&conse1, "src/tp5/concesionaria_info.json".to_string(),false);
+
+		/* 
+		let r = archivo1.rescatar_informacion();
+		match r{
+			Ok(d) => assert!(d.is_Vacio()),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+		*/
+
+		 
+		//Guardado directo sin realizar operatorias
+		let r = archivo1.respaldar_informacion();
+		match r{
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+		
+
+		/*
+			Resultado del archivo(JSON) = {"nombre":"asd","direccion":"tryertw","capacidad":3,"autos":[]}
+		*/
+
+		archivo1.validar_insercion(&a1);
+		archivo1.validar_insercion(&a2);
+		archivo1.validar_insercion(&a3);
+		archivo1.validar_insercion(&a4);
+
+		 
+		//Guardado directo con operatorias realizadas
+		let r = archivo1.respaldar_informacion();
+		match r{
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+		
+		/*
+			Resultado del archivo(JSON) = {"nombre":"asd","direccion":"tryertw","capacidad":3,"autos":[{"marca":"ffds","modelo":"yjyjy","anio":2023,"precio_bruto":100432.0,"color":"Azul"},{"marca":"BMW","modelo":"avcvbvt","anio":2000,"precio_bruto":200500.0,"color":"Verde"},{"marca":"BMW","modelo":"ajmujmuh","anio":2000,"precio_bruto":250000.0,"color":"Rojo"}]}
+		*/
+
+		archivo1.validar_eliminacion(&a1);
+		archivo1.validar_eliminacion(&a3);
+
+		//Guardado directo con operatorias realizadas
+		let r = archivo1.respaldar_informacion();
+		match r{
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		/* 
+			Resultado del archivo(JSON) = {"nombre":"asd","direccion":"tryertw","capacidad":3,"autos":[{"marca":"BMW","modelo":"avcvbvt","anio":2000,"precio_bruto":200500.0,"color":"Verde"}]}
+		*/
+
+	}
 	
 }
