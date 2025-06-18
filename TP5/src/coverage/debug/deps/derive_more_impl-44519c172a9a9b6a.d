@@ -1,0 +1,9 @@
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/deps/libderive_more_impl-44519c172a9a9b6a.so: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/lib.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/utils.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/from.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/../README.md /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/../doc/from.md
+
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/deps/derive_more_impl-44519c172a9a9b6a.d: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/lib.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/utils.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/from.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/../README.md /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/../doc/from.md
+
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/lib.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/utils.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/from.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/../README.md:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/../doc/from.md:

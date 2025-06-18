@@ -1,5 +1,8 @@
-use std::{fs::File, io::{Error, Read, Write}};
+use std::fmt::{write, Display};
+use std::{fs::{File,OpenOptions}, io::{Error, Read, Write}};
 use serde::{Deserialize, Serialize};
+use std::path::Path;
+use serde_json;
 /**
         EXTRACCION DEL EJERCICIO 8 DE TP3
 **/

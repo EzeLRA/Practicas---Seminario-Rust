@@ -488,6 +488,7 @@ use super::*;
 		
 		let mut archivo1 = Archivo_respaldable::new(&conse1, "src/tp5/concesionaria_info.json".to_string(),false);
 
+		//Funcion de lectura de archivo
 		/* 
 		let r = archivo1.rescatar_informacion();
 		match r{
@@ -538,6 +539,48 @@ use super::*;
 
 		/* 
 			Resultado del archivo(JSON) = {"nombre":"asd","direccion":"tryertw","capacidad":3,"autos":[{"marca":"BMW","modelo":"avcvbvt","anio":2000,"precio_bruto":200500.0,"color":"Verde"}]}
+		*/
+
+	}
+
+	#[test]
+	fn operatoria_archivo_con_autoguardado(){
+		//Autos
+		let a1 = Auto::new(String::from("ffds"),String::from("yjyjy"),2023,100432.0,Colores::Azul);
+		let a2 = Auto::new(String::from("BMW"),String::from("avcvbvt"),2000,200500.0,Colores::Verde);
+		let a3 = Auto::new(String::from("BMW"),String::from("ajmujmuh"),2000,250000.0,Colores::Rojo);
+		let a4 = Auto::new(String::from("Toyota"),String::from("arttt"),2000,200000.0,Colores::Azul);
+		
+		//Consecionaria
+		let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),3);
+		
+		let mut archivo1 = Archivo_respaldable::new(&conse1, "src/tp5/concesionaria_info.json".to_string(),true);
+
+		//Carga de informacion
+		let r = archivo1.validar_insercion(&a1);
+		match r{
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+		archivo1.validar_insercion(&a2);
+		archivo1.validar_insercion(&a3);
+		archivo1.validar_insercion(&a4);
+
+		//Baja de informacion
+		let r = archivo1.validar_eliminacion(&a1);
+		match r{
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		archivo1.validar_eliminacion(&a3);
+
+		/* 	//En esta seccion resultara en un error de inexistencia
+		let r = archivo1.validar_eliminacion(&a1);
+		match r{
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
 		*/
 
 	}
