@@ -1,0 +1,1 @@
+fn(Datos_Operacion_Criptomoneda) -> TiposTransacciones {TiposTransacciones::VentaCriptomoneda}

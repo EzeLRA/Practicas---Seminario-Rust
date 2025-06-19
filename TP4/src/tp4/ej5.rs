@@ -1,5 +1,6 @@
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
+use std::collections::HashMap;
 
 //Funcion auxiliar para generar un "hash simulado"
 pub fn aleatorio(tam: usize) -> String {
@@ -349,6 +350,9 @@ impl Datos_Operacion_Criptomoneda{
             criptomoneda: c.clone(),
             cotizacion: cotiz };
     }
+    fn get_cripto_nom(&self)->String{
+        return self.criptomoneda.get_nombre();
+    }
     fn get_criptomoneda(&self)->Criptomoneda{
         return self.criptomoneda.clone();
     }
@@ -403,6 +407,27 @@ pub enum TiposTransacciones{
     RetiroCriptomoneda(Datos_Retiro_Blockchain),
     RecepcionCriptomoneda(Datos_Extraccion_Blockchain),
     RetiroFiat(Datos_Retiro),
+}
+
+impl TiposTransacciones{
+    pub fn es_tipo_compra(&self)->bool{
+        return matches!(self, TiposTransacciones::CompraCriptomoneda(_));
+    }
+    pub fn es_tipo_venta(&self)->bool{
+        return matches!(self, TiposTransacciones::VentaCriptomoneda(_));
+    }
+    pub fn obtener_nombre_criptomoneda(&self)->Option<String>{
+        let mut res : Option<String> = None;
+
+        //Solamente se procesan los tipos compra y venta de criptomonedas , los demas se los excluye para la resolucion principal
+        match self{
+            TiposTransacciones::CompraCriptomoneda(datos) => res = Some(datos.get_cripto_nom()),
+            TiposTransacciones::VentaCriptomoneda(datos) => res = Some(datos.get_cripto_nom()),
+            _ => todo!(), //Descarta cualquiera de los tipos del enum(TiposTransacciones) pero se lo deja como una posible implementacion a futuro
+        }
+
+        return res;
+    }
 }
 
 #[derive(PartialEq,Debug,Clone)]
@@ -604,6 +629,32 @@ impl Plataforma{
         }
         return completo;
     }
+
+    /*
+        Funciones estadistica para comprobantes generados por el sistema
+    */
+    fn criptomoneda_max_cant_compras(&self)->Option<String>{
+        let mut res : Option<String> = None;
+
+        if !self.registro_transacciones.is_empty(){
+            let mut contador = HashMap::new();
+            for comprobante in &self.registro_transacciones{
+                if comprobante.es_tipo_compra(){
+                    if let Some(nom) = comprobante.obtener_nombre_criptomoneda(){
+                        *contador.entry(nom).or_insert(0) += 1;
+                    }
+                }
+            }
+            res = contador.into_iter().max_by_key(|&(_, cant)| cant).map(|(nombre, _)| nombre);
+
+        }
+
+        return res;
+    }
+    //fn criptomoneda_max_cant_ventas()->Option<String>{}
+    //fn criptomoneda_max_monto_ventas()->Option<String>{}
+    //fn criptomoneda_max_monto_compras()->Option<String>{}
+
 }
 
 
@@ -775,7 +826,7 @@ mod test_ejercicio5{
 
     //Operatoria basica del sistema
     #[test]
-    fn operatoria_sistema(){
+    fn operatoria_principal_sistema(){
         //Usuario
         let datos = DatosPersona{nombre : "Marcos".to_string(),apellido : "Deltodo".to_string(),email : "exmpl@example.com".to_string(),dni : 1234876};
         let mut us1 = Usuario::new(&datos.nombre,&datos.apellido,&datos.email,datos.dni);
@@ -811,23 +862,125 @@ mod test_ejercicio5{
         assert!(sis1.registro_transacciones.len() == 2);
         
         //Operatoria de criptomonedas
+        sis1.ingresar_monto_usuario(&us1,&Fecha(20,05,2025),10000.0);
+        assert!(!sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),5.0,&c1.get_nombre()) );
         assert!(sis1.validar_usuario(&us1));
         assert!(!sis1.validar_usuario(&us1));
-
-        sis1.ingresar_monto_usuario(&us1,&Fecha(20,05,2025),10000.0);
-
-        //fn comprar_criptomoneda_usuario(&mut self,u1:&Usuario,f:&Fecha,montoCompra:f64,nom:&String)->bool{
 
         assert!(sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),5.0,&c1.get_nombre()) );
         assert!(sis1.retornar_fiat_usuario(&us1) == 2500.0);
 
+        assert!(!sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),5.0,&"Cripton2".to_string()) );
+        assert!(!sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),15.0,&c3.get_nombre()) );
+        assert!(sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),1.0,&c2.get_nombre()) );
 
-        //assert!(!sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),5.0,&"Cripton2".to_string()) );
-        //assert!(sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),15.0,&c3.get_nombre()) );
-        //assert!(sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),150000.0,&c3.get_nombre()) );
+        assert_eq!(sis1.retornar_fiat_usuario(&us1),1500.0);
+        assert!(sis1.registro_transacciones.len() == 5);
 
-        //Revisar el calculo de venta_criptomoneda 
+        assert!(sis1.vender_criptomoneda_usuario(&us1,&Fecha(10,08,2025),2.0,&c1.get_nombre()) );
+        assert_eq!(sis1.retornar_fiat_usuario(&us1),4500.0);
+        assert!(sis1.registro_transacciones.len() == 6);
+
+    }
+
+    #[test]
+    fn operatoria_blockchains_sistema(){
+        //Usuario
+        let datos = DatosPersona{nombre : "Marcos".to_string(),apellido : "Deltodo".to_string(),email : "exmpl@example.com".to_string(),dni : 1234876};
+        let mut us1 = Usuario::new(&datos.nombre,&datos.apellido,&datos.email,datos.dni);
+
+        //Criptomonedas
+        let mut c1 = Criptomoneda::new(&"Bytecoin".to_string(),&"BYT".to_string());
+        let mut c2 = Criptomoneda::new(&"Etherum".to_string(),&"ETH".to_string());
+        let mut c3 = Criptomoneda::new(&"Bitcoin".to_string(),&"BTC".to_string());
+
+        //Blockchains
+        let b1 = Blockchain::new(&"Block1".to_string(),&"BLK1".to_string());
+        let b2 = Blockchain::new(&"Block3".to_string(),&"BLK3".to_string());
+        let b3 = Blockchain::new(&"Block10".to_string(),&"BLK10".to_string());
+        let b4 = Blockchain::new(&"Block27".to_string(),&"BLK27".to_string());
+
+        //Conexiones BL y CR
+        assert!(c1.agregar_blockchain(&b1) );
+        assert!(c1.agregar_blockchain(&b4) );
+
+        assert!(c2.agregar_blockchain(&b2) );
+        assert!(c2.agregar_blockchain(&b1) );
+
+        assert!(c3.agregar_blockchain(&b1) );
+        assert!(c3.agregar_blockchain(&b3) );
+
+        //Creacion de sistema
+        let mut sis1 = Plataforma::new();
+
+        assert!(sis1.registrar_criptomoneda(&c1.clone(),2500.0) );
+        assert!(sis1.registrar_criptomoneda(&c2.clone(),1000.0) );
+        assert!(sis1.registrar_criptomoneda(&c3.clone(),5000.0) );
+
+        sis1.registrar_usuario(&us1);
+
+        sis1.ingresar_monto_usuario(&us1,&Fecha(20,05,2025),100000.0);
+
+        sis1.validar_usuario(&us1);
+
+        assert!(sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),5.0,&c1.get_nombre()) );
+        assert!(sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),5.0,&c2.get_nombre()) );
+        assert!(sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),5.0,&c3.get_nombre()) );
+
+        //Transacciones con blockchains
+        assert!(sis1.criptomoneda_a_blockchain_usuario(&us1,&Fecha(23,06,2025),2.0,&c1.get_nombre(),&b1.get_nombre()) );
+        assert!(!sis1.criptomoneda_a_blockchain_usuario(&us1,&Fecha(23,06,2025),2.0,&c1.get_nombre(),&"Bloque1".to_string()) );
+        assert!(sis1.criptomoneda_a_blockchain_usuario(&us1,&Fecha(13,07,2025),2.0,&c1.get_nombre(),&b4.get_nombre()) );
+        assert!(!sis1.criptomoneda_a_blockchain_usuario(&us1,&Fecha(21,07,2025),2.0,&c1.get_nombre(),&b3.get_nombre()) );
+        assert_eq!(sis1.registro_transacciones.len(),6);
+
+        assert!(sis1.blockchain_a_criptomoneda_usuario(&us1,&Fecha(27,08,2025),4.0,&c1.get_nombre(),&b1.get_nombre()) );
+        assert!(!sis1.blockchain_a_criptomoneda_usuario(&us1,&Fecha(27,08,2025),4.0,&c1.get_nombre(),&b3.get_nombre()) );
+        assert!(!sis1.blockchain_a_criptomoneda_usuario(&us1,&Fecha(27,08,2025),4.0,&c1.get_nombre(),&"Bloque1".to_string()) );
+        assert_eq!(sis1.registro_transacciones.len(),7);
+    }
+
+    #[test]
+    fn operatoria_estadistica_sistema(){
+        //Usuario
+        let datos = DatosPersona{nombre : "Marcos".to_string(),apellido : "Deltodo".to_string(),email : "exmpl@example.com".to_string(),dni : 1234876};
+        let mut us1 = Usuario::new(&datos.nombre,&datos.apellido,&datos.email,datos.dni);
+
+        //Criptomonedas
+        let mut c1 = Criptomoneda::new(&"Hibicoin".to_string(),&"HBC".to_string());
+        let mut c2 = Criptomoneda::new(&"Etherum".to_string(),&"ETH".to_string());
+        let mut c3 = Criptomoneda::new(&"Bitcoin".to_string(),&"BTC".to_string());
+
+        //Creacion de sistema
+        let mut sis1 = Plataforma::new();
+
+        sis1.registrar_usuario(&us1);
+
+        sis1.registrar_criptomoneda(&c1.clone(),1500.0);
+        sis1.registrar_criptomoneda(&c2.clone(),600.0);
+        sis1.registrar_criptomoneda(&c3.clone(),2000.0);
+
+        sis1.ingresar_monto_usuario(&us1,&Fecha(20,05,2025),100000.0);
+
+        //Operaciones de compra y venta        
+        sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),2.0,&c1.get_nombre());
+        sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),2.0,&c1.get_nombre());
+        sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),2.0,&c1.get_nombre());
         
+        sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),2.0,&c2.get_nombre());
+        
+        sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),1.0,&c3.get_nombre());
+        sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),1.0,&c3.get_nombre());
+        sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),1.0,&c3.get_nombre());
+        sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),1.0,&c3.get_nombre());
+
+
+        //Arreglar error de retorno
+        if let Some(res) = sis1.criptomoneda_max_cant_compras(){
+            //assert_eq!(res ,c3.get_nombre() );
+            assert!(res == "asd".to_string() );
+        }
+
     }
 
 }
