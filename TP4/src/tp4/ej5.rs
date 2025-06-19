@@ -418,15 +418,7 @@ impl Criptomoneda_disponible{
     fn get_cotiza(&self)->f64{
         return self.1;
     }
-    //Considerar que son calculos especificos
-    //Retorna equivalente (dinero fiat a criptomoneda)
-    fn calcular_monto_compra(&self,monto:f64)->f64{
-        return monto/self.1;
-    }
-    //Retorna equivalente (criptomoneda a dinero fiat)
-    fn calcular_monto_venta(&self,monto:f64)->f64{
-        return monto*self.1;
-    }
+    
 }
 
 
@@ -445,6 +437,9 @@ pub struct Plataforma{
 
 impl Plataforma{
     //Funciones secundarias
+    fn new()->Plataforma{
+        return Plataforma{usuarios:Vec::new(),criptomonedas_dispone:Vec::new(),registro_transacciones:Vec::new()}
+    }
     fn eliminar_criptomoneda(&mut self,cripto:&Criptomoneda)->bool{
         let mut pude = false;
         
@@ -475,7 +470,37 @@ impl Plataforma{
     fn registrar_transaccion(&mut self,t : &TiposTransacciones){
         self.registro_transacciones.push(t.clone());
     }
+    fn registrar_usuario(&mut self,u1:&Usuario)->bool{
+        let mut pude = false;
+        
+        if self.usuarios.iter().find(|user| user.informacion_correcta(&u1.datos)).is_none(){
+            self.usuarios.push(u1.clone());
+            pude = true;
+        }        
 
+        return pude;
+    }
+    fn retornar_fiat_usuario(&mut self,u1:&Usuario)->f64{
+        let mut res = 0.0;
+        
+        if let Some(u) = self.usuarios.iter().find(|user| user.informacion_correcta(&u1.datos)){
+            res = u.get_balance_fiat();
+        }        
+
+        return res;
+    }
+    fn validar_usuario(&mut self,u1:&Usuario)->bool{
+        let mut pude = false;
+        
+        if let Some(u) = self.usuarios.iter_mut().find(|user| user.informacion_correcta(&u1.datos)){
+            if !u.is_verificado(){
+                u.cambiar_verificacion();
+                pude = true;
+            }
+        }       
+
+        return pude;
+    }
     //Funciones primarias
     fn ingresar_monto_usuario(&mut self,u1:&Usuario,f:&Fecha,m:f64)->bool{
         let mut completo = false;
@@ -487,32 +512,36 @@ impl Plataforma{
         }
         return completo;
     }
+    //Se ingresa la cantidad de cripto que se desea
     fn comprar_criptomoneda_usuario(&mut self,u1:&Usuario,f:&Fecha,montoCompra:f64,nom:&String)->bool{
         let mut completo = false;
         if let Some(u) = self.usuarios.iter_mut().find(|user| user.informacion_correcta(&u1.datos)){
             
             if let Some(cr) = self.criptomonedas_dispone.iter().find(|&c| &c.0.get_nombre() == nom){
                 //Compra
-                let montoObtenido = cr.calcular_monto_compra(montoCompra);
-                completo = u.comprar_criptomoneda(nom,montoCompra,montoObtenido);
+                let montoResultante = cr.get_cotiza()*montoCompra;
+                if u.get_balance_fiat() >= montoResultante{
+                    
+                    completo = u.comprar_criptomoneda(nom,montoResultante,montoCompra);
 
-                if completo {
-                    //Generacion de comprobante
-                    let datos = Datos_Operacion_Criptomoneda::new(&u.datos.clone(),&f.clone(),montoObtenido,&cr.0.clone(),cr.get_cotiza());
-                    self.registrar_transaccion(&TiposTransacciones::CompraCriptomoneda(datos));
+                    if completo {
+                        //Generacion de comprobante
+                        let datos = Datos_Operacion_Criptomoneda::new(&u.datos.clone(),&f.clone(),montoCompra,&cr.0.clone(),cr.get_cotiza());
+                        self.registrar_transaccion(&TiposTransacciones::CompraCriptomoneda(datos));
+                    }
                 }
-                
             }
         }
         return completo;
     }
+    //Se ingresa la cantidad de cripto que se desea
     fn vender_criptomoneda_usuario(&mut self,u1:&Usuario,f:&Fecha,montoVenta:f64,nom:&String)->bool{
         let mut completo = false;
         if let Some(u) = self.usuarios.iter_mut().find(|user| user.informacion_correcta(&u1.datos)){
             
             if let Some(cr) = self.criptomonedas_dispone.iter().find(|&c| &c.0.get_nombre() == nom){
                 //Venta
-                let montoObtenido = cr.calcular_monto_venta(montoVenta);
+                let montoObtenido = cr.1 * montoVenta;
                 completo = u.vender_criptomoneda(nom,montoVenta,montoObtenido);
 
                 if completo {
@@ -742,6 +771,63 @@ mod test_ejercicio5{
         assert!(us1.blockchain_a_criptomoneda(&c.get_nombre(),50.0,&b1.get_nombre(),&c));
         assert!(!us1.blockchain_a_criptomoneda(&"BitCoin".to_string(),50.0,&b1.get_nombre(),&c));
         assert!(!us1.blockchain_a_criptomoneda(&c.get_nombre(),50.0,&"Block1".to_string(),&c));
+    }
+
+    //Operatoria basica del sistema
+    #[test]
+    fn operatoria_sistema(){
+        //Usuario
+        let datos = DatosPersona{nombre : "Marcos".to_string(),apellido : "Deltodo".to_string(),email : "exmpl@example.com".to_string(),dni : 1234876};
+        let mut us1 = Usuario::new(&datos.nombre,&datos.apellido,&datos.email,datos.dni);
+
+        //Criptomonedas
+        let c1 = Criptomoneda::new(&"Cripton".to_string(),&"CRP".to_string());
+        let c2 = Criptomoneda::new(&"MineCoin".to_string(),&"MIN".to_string());
+        let c3 = Criptomoneda::new(&"Bitcoin".to_string(),&"BTC".to_string());
+
+        //Creacion de sistema
+        let mut sis1 = Plataforma::new();
+        assert!(sis1.registrar_criptomoneda(&c1.clone(),1500.0) );
+        assert!(sis1.registrar_criptomoneda(&c2.clone(),1000.0) );
+        assert!(sis1.registrar_criptomoneda(&c3.clone(),5000.0) );
+        assert!(!sis1.registrar_criptomoneda(&c1.clone(),700.0) );
+
+        assert!(sis1.registrar_usuario(&us1));
+        assert!(!sis1.registrar_usuario(&us1));
+
+        //Operacion de dinero fiat en el unico usuario
+        assert!(sis1.ingresar_monto_usuario(&us1,&Fecha(13,03,2025),10000.0) );
+        assert!(!sis1.ingresar_monto_usuario(&Usuario::new(&"Daniel".to_string(),&datos.apellido,&datos.email,datos.dni),&Fecha(13,03,2025),100000.0) );
+
+        assert!(sis1.retornar_fiat_usuario(&us1) == 10000.0);
+        
+        assert!(sis1.retirar_monto_usuario(&us1,&Fecha(13,03,2025),10000.0,&MediosPago::TransferenciaBancaria) );
+        assert!(!sis1.retirar_monto_usuario(&Usuario::new(&"Daniel".to_string(),&datos.apellido,&datos.email,datos.dni),&Fecha(13,03,2025),100000.0,&MediosPago::TransferenciaBancaria) );
+        
+        assert!(sis1.retornar_fiat_usuario(&us1) == 0.0);
+
+        //Resultado de comprobantes(El sistema dispone de comprobantes)
+        assert!(!sis1.registro_transacciones.is_empty());
+        assert!(sis1.registro_transacciones.len() == 2);
+        
+        //Operatoria de criptomonedas
+        assert!(sis1.validar_usuario(&us1));
+        assert!(!sis1.validar_usuario(&us1));
+
+        sis1.ingresar_monto_usuario(&us1,&Fecha(20,05,2025),10000.0);
+
+        //fn comprar_criptomoneda_usuario(&mut self,u1:&Usuario,f:&Fecha,montoCompra:f64,nom:&String)->bool{
+
+        assert!(sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),5.0,&c1.get_nombre()) );
+        assert!(sis1.retornar_fiat_usuario(&us1) == 2500.0);
+
+
+        //assert!(!sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),5.0,&"Cripton2".to_string()) );
+        //assert!(sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),15.0,&c3.get_nombre()) );
+        //assert!(sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),150000.0,&c3.get_nombre()) );
+
+        //Revisar el calculo de venta_criptomoneda 
+        
     }
 
 }
