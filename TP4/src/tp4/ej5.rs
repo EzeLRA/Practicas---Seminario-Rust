@@ -350,6 +350,9 @@ impl Datos_Operacion_Criptomoneda{
             criptomoneda: c.clone(),
             cotizacion: cotiz };
     }
+    fn get_monto_operacion(&self)->f64{
+        return self.datos_genericos.get_monto();
+    }
     fn get_cripto_nom(&self)->String{
         return self.criptomoneda.get_nombre();
     }
@@ -423,6 +426,18 @@ impl TiposTransacciones{
         match self{
             TiposTransacciones::CompraCriptomoneda(datos) => res = Some(datos.get_cripto_nom()),
             TiposTransacciones::VentaCriptomoneda(datos) => res = Some(datos.get_cripto_nom()),
+            _ => todo!(), //Descarta cualquiera de los tipos del enum(TiposTransacciones) pero se lo deja como una posible implementacion a futuro
+        }
+
+        return res;
+    }
+    pub fn obtener_monto_criptomoneda(&self)->Option<f64>{
+        let mut res : Option<f64> = None;
+
+        //Solamente se procesan los tipos compra y venta de criptomonedas , los demas se los excluye para la resolucion principal
+        match self{
+            TiposTransacciones::CompraCriptomoneda(datos) => res = Some(datos.get_monto_operacion()),
+            TiposTransacciones::VentaCriptomoneda(datos) => res = Some(datos.get_monto_operacion()),
             _ => todo!(), //Descarta cualquiera de los tipos del enum(TiposTransacciones) pero se lo deja como una posible implementacion a futuro
         }
 
@@ -637,24 +652,154 @@ impl Plataforma{
         let mut res : Option<String> = None;
 
         if !self.registro_transacciones.is_empty(){
-            let mut contador = HashMap::new();
-            for comprobante in &self.registro_transacciones{
-                if comprobante.es_tipo_compra(){
-                    if let Some(nom) = comprobante.obtener_nombre_criptomoneda(){
-                        *contador.entry(nom).or_insert(0) += 1;
+
+            let mut contador : Vec<(String,u32)> = Vec::new();
+
+            for comprobante in &self.registro_transacciones {
+                if comprobante.es_tipo_compra() {
+                    if let Some(nombre) = comprobante.obtener_nombre_criptomoneda() {
+                
+                        match contador.iter_mut().find(|(n, _)| *n == nombre) {
+                            Some((_, cant)) => *cant += 1,  
+                            None => contador.push((nombre, 1)),  
+                        }
+                        
                     }
                 }
             }
-            res = contador.into_iter().max_by_key(|&(_, cant)| cant).map(|(nombre, _)| nombre);
+            
+            if !contador.is_empty(){
+                let mut cant: u32 = 0;
+                let mut max : String = "".to_string();
 
+                for nom in contador{
+                    if nom.1 > cant {
+                        cant = nom.1;
+                        max = nom.0;
+                    }
+                }
+             
+                res = Some(max);
+            }
         }
 
         return res;
     }
-    //fn criptomoneda_max_cant_ventas()->Option<String>{}
-    //fn criptomoneda_max_monto_ventas()->Option<String>{}
-    //fn criptomoneda_max_monto_compras()->Option<String>{}
 
+    fn criptomoneda_max_cant_ventas(&self)->Option<String>{
+        let mut res : Option<String> = None;
+
+        if !self.registro_transacciones.is_empty(){
+
+            let mut contador : Vec<(String,u32)> = Vec::new();
+
+            for comprobante in &self.registro_transacciones {
+                if comprobante.es_tipo_venta() {
+                    if let Some(nombre) = comprobante.obtener_nombre_criptomoneda() {
+                
+                        match contador.iter_mut().find(|(n, _)| *n == nombre) {
+                            Some((_, cant)) => *cant += 1,  
+                            None => contador.push((nombre, 1)),  
+                        }
+                        
+                    }
+                }
+            }
+            
+            if !contador.is_empty(){
+                let mut cant: u32 = 0;
+                let mut max : String = "".to_string();
+
+                for nom in contador{
+                    if nom.1 > cant {
+                        cant = nom.1;
+                        max = nom.0;
+                    }
+                }
+             
+                res = Some(max);
+            }
+        }
+
+        return res;
+    }
+
+    fn criptomoneda_max_monto_compras(&self)->Option<String>{
+        let mut res : Option<String> = None;
+
+        if !self.registro_transacciones.is_empty(){
+
+            let mut contador : Vec<(String,f64)> = Vec::new();
+
+            for comprobante in &self.registro_transacciones {
+                if comprobante.es_tipo_compra() {
+                    if let Some(nombre) = comprobante.obtener_nombre_criptomoneda() {
+                        if let Some(monto) = comprobante.obtener_monto_criptomoneda(){
+                            match contador.iter_mut().find(|(n, _)| *n == nombre) {
+                                Some((_, cant)) => *cant += monto,  
+                                None => contador.push((nombre, monto)),  
+                            }
+                        }
+                        
+                    }
+                }
+            }
+            
+            if !contador.is_empty(){
+                let mut cant: f64 = 0.0;
+                let mut max : String = "".to_string();
+
+                for nom in contador{
+                    if nom.1 > cant {
+                        cant = nom.1;
+                        max = nom.0;
+                    }
+                }
+             
+                res = Some(max);
+            }
+        }
+
+        return res;
+    }
+    fn criptomoneda_max_monto_ventas(&self)->Option<String>{
+        let mut res : Option<String> = None;
+
+        if !self.registro_transacciones.is_empty(){
+
+            let mut contador : Vec<(String,f64)> = Vec::new();
+
+            for comprobante in &self.registro_transacciones {
+                if comprobante.es_tipo_venta() {
+                    if let Some(nombre) = comprobante.obtener_nombre_criptomoneda() {
+                        if let Some(monto) = comprobante.obtener_monto_criptomoneda(){
+                            match contador.iter_mut().find(|(n, _)| *n == nombre) {
+                                Some((_, cant)) => *cant += monto,  
+                                None => contador.push((nombre, monto)),  
+                            }
+                        }
+                        
+                    }
+                }
+            }
+            
+            if !contador.is_empty(){
+                let mut cant: f64 = 0.0;
+                let mut max : String = "".to_string();
+
+                for nom in contador{
+                    if nom.1 > cant {
+                        cant = nom.1;
+                        max = nom.0;
+                    }
+                }
+             
+                res = Some(max);
+            }
+        }
+
+        return res;
+    }
 }
 
 
@@ -960,10 +1105,13 @@ mod test_ejercicio5{
         sis1.registrar_criptomoneda(&c2.clone(),600.0);
         sis1.registrar_criptomoneda(&c3.clone(),2000.0);
 
-        sis1.ingresar_monto_usuario(&us1,&Fecha(20,05,2025),100000.0);
+        sis1.ingresar_monto_usuario(&us1,&Fecha(20,05,2025),900000.0);
+        sis1.validar_usuario(&us1);
+
+        assert!(sis1.criptomoneda_max_cant_compras().is_none());
 
         //Operaciones de compra y venta        
-        sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),2.0,&c1.get_nombre());
+        assert!(sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),2.0,&c1.get_nombre()) );
         sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),2.0,&c1.get_nombre());
         sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),2.0,&c1.get_nombre());
         
@@ -974,11 +1122,34 @@ mod test_ejercicio5{
         sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),1.0,&c3.get_nombre());
         sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,05,2025),1.0,&c3.get_nombre());
 
+        assert_eq!(sis1.registro_transacciones.len(),9);
+        
+        assert!(sis1.vender_criptomoneda_usuario(&us1,&Fecha(25,05,2025),2.0,&c1.get_nombre()) );
+        sis1.vender_criptomoneda_usuario(&us1,&Fecha(25,05,2025),2.0,&c1.get_nombre());
+        sis1.vender_criptomoneda_usuario(&us1,&Fecha(25,05,2025),2.0,&c1.get_nombre());
 
-        //Arreglar error de retorno
+        sis1.vender_criptomoneda_usuario(&us1,&Fecha(25,05,2025),2.0,&c3.get_nombre());   
+
+        assert_eq!(sis1.registro_transacciones.len(),13);
+
         if let Some(res) = sis1.criptomoneda_max_cant_compras(){
-            //assert_eq!(res ,c3.get_nombre() );
-            assert!(res == "asd".to_string() );
+            assert_eq!(res ,c3.get_nombre() );
+            assert!(!(res == "asd".to_string()) );
+        }
+
+        if let Some(res) = sis1.criptomoneda_max_monto_compras(){
+            assert_eq!(res ,c1.get_nombre() );
+            assert!(!(res == "asd".to_string()) );
+        }
+
+        if let Some(res) = sis1.criptomoneda_max_cant_ventas(){
+            assert_eq!(res ,c1.get_nombre() );
+            assert!(!(res == "asd".to_string()) );
+        }
+        
+        if let Some(res) = sis1.criptomoneda_max_monto_ventas(){
+            assert_eq!(res ,c1.get_nombre() );
+            assert!(!(res == "asd".to_string()) );
         }
 
     }
