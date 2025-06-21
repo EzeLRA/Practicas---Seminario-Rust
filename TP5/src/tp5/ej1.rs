@@ -309,7 +309,7 @@ impl From<serde_json::Error> for Errores {
 
 
 //Estructura auxiliar para el manejo de la informacion de los archivos
-#[derive(Debug ,Serialize, Deserialize )]
+#[derive(Debug)]
 pub struct Archivo_respaldable{
 	informacion : ConcesionarioAuto,
 	path : String,

@@ -1,6 +1,7 @@
 use std::fmt::{write, Display};
-use std::{fs::{File,OpenOptions}, io::{Error, Read, Write}};
+use std::fs::{File,OpenOptions};
 use serde::{Deserialize, Serialize};
+use std::io::{self, Write};
 use std::path::Path;
 use serde_json;
 /**
@@ -23,7 +24,7 @@ pub struct Cancion{
     artista : String,
     genero : Generos
 }
-#[derive(Debug, Serialize, Deserialize )]
+#[derive(Debug,Clone,Serialize, Deserialize )]
 pub struct PlayList{
     nombre: String,
     canciones : Vec<Cancion>
@@ -80,29 +81,35 @@ impl PlayList{
     pub fn agregar_cancion(&mut self,c:&Cancion){
         self.canciones.push(c.clone());
     }
-    pub fn eliminar_cancion(&mut self,c:&Cancion){
+    pub fn eliminar_cancion(&mut self,c:&Cancion)->bool{
+        let mut pude = false;
         if !self.canciones.is_empty() {
             for i in 0..self.canciones.len(){
                 if let Some(cancion) = self.canciones.get(i){
                     if cancion.es_igual_a(&c) {
                         self.canciones.remove(i);
+                        pude = true;
                         break;
                     }
                 }
             }
         }
+        return pude;
     }
-    pub fn mover_cancion(&mut self,c:&Cancion,pos:usize){
-        if !self.canciones.is_empty()&&(pos<=self.canciones.len()){
-            for i in 0..self.canciones.len(){
-                if self.canciones[i].es_igual_a(&c) {
-                    let cancion = self.canciones[i].clone();
-                    self.canciones.remove(i);
-                    self.canciones.insert(pos, cancion);
-                    break;
+    pub fn mover_cancion(&mut self,c:&Cancion,pos:usize)->bool{
+        let mut pude = false;
+            if !self.canciones.is_empty()&&(pos<=self.canciones.len()){
+                for i in 0..self.canciones.len(){
+                    if self.canciones[i].es_igual_a(&c) {
+                        let cancion = self.canciones[i].clone();
+                        self.canciones.remove(i);
+                        self.canciones.insert(pos, cancion);
+                        pude = true;
+                        break;
+                    }
                 }
             }
-        }
+        return pude;
     }
     pub fn buscar_cancion(&self,nom:String)->Option<Cancion>{
 		let mut res : Option<Cancion> = None;
@@ -141,13 +148,17 @@ impl PlayList{
         return res;
     }
     pub fn modificar_titulo(&mut self,nom_nuevo:&String){
-        self.nombre = nom_nuevo.to_string();
+        self.nombre = nom_nuevo.clone();
     }
-    pub fn eliminar_canciones(&mut self) {
-        self.canciones.clear();
+    pub fn eliminar_canciones(&mut self)->bool{
+        let mut pude = false;
+        if !self.canciones.is_empty(){
+            self.canciones.clear();
+            pude = true;
+        }
+        return pude;
     }
 }
-
 
 #[cfg(test)]
 mod testing_playlist{
@@ -168,22 +179,29 @@ mod testing_playlist{
         let c = Cancion::new(String::from("pepe"), String::from("pepito"), Generos::Rap);
         p.agregar_cancion(&c);
         p.agregar_cancion(&c);
+        
+        //Operacion de busqueda
+
         if let Some(aux) = p.buscar_cancion("pepe".to_string()){
             assert_eq!(aux.es_igual_a(&c),true);
         }else{
             panic!("No existe esa cancion");
         }
 
+        //Operacion de desplazamiento
+
         let c2 = Cancion::new(String::from("pepo"), String::from("pepe"), Generos::Rap);
         p.agregar_cancion(&c2);
-        p.mover_cancion(&c2,0);
+        assert!(p.mover_cancion(&c2,0));
         if let Some(aux) = p.canciones.get(0){
             assert_eq!(aux.es_igual_a(&c2),true);
         }else{
             panic!("No existe esa cancion");
         }
 
-        p.eliminar_canciones();
+        //Operacion de baja
+
+        assert!(p.eliminar_canciones());
         assert_eq!(p.canciones.is_empty(),true);
     }
     #[test]
@@ -219,4 +237,260 @@ mod testing_playlist{
             panic!("Lista 2 no generada");
         }
     }
+}
+
+
+
+
+/*
+    IMPLEMENTACION TP5 - EJ2
+*/
+
+/*
+	Tipos de errores
+*/
+#[derive(Debug)]
+pub enum error_operatoria{
+    SinDesplazamiento(String),
+	Inexistente(String),
+	EstructuraVacia(String)
+}
+
+impl Display for error_operatoria{
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self{
+            error_operatoria::SinDesplazamiento(val) => write!(f, "La posicion recibida no es valida para la operacion en la estructura {} ",val),
+			error_operatoria::Inexistente(val) => write!(f, "No se encontro el elemento en la estructura {} ",val),
+			error_operatoria::EstructuraVacia(val) => write!(f, "La estrucutra {} no dispone de elementos ",val)
+		}
+	}
+}
+
+#[derive(Debug)]
+pub enum Errores{
+	ErrorOperatoria(error_operatoria),
+	ErrorIO(io::Error),
+	ErrorSerde(serde_json::Error)
+}
+
+impl Display for Errores{
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Errores::ErrorOperatoria(err) => write!(f,"{}",err),
+		    Errores::ErrorIO(err) => write!(f, "Error de E/S al guardar: {}", err),
+            Errores::ErrorSerde(err) => write!(f, "Error de serialización: {}", err)
+		}
+	}
+}
+
+//Implementacion para el uso del operador (?)
+impl std::error::Error for Errores {}
+
+//Implementacion automatica errores subyacentes
+impl From<io::Error> for Errores {
+    fn from(err: io::Error) -> Self {
+        Errores::ErrorIO(err)
+    }
+}
+
+impl From<serde_json::Error> for Errores {
+    fn from(err: serde_json::Error) -> Self {
+        Errores::ErrorSerde(err)
+    }
+}
+
+//Implementacion extra
+impl PlayList{
+    fn to_string(&self)->String{
+        return self.get_nombre();
+    }
+    fn is_Vacio(&self)->bool{
+        return self.canciones.is_empty();
+    }
+    fn get_canciones_cant(&self)->usize{
+        return self.canciones.len();
+    }
+}
+
+//Archivo de almacenamiento
+#[derive(Debug)]
+pub struct Archivo{
+    informacion : PlayList,
+	path : String,
+	autoguardado : bool 
+}
+
+impl Archivo{
+	fn new(dato:&PlayList,dir:String,estado:bool)->Archivo{
+		return Archivo { informacion: dato.clone(), path: dir , autoguardado : estado};
+	}
+    fn set_informacion(&mut self,dato:&PlayList){   //"Setea la informacion logica" para hacer una modificacion total
+        self.informacion = dato.clone();
+    }
+    fn existe_archivo(&self)->bool{
+		return Path::new(&self.path.clone()).exists();
+	}
+    fn respaldar_informacion(&self) -> Result<(), Errores> {
+        // Apertura/Creación del archivo (Se utiliza OpenOptions para la apertura y edicion de un archivo existente)
+        let mut file = if self.existe_archivo() {
+        	// Abrir en modo lectura/escritura si existe
+        	OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open(&self.path)
+            .map_err(Errores::ErrorIO)?
+    	} else {
+        	// Crear nuevo archivo si no existe
+        	File::create(&self.path).map_err(Errores::ErrorIO)?
+    	};
+
+        // Serialización de la informacion
+        let serializado = serde_json::to_string(&self.informacion)
+            .map_err(Errores::ErrorSerde)?;
+
+        // Escritura en el archivo
+        file.write_all(serializado.as_bytes())
+            .map_err(Errores::ErrorIO)?;
+
+        Ok(())
+    }
+    fn validar_alta(&mut self,c:&Cancion)->Result<(), Errores>{
+		self.informacion.agregar_cancion(&c);
+
+		if self.autoguardado{
+			self.respaldar_informacion()?;
+		}
+
+		Ok(())
+	}
+    fn validar_baja(&mut self, c:&Cancion)->Result<(),Errores>{
+		if !self.informacion.is_Vacio() {
+			if !self.informacion.eliminar_cancion(&c) {
+				return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente(self.informacion.to_string())) );
+			}
+		}else{
+			return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(self.informacion.to_string())) );
+		}
+
+		if self.autoguardado{
+			self.respaldar_informacion()?;
+		}
+		Ok(())
+	}
+    fn validar_desplazamiento(&mut self, c:&Cancion,pos:usize)->Result<(),Errores>{
+        if !self.informacion.is_Vacio(){
+            if self.informacion.get_canciones_cant() >= pos{
+                if !self.informacion.mover_cancion(c, pos){
+                    return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente(self.informacion.to_string())) );
+                }
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::SinDesplazamiento(self.informacion.to_string())) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(self.informacion.to_string())) );
+        }
+
+        if self.autoguardado{
+			self.respaldar_informacion()?;
+		}
+
+        Ok(())
+    }
+    fn validar_baja_total(&mut self)->Result<(),Errores>{
+        if !self.informacion.eliminar_canciones(){
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(self.informacion.to_string())) );
+        }
+
+        if self.autoguardado{
+			self.respaldar_informacion()?;
+		}
+
+        Ok(())
+    }
+    fn cambiar_nombre_playlist(&mut self,nom:&String)->Result<(),Errores>{
+        self.informacion.modificar_titulo(&nom);
+
+        if self.autoguardado{
+			self.respaldar_informacion()?;
+		}
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod testing_implementacion_ejercicio2{
+    use super::*;
+
+    #[test]
+    fn operatoria_informacion(){
+        let mut p = PlayList::new(&"asd".to_string());
+        let c1 = Cancion::new(String::from("pepe"), String::from("pepito"), Generos::Rap);
+        let c2 = Cancion::new(String::from("plumon"), String::from("plumazo"), Generos::Rap);
+        let c3 = Cancion::new(String::from("Bartone"), String::from("Bartolome"), Generos::Jazz);
+
+        p.agregar_cancion(&c1);
+        p.agregar_cancion(&c2);
+        p.agregar_cancion(&c3);
+        
+        //Se agrega una informacion "logica" por parte de "p" (PlayLists)
+
+        let mut archivo1 = Archivo::new(&p, "".to_string(),false);
+
+        let r = archivo1.validar_alta(&c1); 
+		match r {
+			Ok(mov) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+        let r = archivo1.validar_baja(&c2); 
+		match r {
+			Ok(mov) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+        //En esta seccion saltara error por elemento inexistente(Borrado anteriormente) ; Descomentar para probar
+        /*   
+        let r = archivo1.validar_baja(&c2); 
+		match r {
+			Ok(mov) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+        */
+
+        let r = archivo1.cambiar_nombre_playlist(&"PlayL1".to_string());
+		match r {
+			Ok(mov) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+        let r = archivo1.validar_desplazamiento(&c3, 0);
+		match r {
+			Ok(mov) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+        /*   //Retorna error de posicion invalida (Descomentar para probar) 
+        let r = archivo1.validar_desplazamiento(&c3, 10);
+		match r {
+			Ok(mov) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+        */
+
+        let r = archivo1.validar_baja_total();
+		match r {
+			Ok(mov) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+        /*  //Retorna error de estructura vacia 
+        let r = archivo1.validar_baja_total();
+		match r {
+			Ok(mov) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+        */
+    }
+
 }
