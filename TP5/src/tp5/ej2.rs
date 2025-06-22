@@ -493,4 +493,184 @@ mod testing_implementacion_ejercicio2{
         */
     }
 
+    #[test]
+    fn operatoria_archivo_sin_autoguardado(){
+        //Creacion de playlist
+        let mut p = PlayList::new(&"asd".to_string());
+        let c1 = Cancion::new(String::from("pepe"), String::from("pepito"), Generos::Rap);
+        let c2 = Cancion::new(String::from("plumon"), String::from("plumazo"), Generos::Rap);
+        let c3 = Cancion::new(String::from("Bartone"), String::from("Bartolome"), Generos::Jazz);
+
+        //Creacion del archivo
+        let mut archivo1 = Archivo::new(&p, "src/tp5/playlist_info.json".to_string(),false);
+
+
+        //Altas
+        let r = archivo1.validar_alta(&c1); 
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+        archivo1.validar_alta(&c2);
+        archivo1.validar_alta(&c3);
+
+        //Respaldo de informacion del archivo(luego de altas)
+        let r = archivo1.respaldar_informacion(); 
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+
+
+        //Bajas
+        let r = archivo1.validar_baja(&c2); 
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+        archivo1.validar_baja(&c3);
+
+        //Respaldo de informacion del archivo(luego de bajas)
+        let r = archivo1.respaldar_informacion(); 
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+
+
+        //Modificaciones
+        archivo1.validar_alta(&c2);
+        let r = archivo1.validar_desplazamiento(&c2,0); 
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+
+        let r = archivo1.cambiar_nombre_playlist(&"PlayL1".to_string());
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+
+        //Respaldo de informacion del archivo(luego de modificaciones)
+        let r = archivo1.respaldar_informacion(); 
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+
+
+        //Baja total
+        let r = archivo1.validar_baja_total();
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+
+        //Respaldo de informacion del archivo(luego de modificaciones)
+        let r = archivo1.respaldar_informacion(); 
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+
+
+        //Insercion directa(estructura modificada aparte) y respaldo
+
+        p = PlayList::new(&"Pl2".to_string());
+
+        p.agregar_cancion(&c1);
+        p.agregar_cancion(&c2);
+        p.eliminar_canciones();
+
+        archivo1.set_informacion(&p); 
+
+        let r = archivo1.respaldar_informacion(); 
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+
+        /*
+            Resultado final de JSON = "Queda vacio"
+        */
+
+    }
+
+    #[test]
+    fn operatoria_archivo_con_autoguardado(){
+        //Creacion de playlist
+        let mut p = PlayList::new(&"asd".to_string());
+        let c1 = Cancion::new(String::from("pepe"), String::from("pepito"), Generos::Rap);
+        let c2 = Cancion::new(String::from("plumon"), String::from("plumazo"), Generos::Rap);
+        let c3 = Cancion::new(String::from("Bartone"), String::from("Bartolome"), Generos::Jazz);
+
+        //Creacion del archivo
+        let mut archivo1 = Archivo::new(&p, "src/tp5/playlist_info.json".to_string(),true);
+
+
+        //Altas
+        let r = archivo1.validar_alta(&c1); 
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+        archivo1.validar_alta(&c2);
+        archivo1.validar_alta(&c3);
+
+
+        //Bajas
+        let r = archivo1.validar_baja(&c1); 
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+        archivo1.validar_baja(&c2);
+
+
+        //Modificaciones
+        archivo1.validar_alta(&c2);
+        let r = archivo1.validar_desplazamiento(&c2,0); 
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+
+        let r = archivo1.cambiar_nombre_playlist(&"PlayL1".to_string());
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        } 
+
+
+        //Baja total
+        let r = archivo1.validar_baja_total();
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }     
+
+
+        //Insercion directa(estructura modificada aparte) y respaldo
+
+        p = PlayList::new(&"Pl2".to_string());
+
+        p.agregar_cancion(&c1);
+        p.agregar_cancion(&c2);
+        p.eliminar_canciones();
+
+        archivo1.set_informacion(&p); 
+
+        let r = archivo1.respaldar_informacion(); 
+        match r {
+            Ok(mov) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}
+        }
+
+        /*
+            Resultado final de JSON = "Queda vacio"
+        */
+
+    }
+
 }

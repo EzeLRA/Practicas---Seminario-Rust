@@ -1,0 +1,8 @@
+C:\Users\Ezequiel\Desktop\UNLP\2doAño UNLP\Seminario Rust\TP5\target\debug\deps\impl_trait_for_tuples-f643f8b73c12a6a6.dll: C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\impl-trait-for-tuples-0.2.3\src\lib.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\impl-trait-for-tuples-0.2.3\src\full_automatic.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\impl-trait-for-tuples-0.2.3\src\semi_automatic.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\impl-trait-for-tuples-0.2.3\src\utils.rs
+
+C:\Users\Ezequiel\Desktop\UNLP\2doAño UNLP\Seminario Rust\TP5\target\debug\deps\impl_trait_for_tuples-f643f8b73c12a6a6.d: C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\impl-trait-for-tuples-0.2.3\src\lib.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\impl-trait-for-tuples-0.2.3\src\full_automatic.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\impl-trait-for-tuples-0.2.3\src\semi_automatic.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\impl-trait-for-tuples-0.2.3\src\utils.rs
+
+C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\impl-trait-for-tuples-0.2.3\src\lib.rs:
+C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\impl-trait-for-tuples-0.2.3\src\full_automatic.rs:
+C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\impl-trait-for-tuples-0.2.3\src\semi_automatic.rs:
+C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\impl-trait-for-tuples-0.2.3\src\utils.rs:

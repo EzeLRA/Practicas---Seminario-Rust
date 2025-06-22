@@ -1,11 +1,15 @@
-use std::{fs::File, io::{Error, Read, Write}};
+use std::fmt::{write, Display};
+use std::fs::{File,OpenOptions};
 use serde::{Deserialize, Serialize};
+use std::io::{self, Write};
+use std::path::Path;
+use serde_json;
 /* 
     Estructura Fecha
 */
 
 //Atributos
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone ,Serialize, Deserialize)]
 pub struct Fecha{
     pub dia : u8,
     pub mes : u8,

@@ -1,5 +1,9 @@
-use std::{fs::File, io::{Error, Read, Write}};
+use std::fmt::{write, Display};
+use std::fs::{File,OpenOptions};
 use serde::{Deserialize, Serialize};
+use std::io::{self, Write};
+use std::path::Path;
+use serde_json;
 use crate::tp5::ej3Fecha::Fecha;
 
 /**
@@ -10,34 +14,34 @@ use crate::tp5::ej3Fecha::Fecha;
     Estructuras
 */
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone ,Serialize, Deserialize)]
 pub enum Animales{
     Perro,
     Gato,
     Caballo,
     Otro,
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Duenio {
     nombre: String,
     direccion: String,
     telefono: u32
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone , Serialize, Deserialize)]
 pub struct Mascota {
     nombre: String,
     edad: u32,
     tipo: Animales,
     duenio: Duenio
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone , Serialize, Deserialize)]
 pub struct Atencion {
     mascota: Mascota,
     diagnostico: String,
     tratamiento: String,
     proxima_visita: Option<Fecha>
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone , Serialize, Deserialize)]
 pub struct Veterinaria {
     nombre: String,
     direccion: String,
@@ -45,6 +49,7 @@ pub struct Veterinaria {
     cola_atencion: Vec<Mascota>,
     atenciones_realizadas: Vec<Atencion>
 }
+
 
 /*
     Metodos asociados
@@ -148,6 +153,8 @@ impl Veterinaria{
             atenciones_realizadas : Vec::new()
         }
     }
+
+    //Mascotas
     pub fn agregar_mascota(&mut self,m:&Mascota){
         self.cola_atencion.push(m.clone());
     }   
@@ -171,6 +178,8 @@ impl Veterinaria{
             }
         }
     }
+
+    //Atenciones
     pub fn registrar_atencion(&mut self,a:&Atencion){
         self.atenciones_realizadas.push(a.clone());
     }
@@ -321,3 +330,128 @@ mod testing_playlist{
 
     }
 }
+
+/*
+    IMPLEMENTACION DE EJERCICIO 3 - TP5
+*/
+
+/*
+    Tipos de errores
+*/
+#[derive(Debug)]
+pub enum error_operatoria{
+    Inexistente(String),
+    EstructuraVacia(String)
+}
+
+impl Display for error_operatoria{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self{
+            error_operatoria::Inexistente(val) => write!(f, "No se encontro el elemento en la estructura {} ",val),
+            error_operatoria::EstructuraVacia(val) => write!(f, "La estrucutra {} no dispone de elementos ",val)
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum Errores{
+    ErrorOperatoria(error_operatoria),
+    ErrorIO(io::Error),
+    ErrorSerde(serde_json::Error)
+}
+
+impl Display for Errores{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Errores::ErrorOperatoria(err) => write!(f,"{}",err),
+            Errores::ErrorIO(err) => write!(f, "Error de E/S al guardar: {}", err),
+            Errores::ErrorSerde(err) => write!(f, "Error de serialización: {}", err)
+        }
+    }
+}
+
+//Implementacion para el uso del operador (?)
+impl std::error::Error for Errores {}
+
+//Implementacion automatica errores subyacentes
+impl From<io::Error> for Errores {
+    fn from(err: io::Error) -> Self {
+        Errores::ErrorIO(err)
+    }
+}
+
+impl From<serde_json::Error> for Errores {
+    fn from(err: serde_json::Error) -> Self {
+        Errores::ErrorSerde(err)
+    }
+}
+
+//Implementacion extra a la veterinaria
+impl Veterinaria{
+    fn to_string(&self)->String{
+        return self.nombre.clone();
+    }
+    //Hace el proceso de atender y retornar la atencion con los datos ingresados(Sabiendo que se atiende a la 1º mascota de la cola)
+    fn realizar_atencion(&mut self,diag:&String,tratam:&String,f:&Fecha)->Option<Atencion>{
+        let mut res : Option<Atencion> = None;
+        if !self.cola_atencion.is_empty() {
+            res = if let Some(m) = self.atender_mascota(){
+                Some(Atencion::new(&m,diag.clone(),tratam.clone(),Some(f.clone())))
+            }else{ None }
+        }
+        return res;
+    }
+}
+
+
+//Archivo de almacenamiento (Solo respalda la lista de atenciones realizadas por la veterinaria)
+#[derive(Debug)]
+pub struct Archivo{
+    informacion : Vec<Atencion>,
+    path : String,
+    autoguardado : bool 
+}
+
+impl Archivo{
+    fn new(dato:&Vec<Atencion>,dir:String,estado:bool)->Archivo{
+        return Archivo { informacion: dato.clone(), path: dir , autoguardado : estado};
+    }
+    fn existe_archivo(&self)->bool{
+        return Path::new(&self.path.clone()).exists();
+    }
+    fn respaldar_informacion(&self) -> Result<(), Errores> {
+        // Apertura/Creación del archivo
+        let mut file = if self.existe_archivo() {
+            // Abrir en modo lectura/escritura si existe
+            OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open(&self.path)
+            .map_err(Errores::ErrorIO)?
+        } else {
+            // Crear nuevo archivo si no existe
+            File::create(&self.path).map_err(Errores::ErrorIO)?
+        };
+
+        // Serialización de la informacion
+        let serializado = serde_json::to_string(&self.informacion)
+            .map_err(Errores::ErrorSerde)?;
+
+        // Escritura en el archivo
+        file.write_all(serializado.as_bytes())
+            .map_err(Errores::ErrorIO)?;
+
+        Ok(())
+    }
+    
+    //fn registrar_atencion(&mut self,a:&Atencion)-> Result<(), Errores>{}
+    //fn eliminar_atencion(&mut self,a:&Atencion)-> Result<(), Errores>{}
+    //fn modificar_fecha_atencion(&mut self,a:&Atencion,f:&Fecha)-> Result<(), Errores>{}
+    //fn modificar_diagnostico_atencion(&mut self,a:&Atencion,diag:&String)-> Result<(), Errores>{}
+}
+/*
+#[cfg(test)]
+mod testing_implementacion_ejercicio3{
+    use super::*;
+}
+*/

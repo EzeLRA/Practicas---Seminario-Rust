@@ -1,0 +1,10 @@
+C:\Users\Ezequiel\Desktop\UNLP\2doAño UNLP\Seminario Rust\TP5\target\debug\deps\libgear_dlmalloc-5a890bb2a30e102a.rmeta: C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\lib.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\common.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\dlmalloc.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\dlverbose.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\global.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\windows.rs
+
+C:\Users\Ezequiel\Desktop\UNLP\2doAño UNLP\Seminario Rust\TP5\target\debug\deps\gear_dlmalloc-5a890bb2a30e102a.d: C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\lib.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\common.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\dlmalloc.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\dlverbose.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\global.rs C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\windows.rs
+
+C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\lib.rs:
+C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\common.rs:
+C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\dlmalloc.rs:
+C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\dlverbose.rs:
+C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\global.rs:
+C:\Users\Ezequiel\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gear-dlmalloc-0.2.0\src\windows.rs:
