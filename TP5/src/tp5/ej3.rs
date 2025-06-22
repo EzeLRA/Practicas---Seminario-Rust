@@ -1,17 +1,17 @@
-use std::fmt::{write, Display};
-use std::fs::{File,OpenOptions};
-use serde::{Deserialize, Serialize};
-use std::io::{self, Write};
-use std::path::Path;
-use serde_json;
 use crate::tp5::ej3Fecha::Fecha;
-
+use std::fmt::{write, Display};
+use std::io;
+use std::{fs::{File,OpenOptions}, io::{Error,Read,Write}};
+use std::path::Path;
+//Se debe importar serde para su uso "cargo add serde"
+use serde::{Serialize, Deserialize};
+use serde_json;
 /**
         EXTRACCION DEL EJERCICIO 9 - TP3
 **/
 
 /*
-    Estructuras
+    Estructuras (Se entiende que para la consigna esta restringido el uso del trait PartialEq)
 */
 
 #[derive(Debug, Clone ,Serialize, Deserialize)]
@@ -76,6 +76,9 @@ impl Duenio {
     pub fn es_igual_a(&self,d:&Duenio)->bool{
         return (self.nombre == d.get_nombre())&&(self.direccion == d.get_direccion())&&(self.telefono == d.telefono);
     }
+    pub fn get_tel(&self)->u32{
+        return self.telefono;
+    }
     //Metodos Primarios
     pub fn new(nombre_in: String,direccion_in: String,telefono_in: u32) -> Duenio {
         return Duenio{
@@ -112,7 +115,7 @@ impl Atencion {
         let mut cumple = false;
         if let Some(tiene_fecha) = &self.proxima_visita{
             if let Some(hay_fecha) = &ate.proxima_visita{
-                cumple = tiene_fecha.es_igual_a(&hay_fecha);
+                cumple = tiene_fecha.es_igual_a(&hay_fecha)&&(self.mascota.es_igual_a(&ate.mascota.clone()))&&(self.diagnostico == ate.diagnostico)&&(self.tratamiento == ate.tratamiento);
             }
         }else{
             if ate.proxima_visita.is_none(){
@@ -227,7 +230,7 @@ impl Veterinaria{
     }
 }
 #[cfg(test)]
-mod testing_playlist{
+mod testing_veterinaria{
     use super::*;
 
     #[test]
@@ -321,13 +324,14 @@ mod testing_playlist{
         }
 
         //Busqueda de atencion modificada 
+        
         if let Some(ate_actual) = v.buscar_atencion("Luchito".to_string(),"Marcos".to_string(),1234){
             let ate3 = Atencion::new(&animal1,"Vomitos".to_string(),"Pipeta".to_string(),None );
             assert_eq!(ate_actual.es_igual_a(&ate3),true);
         }else{
             panic!("No se encontro tal recepcion");
         }
-
+        
     }
 }
 
@@ -510,6 +514,37 @@ impl Archivo{
 
         Ok(())
     }
+    //Busqueda en el archivo logico
+    fn recuperar_atencion(&mut self,a:&Atencion)-> Result<Atencion, Errores>{
+        if !self.informacion.is_empty(){
+            if let Some(atencion) = self.informacion.iter().find(|ate| ate.es_igual_a(&a) ){
+                Ok(atencion.clone())
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Historial de atenciones".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Historial de atenciones".to_string() )) );
+        }
+    }
+    //Busqueda en el archivo fisico
+    fn rescatar_informacion_fisica(&self,a:&Atencion)-> Result<Atencion,Errores>{
+        //Apertura(Debe existir el archivo fisico)
+        let mut file = File::open(self.path.clone())?;
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        let atenciones : Vec<Atencion> = serde_json::from_str(&buf)?;
+
+        //Busqueda
+        if !atenciones.is_empty(){
+            if let Some(atencion) = self.informacion.iter().find(|ate| ate.es_igual_a(&a) ){
+                Ok(atencion.clone())
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Historial de atenciones".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Historial de atenciones".to_string() )) );
+        } 
+    }
 }
 
 #[cfg(test)]
@@ -526,25 +561,271 @@ mod testing_implementacion_ejercicio3{
         v.agregar_mascota(&animal1);
         v.agregar_mascota(&animal2);
 
+        //Atenciones
+
+        //Se atiende animal1 (desde la veterinaria)
         if let Some(a) = v.realizar_atencion(&"Fiebre".to_string(), &"Inyecciones".to_string(), &Fecha::new(12, 5, 2025) ){
             v.registrar_atencion(&a);
         }else{
             println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
         }
         
-        //Atenciones 
+        //Se agrega la informacion al archivo (todavia no se guarda en el archivo fisico)
         let mut archivo1 = Archivo::new(&v.atenciones_realizadas, "".to_string(),false);
 
+        //Se atiende animal2 (desde la veterinaria y se registra en el archivo)
         if let Some(a) = v.realizar_atencion(&"Pulgas".to_string(), &"Pipeta".to_string(), &Fecha::new(12, 8, 2025) ){
+            v.registrar_atencion(&a);
             let r = archivo1.registrar_atencion(&a);
             match r {
-                Ok(mov) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}
+                Ok(_) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}   //Solo puede ocurrir el error si se realiza un guardado en el archivo fisico
             }
         }else{
             println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
         }
 
+
+        //Modificacion de atenciones
+        if let Some(mut a) = v.buscar_atencion(animal1.get_nombre(),d1.get_nombre(),d1.get_tel()){
+            //Cambio de fecha
+            let r = archivo1.modificar_fecha_atencion(&a,&Fecha::new(2, 1, 2025));
+            match r {
+                Ok(_) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+            a.cambiar_fecha(&Some(Fecha::new(2, 1, 2025))); //Modifico la fecha de la veterina para continuar en el archivo logico
+            //Cambio de diagnostico
+            let r = archivo1.modificar_diagnostico_atencion(&a,&"Tos".to_string());
+            match r {
+                Ok(_) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+            a.cambiar_diagnostico(&"Tos".to_string()); //Lo mismo de arriba pero con la seccion de diagnostico
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }
+
+
+        //Busqueda
+        if let Some(a) = v.buscar_atencion(animal2.get_nombre(),d1.get_nombre(),d1.get_tel()){
+            //Busqueda en el archivo logico
+            let r = archivo1.recuperar_atencion(&a);
+            match r {
+                Ok(ate) => assert!(ate.es_igual_a(&a)),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }
+
+        //Baja
+        if let Some(a) = v.buscar_atencion(animal2.get_nombre(),d1.get_nombre(),d1.get_tel()){
+            //Busqueda en el archivo logico
+            let r = archivo1.eliminar_atencion(&a);
+            match r {
+                Ok(_) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }
+
+    }
+
+    #[test]
+    fn operatoria_archivo_sin_autoguardado(){
+        //Veterinaria
+        let mut v = Veterinaria::new("mordidas".to_string(),"av1".to_string(),1);
+        let d1 = Duenio::new("Marcos".to_string(),"av2".to_string(),1234);
+        let animal1 = Mascota::new(String::from("Luchito"), 2, Animales::Perro, &d1);
+        let animal2 = Mascota::new(String::from("Lupe"), 1, Animales::Gato, &d1);
+        v.agregar_mascota(&animal1);
+        v.agregar_mascota(&animal2);
+
+        //Atenciones
+        // 1ª atencion
+        if let Some(a) = v.realizar_atencion(&"Fiebre".to_string(), &"Inyecciones".to_string(), &Fecha::new(12, 5, 2025) ){
+            v.registrar_atencion(&a);
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }
+
+        //Se agrega la informacion al archivo
+        let mut archivo1 = Archivo::new(&v.atenciones_realizadas, "src/tp5/cola_atencion_info.json".to_string(),false);
+
+        //2º atencion
+        if let Some(a) = v.realizar_atencion(&"Fiebre".to_string(), &"Inyecciones".to_string(), &Fecha::new(21, 6, 2025) ){
+            v.registrar_atencion(&a);
+            let r = archivo1.registrar_atencion(&a);
+            match r {
+                    Ok(_) => assert!(true),
+                    Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }
+
+        //Se guarda la informacion en el archivo fisico
+        let r = archivo1.respaldar_informacion();
+        match r {
+            Ok(_) => assert!(true),
+            Err(e) => {println!("error: {}", e); assert!(false);}  
+        }
+
+
+        //Busqueda 
+        if let Some(a) = v.buscar_atencion(animal1.get_nombre(),d1.get_nombre(),d1.get_tel()){
+            let r = archivo1.rescatar_informacion_fisica(&a);
+            match r {
+                Ok(ate) => assert!(ate.es_igual_a(&a)),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }
+
+        //Baja (2º elemento)
+        if let Some(a) = v.buscar_atencion(animal2.get_nombre(),d1.get_nombre(),d1.get_tel()){
+            let r = archivo1.eliminar_atencion(&a);
+            match r {
+                Ok(_) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+            //Se actualiza el archivo fisico
+            let r = archivo1.respaldar_informacion();
+            match r {
+                Ok(_) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }
+
+        //Modificacion del archivo
+        if let Some(mut a) = v.buscar_atencion(animal1.get_nombre(),d1.get_nombre(),d1.get_tel()){
+            
+            //Cambio de fecha
+            let r = archivo1.modificar_fecha_atencion(&a,&Fecha::new(1,1,2025));
+            a.cambiar_fecha(&Some(Fecha::new(1,1,2025)) );
+            match r {
+                Ok(_) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+
+            //Cambio de diagnostico
+            let r = archivo1.modificar_diagnostico_atencion(&a,&"Parasitos".to_string());
+            match r {
+                Ok(_) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+
+            //Se actualiza el archivo fisico
+            let r = archivo1.respaldar_informacion();
+            match r {
+                Ok(_) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }
+
+    }
+
+    #[test]
+    fn operatoria_archivo_con_autoguardado(){
+        //Veterinaria
+        let mut v = Veterinaria::new("mordidas".to_string(),"av1".to_string(),1);
+        let d1 = Duenio::new("Marcos".to_string(),"av2".to_string(),1234);
+        let animal1 = Mascota::new(String::from("Luchito"), 2, Animales::Perro, &d1);
+        let animal2 = Mascota::new(String::from("Lupe"), 1, Animales::Gato, &d1);
+        v.agregar_mascota(&animal1);
+        v.agregar_mascota(&animal2);
+
+        //Atenciones
+        // 1ª atencion
+        if let Some(a) = v.realizar_atencion(&"Garrapatas".to_string(), &"Pastillas".to_string(), &Fecha::new(22, 5, 2025) ){
+            v.registrar_atencion(&a);
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }
+
+        //Se agrega la informacion al archivo
+        let mut archivo1 = Archivo::new(&v.atenciones_realizadas, "src/tp5/cola_atencion_info.json".to_string(),true);
+
+        //2º atencion
+        if let Some(a) = v.realizar_atencion(&"Pulgas".to_string(), &"Pipeta".to_string(), &Fecha::new(25, 6, 2025) ){
+            v.registrar_atencion(&a);
+            let r = archivo1.registrar_atencion(&a);
+            match r {
+                    Ok(_) => assert!(true),
+                    Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }
+
+
+        //Busqueda 
+        if let Some(a) = v.buscar_atencion(animal1.get_nombre(),d1.get_nombre(),d1.get_tel()){
+            let r = archivo1.rescatar_informacion_fisica(&a);
+            match r {
+                Ok(ate) => assert!(ate.es_igual_a(&a)),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }
+        
+
+        //Baja (1º elemento)
+        if let Some(a) = v.buscar_atencion(animal1.get_nombre(),d1.get_nombre(),d1.get_tel()){
+            let r = archivo1.eliminar_atencion(&a);
+            match r {
+                Ok(_) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }      
+
+
+        //Modificacion del archivo
+        if let Some(mut a) = v.buscar_atencion(animal2.get_nombre(),d1.get_nombre(),d1.get_tel()){
+            
+            //Cambio de fecha
+            let r = archivo1.modificar_fecha_atencion(&a,&Fecha::new(18,9,2025));
+            a.cambiar_fecha(&Some(Fecha::new(18,9,2025)) );
+            match r {
+                Ok(_) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+
+            //Cambio de diagnostico
+            let r = archivo1.modificar_diagnostico_atencion(&a,&"Parasitos".to_string());
+            match r {
+                Ok(_) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}  
+            }
+            
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
+            assert!(false);
+        }  
     }
 
 }
