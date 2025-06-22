@@ -121,7 +121,7 @@ impl Atencion {
         }
         return (self.mascota.es_igual_a(&ate.mascota))&&(self.diagnostico == ate.diagnostico.clone())&&(self.tratamiento == ate.tratamiento.clone())&&(cumple);
     }
-    pub fn cambiar_diagnostico(&mut self,diag:String){
+    pub fn cambiar_diagnostico(&mut self,diag:&String){
         self.diagnostico = diag.clone();
     }
     pub fn cambiar_fecha(&mut self,f:&Option<Fecha>){
@@ -195,11 +195,11 @@ impl Veterinaria{
         }
         return res;
     }
-    pub fn modificar_diagnostico(&mut self,ate:&Atencion,diag:String){
+    pub fn modificar_diagnostico(&mut self,ate:&Atencion,diag:&String){
         if !self.atenciones_realizadas.is_empty(){
             for i in 0..self.atenciones_realizadas.len(){
                 if self.atenciones_realizadas[i].es_igual_a(&ate){
-                    self.atenciones_realizadas[i].cambiar_diagnostico(diag.clone());
+                    self.atenciones_realizadas[i].cambiar_diagnostico(diag);
                     break;
                 }
             }
@@ -309,7 +309,7 @@ mod testing_playlist{
         }
 
         //Modificar la atencion actual(segunda recepcion)
-        v.modificar_diagnostico(&ate2,"Vomitos".to_string());
+        v.modificar_diagnostico(&ate2,&"Vomitos".to_string());
 
         //Busqueda de atencion y modificacion de fecha
         if let Some(ate_actual) = v.buscar_atencion("Luchito".to_string(),"Marcos".to_string(),1234){
@@ -401,6 +401,7 @@ impl Veterinaria{
         }
         return res;
     }
+
 }
 
 
@@ -444,14 +445,107 @@ impl Archivo{
         Ok(())
     }
     
-    //fn registrar_atencion(&mut self,a:&Atencion)-> Result<(), Errores>{}
-    //fn eliminar_atencion(&mut self,a:&Atencion)-> Result<(), Errores>{}
-    //fn modificar_fecha_atencion(&mut self,a:&Atencion,f:&Fecha)-> Result<(), Errores>{}
-    //fn modificar_diagnostico_atencion(&mut self,a:&Atencion,diag:&String)-> Result<(), Errores>{}
+    fn registrar_atencion(&mut self,a:&Atencion)-> Result<(), Errores>{
+        self.informacion.push(a.clone());
+
+		if self.autoguardado{
+			self.respaldar_informacion()?;
+		}
+
+		Ok(())
+    }
+
+    fn eliminar_atencion(&mut self,a:&Atencion)-> Result<(), Errores>{
+
+        if !self.informacion.is_empty(){
+            if let Some(pos) = self.informacion.iter().position(|ate| ate.es_igual_a(&a) ){
+                self.informacion.remove(pos);
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Historial de atenciones".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Historial de atenciones".to_string() )) );
+        }
+
+        if self.autoguardado{
+			self.respaldar_informacion()?;
+		}
+
+        Ok(())
+    }
+
+    fn modificar_fecha_atencion(&mut self,a:&Atencion,f:&Fecha)-> Result<(), Errores>{
+
+        if !self.informacion.is_empty(){
+            if let Some(atencion) = self.informacion.iter_mut().find(|ate| ate.es_igual_a(&a) ){
+                atencion.cambiar_fecha(&Some(f.clone()));
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Historial de atenciones".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Historial de atenciones".to_string() )) );
+        }
+
+        if self.autoguardado{
+			self.respaldar_informacion()?;
+		}
+
+        Ok(())
+    }
+    fn modificar_diagnostico_atencion(&mut self,a:&Atencion,diag:&String)-> Result<(), Errores>{
+        
+        if !self.informacion.is_empty(){
+            if let Some(atencion) = self.informacion.iter_mut().find(|ate| ate.es_igual_a(&a) ){
+                atencion.cambiar_diagnostico(diag);
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Historial de atenciones".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Historial de atenciones".to_string() )) );
+        }
+
+        if self.autoguardado{
+			self.respaldar_informacion()?;
+		}
+
+        Ok(())
+    }
 }
-/*
+
 #[cfg(test)]
 mod testing_implementacion_ejercicio3{
     use super::*;
+
+    #[test]
+    fn operatoria_informacion(){
+        //Veterinaria
+        let mut v = Veterinaria::new("mordidas".to_string(),"av1".to_string(),1);
+        let d1 = Duenio::new("Marcos".to_string(),"av2".to_string(),1234);
+        let animal1 = Mascota::new(String::from("Luchito"), 2, Animales::Perro, &d1);
+        let animal2 = Mascota::new(String::from("Lupe"), 1, Animales::Gato, &d1);
+        v.agregar_mascota(&animal1);
+        v.agregar_mascota(&animal2);
+
+        if let Some(a) = v.realizar_atencion(&"Fiebre".to_string(), &"Inyecciones".to_string(), &Fecha::new(12, 5, 2025) ){
+            v.registrar_atencion(&a);
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
+        }
+        
+        //Atenciones 
+        let mut archivo1 = Archivo::new(&v.atenciones_realizadas, "".to_string(),false);
+
+        if let Some(a) = v.realizar_atencion(&"Pulgas".to_string(), &"Pipeta".to_string(), &Fecha::new(12, 8, 2025) ){
+            let r = archivo1.registrar_atencion(&a);
+            match r {
+                Ok(mov) => assert!(true),
+                Err(e) => {println!("error: {}", e); assert!(false);}
+            }
+        }else{
+            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
+        }
+
+    }
+
 }
-*/
+
