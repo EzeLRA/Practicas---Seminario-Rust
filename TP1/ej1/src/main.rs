@@ -3,7 +3,7 @@ use std::io::stdin;
 
 fn main(){
     //Variable res
-    let res:f32 = 30.2 ; 
+    let res:f32 = 30.2 ;
 
     //Lector
     let mut ent = String::new();

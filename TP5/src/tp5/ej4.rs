@@ -1,11 +1,16 @@
 use crate::tp5::ej3Fecha::Fecha;
-use std::{fs::File, io::{Error, Read, Write}};
-use serde::{Deserialize, Serialize};
+use std::fmt::{write, Display};
+use std::io;
+use std::{fs::{File,OpenOptions}, io::{Error,Read,Write}};
+use std::path::Path;
+//Se debe importar serde para su uso "cargo add serde"
+use serde::{Serialize, Deserialize};
+use serde_json;
 /**
-        EXTRACCION DEL EJERCICIO 10 - TP3
+        EXTRACCION DEL EJERCICIO 10 - TP3 (Se comprende que esta restringido el uso del trait PartialEq)
 **/
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Genero {
     Novela,
     Infantil,
@@ -13,13 +18,13 @@ pub enum Genero {
     Otro,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Estado {
     EnPrestamo,
     Devuelto
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Libro { 
     isbn : u32,
     titulo: String,
@@ -28,19 +33,19 @@ pub struct Libro {
     genero: Genero
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LibrosDispone {
     libro: Libro,
     cantidad: u32
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Cliente { 
     nombre: String,
     telefono: u32,
     correo: String
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Prestamo {
     libro: Libro,
     cliente: Cliente,
@@ -49,7 +54,7 @@ pub struct Prestamo {
     devolucion: Option<Fecha>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Biblioteca {
     nombre: String,
     direccion: String,
@@ -347,4 +352,156 @@ mod biblioteca_tests {
     }
 }
 
+/*
+    Implementacion EJ4-TP5
+*/
 
+/*
+    Tipos de errores
+*/
+#[derive(Debug)]
+pub enum error_operatoria{
+    Inexistente(String),
+    EstructuraVacia(String)
+}
+
+impl Display for error_operatoria{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self{
+            error_operatoria::Inexistente(val) => write!(f, "No se encontro el elemento en la estructura {} ",val),
+            error_operatoria::EstructuraVacia(val) => write!(f, "La estrucutra {} no dispone de elementos ",val)
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum Errores{
+    ErrorOperatoria(error_operatoria),
+    ErrorIO(io::Error),
+    ErrorSerde(serde_json::Error)
+}
+
+
+impl Display for Errores{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Errores::ErrorOperatoria(err) => write!(f,"{}",err),
+            Errores::ErrorIO(err) => write!(f, "Error de E/S al guardar: {}", err),
+            Errores::ErrorSerde(err) => write!(f, "Error de serialización: {}", err)
+        }
+    }
+}
+
+//Implementacion para el uso del operador (?)
+impl std::error::Error for Errores {}
+
+//Implementacion automatica errores subyacentes
+impl From<io::Error> for Errores {
+    fn from(err: io::Error) -> Self {
+        Errores::ErrorIO(err)
+    }
+}
+
+impl From<serde_json::Error> for Errores {
+    fn from(err: serde_json::Error) -> Self {
+        Errores::ErrorSerde(err)
+    }
+}
+
+//Implementacion extra para la biblioteca
+impl Biblioteca{
+    fn get_libros_displonibles(&self)->Vec<LibrosDispone>{
+        return self.disponibles.clone();
+    }
+}
+//Archivo de almacenamiento (Solo respalda el repositorio de libros y el listado de prestamos)
+#[derive(Debug)]
+pub struct Archivo<T>{
+    informacion : Vec<T>,
+    path : String,
+    autoguardado : bool 
+}
+
+//Implementacion generica
+impl<T:Clone + Serialize> Archivo<T>{
+    fn new(dato:&Vec<T>,dir:String,estado:bool)->Archivo<T>{
+        return Archivo { informacion: dato.clone(), path: dir , autoguardado : estado};
+    }
+    fn existe_archivo(&self)->bool{
+        return Path::new(&self.path.clone()).exists();
+    }
+    fn set_informacion(&mut self,datos:&Vec<T>)-> Result<(), Errores>{
+        self.informacion = datos.clone();
+        
+        if self.autoguardado{
+			self.respaldar_informacion()?;
+		}
+
+		Ok(())
+    }
+    fn respaldar_informacion(&self) -> Result<(), Errores> {
+        // Apertura/Creación del archivo
+        let mut file = if self.existe_archivo() {
+            // Abrir en modo lectura/escritura si existe
+            OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open(&self.path)
+            .map_err(Errores::ErrorIO)?
+        } else {
+            // Crear nuevo archivo si no existe
+            File::create(&self.path).map_err(Errores::ErrorIO)?
+        };
+
+        // Serialización de la informacion
+        let serializado = serde_json::to_string(&self.informacion)
+            .map_err(Errores::ErrorSerde)?;
+
+        // Escritura en el archivo
+        file.write_all(serializado.as_bytes())
+            .map_err(Errores::ErrorIO)?;
+
+        Ok(())
+    }
+}
+
+//Implemetacion para el repositorio de libros
+//impl Archivo<LibrosDispone>{
+
+//}
+
+
+//La opcion de autoguardado se mantiene como activa a lo largo de los testing
+
+#[cfg(test)]
+mod testing_implementacion_ejercicio4{
+    use super::*;
+
+    #[test]
+    fn operatoria_archivo_repositorio_libros(){
+        //Creacion de biblioteca
+        let nombre = String::from("Sabiondo");
+        let direccion = String::from("1 e 2 y 3");
+       
+        let mut biblioteca = Biblioteca::new(nombre,direccion);
+
+        let libro1 = Libro::new(10, "Autor1".to_string(), "Libro1".to_string(), 50 , Genero::Infantil);
+        let libro2 = Libro::new(20, "Autor2".to_string(), "Libro2".to_string(), 50 , Genero::Novela);
+        let libro3 = Libro::new(30, "Autor3".to_string(), "Libro3".to_string(), 50 , Genero::Tecnico);
+        let libro4 = Libro::new(40, "Autor4".to_string(), "Libro4".to_string(), 50 , Genero::Otro);
+
+        biblioteca.agregar_libro(libro1.clone(),10);
+        biblioteca.agregar_libro(libro2.clone(),10);
+        biblioteca.agregar_libro(libro3.clone(),10);
+        biblioteca.agregar_libro(libro4.clone(),10);
+
+        //Creacion del archivo repositorio
+        let mut archivo1 = Archivo::new(&biblioteca.get_libros_displonibles(), "src/tp5/repositorio_libros.json".to_string(),true);
+        let r = archivo1.respaldar_informacion();
+        match r {
+            Ok(_) => assert!(true),
+            Err(e) => {println!("error: {}",e); assert!(false)}
+        }
+    }
+
+}

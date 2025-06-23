@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml">
+      <package file="$PROJECT_DIR$">
+        <enabledFeature name="default" />
+      </package>
+    </cargoProject>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="df93d3a3-d057-4c66-bff8-e012fa177e62" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../TP1/ej1/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../TP1/ej1/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tp5/cola_atencion_info.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/tp5/cola_atencion_info.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/.rustc_info.json" beforeDir="false" afterPath="$PROJECT_DIR$/target/.rustc_info.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/.fingerprint/TP5-08d0c6c33beccc8b/dep-bin-TP5" beforeDir="false" afterPath="$PROJECT_DIR$/target/debug/.fingerprint/TP5-08d0c6c33beccc8b/dep-bin-TP5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/.fingerprint/TP5-08d0c6c33beccc8b/output-bin-TP5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/.fingerprint/TP5-35556fbe688f379a/dep-test-bin-TP5" beforeDir="false" afterPath="$PROJECT_DIR$/target/debug/.fingerprint/TP5-35556fbe688f379a/dep-test-bin-TP5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/.fingerprint/TP5-35556fbe688f379a/output-test-bin-TP5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/.fingerprint/TP5-a932706d609e737e/dep-test-bin-TP5" beforeDir="false" afterPath="$PROJECT_DIR$/target/debug/.fingerprint/TP5-a932706d609e737e/dep-test-bin-TP5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/.fingerprint/TP5-a932706d609e737e/output-test-bin-TP5" beforeDir="false" afterPath="$PROJECT_DIR$/target/debug/.fingerprint/TP5-a932706d609e737e/output-test-bin-TP5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/deps/TP5-a932706d609e737e" beforeDir="false" afterPath="$PROJECT_DIR$/target/debug/deps/TP5-a932706d609e737e" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/050c1itsuj0c6948fyulw9vgw.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/0ero4ceu4rmutokf295mih9fl.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/0mmkt0l7yuzzq6jvxifktsig2.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/0p9hlv7r2jdpjcqp4yls9lbsr.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/191opag8raxxmzbgbhxxi9fhq.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/1iv6emahp7gvshymomv3uli29.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/29gxk7ukfawb3io3ph381lvg6.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/2tt0i9s94rc4jr5cxr3a534oq.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/318imlcczperqslgdkg7p7vp4.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/3gvlfalga4hljfygm29kitmev.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/3h1cbky6z140ho9lwre6oks1r.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/3hod9njlz0v5hh2w827i71vpt.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/3tagxzgmdq18khuzf2dzf4zdk.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/3x7o765zj85lzv7xqyb8v4uiy.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/3ztpjk5fmh94wfzq0roear0hp.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/42oy3whc78iy65acdykf4rsws.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/43fjscy5csukwc46th1500wkk.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/46oigea8r9gk5azjzlw342w3b.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/4ivu4aaosd8v29asdavowkhpv.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/4m5t3mif2y9otxdzlabjij0z0.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/4mu419uau4rdi66dxy5epz1sl.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/4vpessva3bb5g61c8rasn5cub.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/5ew10867rn54p99uzi56nihj3.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/5kvp8dtdcq3jha6y90t22x8jl.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/5qcrwhldqrfsygqf71bfnxexr.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/5rjkqokc3rkaweu9fjaxdfttj.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/5toyjxzcraya4jr04goy1haxn.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/5wpukx7244avgz8cne9tg4q7r.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/5yjbjj7z8uwfrh5zbkg4jb2mg.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/60ifi250dq6zagq44u19wqtga.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/697j6c5b7zrrm388fa2tkg3nw.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/6e2uj8s5zmqin440k5x7qldeb.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/6px7mne9fy1t1stnjvv5vkbgi.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/6rpad6or84f2ed5zm03yl2gsf.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/6xh062n203dra7vsxwweyh33i.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/7i3rzrecpfwfjzegbz6nrf2hc.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/7y1neqtn57awzzefoglsby5iu.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/87uj8upxgx04c7jtybgjkpyl2.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/8ahidcg1ppjoour8qd29vgqja.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/92avowidbdog563c0ay8jmlce.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/97380x30oazc2590ehsc3bp6k.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/9hs44pvibi81ik925hqzijddi.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/9jdzd0qnqsn6y9hwn05q4m9x7.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/anez1muvynn2uncrbxu8lehy5.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/aori7l29m1j68rphxwsg2oyaw.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/aq1jz9fjigyep95rimr2gty53.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/arvoy8bkpoocss9sx7fgn4fxq.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/borktwcbm8or0lp91t0ummk2g.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/c4ds47bw1gd8ufkrc5cw9m10n.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/c5jnxodpjv2ppf6loxka13cdo.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/c7qi8ih0mpfcw7rrcp4g683kf.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/carusgss31eb2ghyx9w6pz21h.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/cdf8rv6sikoor5hvmxvk3l57u.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/cnzws2huyd5sytf43i3hyfvop.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/csgdlycisr1nyv2o0uc2exppk.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/d2g8s9965rrk3ptyf48wihe2p.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/dep-graph.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/dim51wktnftoj7w81puogtpms.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/dj8ey7ojj8lrnezf8e4aejrln.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/drojan8cze4aen13ozfahn2m7.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/ds3pf30r185bljy0nrf8uev6c.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/dvxltierdumq4dj02r5zel3te.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/e1visvy2sibt822pqz58pgcog.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/ehk0op75e2vf0yqz55361yqqp.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/esn46zdjumfubqdhwncaizk6f.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/et4c89hjbrg8mayrqkeogoqw6.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/etpifp5wybgav0tudqthbssam.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/query-cache.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2-dwuhm78gqzdip9ovyh32or3gj/work-products.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/debug/incremental/TP5-396410zmfybsf/s-h8ifu3wrnp-05riev2.lock" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="RsBuildProfile:test" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="ILMw3AiH" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 8
+}]]></component>
+  <component name="ProjectId" id="2yv1YB6nWhwsRXprTBJ1C0G60ys" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.rust.reset.selective.auto.import": "true",
+    "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.first.attach.projects": "true",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="Cargo.Test TP5">
+    <configuration name="Run TP5" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="buildProfileId" value="test" />
+      <option name="command" value="run --package TP5 --bin TP5" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test TP5" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="test --workspace" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="df93d3a3-d057-4c66-bff8-e012fa177e62" name="Changes" comment="" />
+      <created>1750700278176</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1750700278176</updated>
+      <workItem from="1750700279671" duration="470000" />
+    </task>
+    <servers />
+  </component>
+</project>
