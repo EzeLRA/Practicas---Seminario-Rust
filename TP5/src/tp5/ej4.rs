@@ -133,6 +133,9 @@ impl Prestamo {
             devolucion:None
         }
     }
+    pub fn es_igual(&self,lib:&Libro,c:&Cliente)->bool{
+        return self.libro.es_igual_a(&lib)&&self.cliente.es_igual_a(&c);
+    }
 }
 
 impl Biblioteca {
@@ -194,7 +197,7 @@ impl Biblioteca {
         }
         return cantidad;
     }
-
+    
     pub fn prestar(&mut self,cliente:Cliente,libro:&Libro,vencimiento:Fecha) -> bool {
         if (self.copias(&libro)>0) && (self.prestamos(&cliente)<=5) {
             self.prestamos.push(Prestamo::new(libro.clone(), cliente, vencimiento));
@@ -227,10 +230,11 @@ impl Biblioteca {
     fn buscar(&self,libro:&Libro,cliente:&Cliente) -> Option<Prestamo> {
         let mut res = None;
         for prestamo in &self.prestamos {
-            if (prestamo.cliente.es_igual_a(&cliente)) && (prestamo.libro.es_igual_a(&libro)) {
+            if prestamo.es_igual(&libro, &cliente){
                 res = Some(prestamo.clone());
                 break;
             }
+            
         }
         return res
     }
@@ -238,7 +242,7 @@ impl Biblioteca {
     fn devolver(&mut self,f:&Fecha,libro:&Libro,cliente:&Cliente) {
         let mut pude = false;
         for prestamo in &mut self.prestamos {
-            if (prestamo.cliente.es_igual_a(&cliente)) && (prestamo.libro.es_igual_a(&libro)) {
+            if prestamo.es_igual(&libro, &cliente) {
                 prestamo.estado = Estado::Devuelto;
                 //Se utiliza una fecha definida para la prueba
                 prestamo.devolucion = Some(f.clone());
@@ -465,10 +469,132 @@ impl<T:Clone + Serialize> Archivo<T>{
     }
 }
 
-//Implemetacion para el repositorio de libros
-//impl Archivo<LibrosDispone>{
+//Implemetacion para el repositorio de libros(pueden existir repetidos)
+impl Archivo<LibrosDispone>{
+    fn registrar_libro(&mut self,l:&Libro,cant:u32)->Result<(),Errores>{
+       
+        let nuevo_libro = LibrosDispone{libro:l.clone(),cantidad:cant};
+        self.informacion.push(nuevo_libro);
 
-//}
+        if self.autoguardado{
+            self.respaldar_informacion()?;
+        }
+
+        Ok(())
+    }
+
+    //Solo elemina la primer ocurrencia
+    fn eliminar_libro(&mut self,l:&Libro)->Result<(),Errores>{ 
+        
+        if !self.informacion.is_empty(){
+            if let Some(pos) = self.informacion.iter().position(|li| li.libro.es_igual_a(&l) ){
+                self.informacion.remove(pos);
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Repositorio de libros".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Repositorio de libros".to_string() )) );
+        }
+
+        if self.autoguardado{
+            self.respaldar_informacion()?;
+        }
+
+        Ok(())
+    }
+    fn contabilizar_copias(&self,l:&Libro)->Result<u32,Errores>{
+        let mut res:u32 = 0;
+
+        let mut file = File::open(self.path.clone())?;
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        let repositorio : Vec<LibrosDispone> = serde_json::from_str(&buf)?;
+
+        for lib in repositorio{
+            if lib.libro.es_igual_a(&l){
+                res += lib.cantidad;
+            }
+        }
+
+        return Ok(res);
+    }
+    fn incrementar_copias_libro(&mut self,l:&Libro)->Result<(),Errores>{
+        
+        if !self.informacion.is_empty(){
+            if let Some(lib) = self.informacion.iter_mut().find(|li| li.libro.es_igual_a(&l) ){
+                lib.cantidad += 1;
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Repositorio de libros".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Repositorio de libros".to_string() )) );
+        }
+
+        if self.autoguardado{
+            self.respaldar_informacion()?;
+        }
+
+        Ok(())
+    }
+    fn decrementar_copias_libro(&mut self,l:&Libro)->Result<(),Errores>{
+        
+        if !self.informacion.is_empty(){
+            if let Some(pos) = self.informacion.iter_mut().position(|li| li.libro.es_igual_a(&l) ){
+                if self.informacion[pos].cantidad > 1 {
+                    self.informacion[pos].cantidad -= 1;
+                }else{
+                    self.informacion[pos].cantidad -= 1;
+                    self.informacion.remove(pos);
+                }
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Repositorio de libros".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Repositorio de libros".to_string() )) );
+        }
+
+        if self.autoguardado{
+            self.respaldar_informacion()?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Archivo<Prestamo>{
+    fn registrar_prestamo(&mut self,prestamo:&Prestamo)->Result<(),Errores>{
+        
+        self.informacion.push(prestamo.clone());
+
+        if self.autoguardado{
+            self.respaldar_informacion()?;
+        }
+
+        Ok(())
+    }
+    //Busca por cliente y libro
+    fn eliminar_prestamo(&mut self,cl:&Cliente,li:&Libro)->Result<(),Errores>{
+
+        if !self.informacion.is_empty(){
+            if let Some(pos) = self.informacion.iter().position(|p| p.es_igual(&li,&cl)){
+                self.informacion.remove(pos);
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Repositorio de libros".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Repositorio de libros".to_string() )) );
+        }
+
+        if self.autoguardado{
+            self.respaldar_informacion()?;
+        }
+
+        Ok(())
+    }
+    //contar prestamos
+    //buscar prestamo
+    //filtrar(retornar) prestamos vencidos y proximos
+}
 
 
 //La opcion de autoguardado se mantiene como activa a lo largo de los testing
@@ -497,11 +623,26 @@ mod testing_implementacion_ejercicio4{
 
         //Creacion del archivo repositorio
         let mut archivo1 = Archivo::new(&biblioteca.get_libros_displonibles(), "src/tp5/repositorio_libros.json".to_string(),true);
-        let r = archivo1.respaldar_informacion();
-        match r {
+    
+        match archivo1.respaldar_informacion() {
             Ok(_) => assert!(true),
             Err(e) => {println!("error: {}",e); assert!(false)}
         }
+
+        //Alta de un nuevo libro
+        let libro5 = Libro::new(100, "Bartolomeo".to_string(), "TecnicasPracticas".to_string(), 100 , Genero::Tecnico);
+
+        match archivo1.registrar_libro(&libro5, 20){
+            Ok(_) => assert!(true),
+            Err(e) => {println!("error: {}",e); assert!(false)} 
+        }
+
+        //Baja del libro "libro1"
+        match archivo1.eliminar_libro(&libro1){
+            Ok(_) => assert!(true),
+            Err(e) => {println!("error: {}",e); assert!(false)} 
+        }
+
     }
 
 }
