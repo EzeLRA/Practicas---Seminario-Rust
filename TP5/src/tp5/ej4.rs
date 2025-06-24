@@ -1,4 +1,149 @@
-use crate::tp5::ej3Fecha::Fecha;
+/***
+ * 
+ *      EXTRACCION DE LA ESTRUCTURA FECHA DE TP3
+ * 
+***/
+//Atributos
+#[derive(Debug,Clone ,Serialize, Deserialize)]
+pub struct Fecha{
+    pub dia : u8,
+    pub mes : u8,
+    pub anio : u16
+}
+
+/*
+    Metodos
+*/
+
+impl Fecha{
+
+    //Metodos Secundarios
+    pub fn get_dia(&self)->u8{
+        return self.dia;
+    }
+    pub fn get_mes(&self)->u8{
+        return self.mes;
+    }
+    pub fn get_anio(&self)->u16{
+        return self.anio;
+    }
+    pub fn es_igual_a(&self,f:&Fecha)->bool{
+        return if(self.get_dia() == f.get_dia())&&(self.get_mes() == f.get_mes())&&(self.get_anio() == f.get_anio()){true}else{false}
+    }
+    /*
+        Metodos Primarios    
+     */
+    pub fn new(d:u8,m:u8,a:u16)->Fecha{
+        return Fecha { dia: d , mes: m , anio: a }
+    }
+    pub fn es_fecha_valida(&self)->bool{
+        
+        if (self.mes > 0) && (self.mes <= 12) && (self.anio > 0) && (self.dia > 0) {
+        
+            match self.mes{
+                2 => if self.es_bisiesto() { return self.dia <= 29 }else{ return self.dia <= 28},
+                9|4|6|11 => return self.dia <= 30,
+                _ => return self.dia <= 31
+            }
+            
+        }
+
+        return false;
+    }
+
+    pub fn es_bisiesto(&self)->bool{
+        return (self.anio % 4)==0;
+    }
+
+    //Auxiliar para determinar el ultimo dia de un mes
+    fn ultimo_dia(&self)->u8{
+        match self.mes{
+            2 => if self.es_bisiesto() {29}else{28},
+            9|4|6|11 => 30,
+            _ => 31
+        }
+    
+    }
+
+    //Auxiliar para avanzar de mes y anio
+    fn avanzar_mes(&mut self) {
+        if self.mes == 12 {
+            self.mes = 1;
+            self.anio += 1;
+        } else {
+            self.mes += 1;
+        }
+        self.dia = 1;
+    }
+
+    //Se considera que la fecha es valida
+    pub fn sumar_dias(&mut self,mut dias_sumar:u32){
+        //Bucle principal para el calculo
+        while dias_sumar > 0 {
+            //Obtiene el ultimo dia del mes (Cantidad total de dias que le corresponde)
+            let dias_mes = self.ultimo_dia();
+            //Calcula el resto de dias que debera actualizar en "dias_sumar" para avanzar en mes y anio hasta llegar al mes con la cantidad minima a sumar de dias correspondiente
+            let dias_restantes = dias_mes - self.dia + 1;
+            
+            //Avanza en los meses y anios(si fuera necesario) hasta llegar al mes y sumar la cantidad minima de dias
+            if dias_sumar >= dias_restantes as u32 {
+                dias_sumar -= dias_restantes as u32;
+                self.avanzar_mes();
+            } else {
+                //Suma la cantidad correspondiente al mes
+                self.dia += dias_sumar as u8;
+                //Fin de ejecucion
+                dias_sumar = 0;
+            }
+        }
+
+    }
+
+    //Auxiliar para retroceder de mes y anio
+    fn retroceder_mes(&mut self){
+        if self.mes == 1{
+            self.mes = 12;
+            self.anio -= 1;
+        } else {
+            self.mes -= 1;
+        }
+        self.dia = self.ultimo_dia();
+    }
+
+    //Se considera que la fecha es valida
+    //Y que no se llegara a una fecha negativa(anio negativo)
+    pub fn restar_dias(&mut self, mut dias_restar:u32){
+        //Bucle principal para el calculo
+        while dias_restar > 0 {
+            
+            //Retrocede en los meses y anios(si fuera necesario) hasta llegar al mes y restar la cantidad minima de dias
+            if dias_restar >= self.dia as u32 {
+                dias_restar -= self.dia as u32;
+                self.retroceder_mes();
+            } else {
+                //Resta la cantidad correspondiente al mes
+                self.dia -= dias_restar as u8;
+                //Fin de ejecucion
+                dias_restar = 0;
+            }
+        }
+    }
+
+    pub fn es_mayor(&self , f:&Fecha)->bool{
+        return if self.anio > f.anio {true}else 
+        if (self.anio == f.anio) && (self.mes > f.mes) {true}else 
+        if (self.mes == f.mes) && (self.dia > f.dia) {true}else{false};
+    }
+
+}
+
+
+/***
+ * 
+ * 
+***/
+
+
 use std::fmt::{write, Display};
 use std::io;
 use std::{fs::{File,OpenOptions}, io::{Error,Read,Write}};
@@ -7,7 +152,7 @@ use std::path::Path;
 use serde::{Serialize, Deserialize};
 use serde_json;
 /**
-        EXTRACCION DEL EJERCICIO 10 - TP3 (Se comprende que esta restringido el uso del trait PartialEq)
+        EXTRACCION DEL EJERCICIO 10 - TP3 (Se comprende que esta restringido el uso del trait PartialEq para el TP3)
 **/
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -124,11 +269,11 @@ impl Cliente {
 }
 
 impl Prestamo {
-    pub fn new(libro: Libro,cliente: Cliente,vencimiento: Fecha) -> Prestamo {
+    pub fn new(libro: &Libro,cliente: &Cliente,vencimiento: &Fecha) -> Prestamo {
         return Prestamo{
-            libro,
-            cliente,
-            vencimiento,
+            libro: libro.clone(),
+            cliente: cliente.clone(),
+            vencimiento: vencimiento.clone(),
             estado:Estado::EnPrestamo,
             devolucion:None
         }
@@ -200,7 +345,7 @@ impl Biblioteca {
     
     pub fn prestar(&mut self,cliente:Cliente,libro:&Libro,vencimiento:Fecha) -> bool {
         if (self.copias(&libro)>0) && (self.prestamos(&cliente)<=5) {
-            self.prestamos.push(Prestamo::new(libro.clone(), cliente, vencimiento));
+            self.prestamos.push(Prestamo::new(&libro.clone(), &cliente, &vencimiento));
             self.decrementar(&libro.clone());
             return true
         } else {
@@ -265,10 +410,10 @@ mod biblioteca_tests {
         let mut biblioteca = Biblioteca::new(nombre,direccion);
         assert_eq!(biblioteca.es_igual_a(&Biblioteca::new("Silencio".to_string(),"1 e 2 y 3".to_string())),true);
 
-        let libro1 = Libro::new(10, "Autor1".to_string(), "Libro1".to_string(), 50 , Genero::Infantil);
-        let libro2 = Libro::new(20, "Autor2".to_string(), "Libro2".to_string(), 50 , Genero::Novela);
-        let libro3 = Libro::new(30, "Autor3".to_string(), "Libro3".to_string(), 50 , Genero::Tecnico);
-        let libro4 = Libro::new(40, "Autor4".to_string(), "Libro4".to_string(), 50 , Genero::Otro);
+        let libro1 = Libro::new(10, "Libro1".to_string(), "Autor1".to_string(), 50 , Genero::Infantil);
+        let libro2 = Libro::new(20, "Libro2".to_string(), "Autor2".to_string(), 50 , Genero::Novela);
+        let libro3 = Libro::new(30, "Libro3".to_string(), "Autor3".to_string(), 50 , Genero::Tecnico);
+        let libro4 = Libro::new(40, "Libro4".to_string(), "Autor4".to_string(), 50 , Genero::Otro);
 
         biblioteca.agregar_libro(libro1.clone(),0);
         biblioteca.incrementar(&libro1);
@@ -289,16 +434,16 @@ mod biblioteca_tests {
         let mut biblioteca = Biblioteca::new(nombre,direccion);
         
         //Clientela
-        let cliente1 = Cliente::new("Persona1".to_string(),1,"Carlos.com".to_string());
-        let cliente2 = Cliente::new("Persona2".to_string(),2,"Mateo.com".to_string());
-        let cliente3 = Cliente::new("Persona3".to_string(),3,"Juan.com".to_string());
-        let cliente4 = Cliente::new("Persona4".to_string(),4,"Pedro.com".to_string());
+        let cliente1 = Cliente::new("Carlos".to_string(),1,"Carlos.com".to_string());
+        let cliente2 = Cliente::new("Mateo".to_string(),2,"Mateo.com".to_string());
+        let cliente3 = Cliente::new("Juan".to_string(),3,"Juan.com".to_string());
+        let cliente4 = Cliente::new("Pedro".to_string(),4,"Pedro.com".to_string());
 
         //Libros
-        let libro1 = Libro::new(10, "Autor1".to_string(), "Libro1".to_string(), 50 , Genero::Infantil);
-        let libro2 = Libro::new(20, "Autor2".to_string(), "Libro2".to_string(), 50 , Genero::Novela);
-        let libro3 = Libro::new(30, "Autor3".to_string(), "Libro3".to_string(), 50 , Genero::Tecnico);
-        let libro4 = Libro::new(40, "Autor4".to_string(), "Libro4".to_string(), 50 , Genero::Otro);
+        let libro1 = Libro::new(10, "Libro1".to_string(), "Autor1".to_string(), 50 , Genero::Infantil);
+        let libro2 = Libro::new(20, "Libro2".to_string(), "Autor2".to_string(), 50 , Genero::Novela);
+        let libro3 = Libro::new(30, "Libro3".to_string(), "Autor3".to_string(), 50 , Genero::Tecnico);
+        let libro4 = Libro::new(40, "Libro4".to_string(), "Autor4".to_string(), 50 , Genero::Otro);
 
         biblioteca.agregar_libro(libro1.clone(),5);
         biblioteca.agregar_libro(libro2.clone(),5);
@@ -355,6 +500,9 @@ mod biblioteca_tests {
         }
     }
 }
+
+
+
 
 /*
     Implementacion EJ4-TP5
@@ -417,8 +565,11 @@ impl Biblioteca{
     fn get_libros_displonibles(&self)->Vec<LibrosDispone>{
         return self.disponibles.clone();
     }
+    fn get_lista_prestamos(&self)->Vec<Prestamo>{
+        return self.prestamos.clone();
+    }
 }
-//Archivo de almacenamiento (Solo respalda el repositorio de libros y el listado de prestamos)
+//Archivo de almacenamiento (Respalda el repositorio de libros y el listado de prestamos por separado)
 #[derive(Debug)]
 pub struct Archivo<T>{
     informacion : Vec<T>,
@@ -543,7 +694,7 @@ impl Archivo<LibrosDispone>{
                 if self.informacion[pos].cantidad > 1 {
                     self.informacion[pos].cantidad -= 1;
                 }else{
-                    self.informacion[pos].cantidad -= 1;
+                    //self.informacion[pos].cantidad -= 1;
                     self.informacion.remove(pos);
                 }
             }else{
@@ -591,9 +742,71 @@ impl Archivo<Prestamo>{
 
         Ok(())
     }
-    //contar prestamos
-    //buscar prestamo
-    //filtrar(retornar) prestamos vencidos y proximos
+    fn contar_prestamos(&self,cliente:&Cliente)->Result<u32,Errores>{
+        let mut cantidad:u32 = 0;
+
+        let mut file = File::open(self.path.clone())?;
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        let listado : Vec<Prestamo> = serde_json::from_str(&buf)?;
+
+        if !listado.is_empty(){
+            listado.iter().for_each(|pre| {
+                if (pre.cliente.es_igual_a(&cliente)) && (pre.estado.es_igual_a(&Estado::EnPrestamo)) {
+                    cantidad = cantidad + 1;
+                }
+            });
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Repositorio de libros".to_string() )) );
+        }
+
+        Ok(cantidad)
+    }
+    fn buscar_prestamo(&self,cl:&Cliente,li:&Libro)->Result<Prestamo,Errores>{
+
+        let mut file = File::open(self.path.clone())?;
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        let listado : Vec<Prestamo> = serde_json::from_str(&buf)?;
+
+        if !listado.is_empty(){
+            if let Some(pre) = listado.iter().find(|p| p.es_igual(&li,&cl)){
+                Ok(pre.clone())
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Repositorio de libros".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Repositorio de libros".to_string() )) );
+        }
+    }
+    
+    //filtrar(retornar) prestamos vencidos y proximos a vencer segun (fecha determinada y cantidad de dias proximas)
+    fn filtrar_prestamos_fecha(&self,f:&Fecha,dias:u32)->Result<Vec<Prestamo>,Errores>{
+        //Auxiliares para la operacion
+        let mut res:Vec<Prestamo> = Vec::new();
+        let mut fecha = f.clone();
+        fecha.sumar_dias(dias);
+
+        //Apertura de archivo
+        let mut file = File::open(self.path.clone())?;
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        let listado : Vec<Prestamo> = serde_json::from_str(&buf)?;
+
+        //Filtrado
+        if !listado.is_empty(){
+            listado.iter().for_each(|pre| {
+                if (fecha.es_mayor(&pre.vencimiento)) && (pre.estado.es_igual_a(&Estado::EnPrestamo)) {
+                    res.push(pre.clone());
+                }
+            });
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Repositorio de libros".to_string() )) );
+        }
+
+        Ok(res)
+
+    }
 }
 
 
@@ -611,15 +824,15 @@ mod testing_implementacion_ejercicio4{
        
         let mut biblioteca = Biblioteca::new(nombre,direccion);
 
-        let libro1 = Libro::new(10, "Autor1".to_string(), "Libro1".to_string(), 50 , Genero::Infantil);
-        let libro2 = Libro::new(20, "Autor2".to_string(), "Libro2".to_string(), 50 , Genero::Novela);
-        let libro3 = Libro::new(30, "Autor3".to_string(), "Libro3".to_string(), 50 , Genero::Tecnico);
-        let libro4 = Libro::new(40, "Autor4".to_string(), "Libro4".to_string(), 50 , Genero::Otro);
+        let libro1 = Libro::new(10, "Libro1".to_string(), "Autor1".to_string(), 50 , Genero::Infantil);
+        let libro2 = Libro::new(20, "Libro2".to_string(), "Autor2".to_string(), 50 , Genero::Novela);
+        let libro3 = Libro::new(30, "Libro3".to_string(), "Autor3".to_string(), 50 , Genero::Tecnico);
+        let libro4 = Libro::new(40, "Libro4".to_string(), "Autor4".to_string(), 50 , Genero::Otro);
 
         biblioteca.agregar_libro(libro1.clone(),10);
         biblioteca.agregar_libro(libro2.clone(),10);
         biblioteca.agregar_libro(libro3.clone(),10);
-        biblioteca.agregar_libro(libro4.clone(),10);
+        biblioteca.agregar_libro(libro4.clone(),1);
 
         //Creacion del archivo repositorio
         let mut archivo1 = Archivo::new(&biblioteca.get_libros_displonibles(), "src/tp5/repositorio_libros.json".to_string(),true);
@@ -643,6 +856,138 @@ mod testing_implementacion_ejercicio4{
             Err(e) => {println!("error: {}",e); assert!(false)} 
         }
 
+        //Retornar cantidad de libros de "libro5"
+        match archivo1.contabilizar_copias(&libro5){
+            Ok(cant) => assert!(cant == 20),
+            Err(e) => {println!("error: {}",e); assert!(false)} 
+        }
+
+        //Retornar cantidad de libros de "libro1"(esta borrado en el archivo por lo que retorna 0 unidades existentes)
+        match archivo1.contabilizar_copias(&libro1){
+            Ok(cant) => assert!(cant == 0),
+            Err(e) => {println!("error: {}",e); assert!(false)} 
+        }
+
+        //Incremento de unidades de "libro2"
+        match archivo1.incrementar_copias_libro(&libro2){
+            Ok(_) => assert!(true),
+            Err(e) => {println!("error: {}",e); assert!(false)} 
+        }
+
+        //Retornar cantidad de libros de "libro2"
+        match archivo1.contabilizar_copias(&libro2){
+            Ok(cant) => assert!(cant == 11),
+            Err(e) => {println!("error: {}",e); assert!(false)} 
+        }
+
+        //Decremento de unidades de "libro3"
+        match archivo1.decrementar_copias_libro(&libro3){
+            Ok(_) => assert!(true),
+            Err(e) => {println!("error: {}",e); assert!(false)} 
+        }
+
+        //Retornar cantidad de libros de "libro3"
+        match archivo1.contabilizar_copias(&libro3){
+            Ok(cant) => assert!(cant == 9),
+            Err(e) => {println!("error: {}",e); assert!(false)} 
+        }
+
+        //Decremento de unidades de "libro4"(Se lo borra del archivo al no disponer mas unidades disponibles)
+        match archivo1.decrementar_copias_libro(&libro4){
+            Ok(_) => assert!(true),
+            Err(e) => {println!("error: {}",e); assert!(false)} 
+        }
+
+        //Retornar cantidad de libros de "libro4"
+        match archivo1.contabilizar_copias(&libro4){
+            Ok(cant) => assert!(cant == 0),
+            Err(e) => {println!("error: {}",e); assert!(false)} 
+        }
+
+    }
+
+    #[test]
+    fn operatoria_archivo_listado_prestamos(){
+        let mut biblioteca = Biblioteca::new(String::from("Silencio"),String::from("1 e 2 y 3"));
+        
+        //Clientela
+        let cliente1 = Cliente::new("Carlos".to_string(),1,"Carlos.com".to_string());
+        let cliente2 = Cliente::new("Mateo".to_string(),2,"Mateo.com".to_string());
+        let cliente3 = Cliente::new("Juan".to_string(),3,"Juan.com".to_string());
+        let cliente4 = Cliente::new("Pedro".to_string(),4,"Pedro.com".to_string());
+
+        //Libros
+        let libro1 = Libro::new(10, "Libro1".to_string(), "Autor1".to_string(), 50 , Genero::Infantil);
+        let libro2 = Libro::new(20, "Libro2".to_string(), "Autor2".to_string(), 50 , Genero::Novela);
+        let libro3 = Libro::new(30, "Libro3".to_string(), "Autor3".to_string(), 50 , Genero::Tecnico);
+        let libro4 = Libro::new(40, "Libro4".to_string(), "Autor4".to_string(), 50 , Genero::Otro);
+
+        biblioteca.agregar_libro(libro1.clone(),5);
+        biblioteca.agregar_libro(libro2.clone(),5);
+        biblioteca.agregar_libro(libro3.clone(),3);
+        biblioteca.agregar_libro(libro4.clone(),4);
+
+        //Operacion de los prestamos
+        let mut ayer = Fecha::new(23, 6, 2025);
+        let mut quince_dias = ayer.clone();
+        quince_dias.sumar_dias(15);
+        ayer.restar_dias(1);
+        let mut nunca = ayer.clone();
+        nunca.sumar_dias(99999);    //Fecha maxima de ejemplo
+
+        biblioteca.prestar(cliente1.clone(), &libro1, quince_dias.clone());
+        biblioteca.prestar(cliente2.clone(), &libro2, quince_dias.clone());
+        biblioteca.prestar(cliente3.clone(), &libro3, nunca.clone());
+        biblioteca.prestar(cliente4.clone(), &libro1, nunca.clone());
+        biblioteca.prestar(cliente4.clone(), &libro2, nunca.clone());
+        biblioteca.prestar(cliente4.clone(), &libro3, ayer.clone());
+        biblioteca.prestar(cliente4.clone(), &libro4, ayer.clone());
+
+        //Creacion del archivo repositorio
+        let mut archivo1 = Archivo::new(&biblioteca.get_lista_prestamos(), "src/tp5/listado_prestamos.json".to_string(),true);
+    
+        match archivo1.respaldar_informacion() {
+            Ok(_) => assert!(true),
+            Err(e) => {println!("error: {}",e); assert!(false)}
+        }
+
+        //Contabilizar prestamos de cliente1
+        match archivo1.contar_prestamos(&cliente1){
+            Ok(cant) => assert!(cant == 1),
+            Err(e) => {println!("error: {}",e); assert!(false)}
+        }
+
+        //Contabilizar prestamos de cliente4
+        match archivo1.contar_prestamos(&cliente4){
+            Ok(cant) => assert!(cant == 4),
+            Err(e) => {println!("error: {}",e); assert!(false)}
+        }
+
+        //Buscar prestamo por cliente y libro
+        match archivo1.buscar_prestamo(&cliente3,&libro3){
+            Ok(_pres) => assert!(true),
+            Err(e) => {println!("error: {}",e); assert!(false)}
+        }
+
+        //Registrar prestamo
+        let p = Prestamo::new(&libro2,&cliente1,&ayer);
+
+        match archivo1.registrar_prestamo(&p){
+            Ok(_) => assert!(true),
+            Err(e) => {println!("error: {}",e); assert!(false)}
+        }
+
+        //Eliminar prestamo
+        match archivo1.eliminar_prestamo(&cliente4,&libro4){
+            Ok(_) => assert!(true),
+            Err(e) => {println!("error: {}",e); assert!(false)}
+        }
+
+        //Filtrado de prestamos vencidos para una fecha determinada
+        match archivo1.filtrar_prestamos_fecha(&Fecha::new(24,6,2025),0){
+            Ok(res) => assert!(!res.is_empty()),
+            Err(e) => {println!("error: {}",e); assert!(false)}
+        }
     }
 
 }
