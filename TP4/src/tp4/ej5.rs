@@ -1,6 +1,6 @@
+//Se debe importar (rand = "0.8") en cargo.toml
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
-use std::collections::HashMap;
 
 //Funcion auxiliar para generar un "hash simulado"
 pub fn aleatorio(tam: usize) -> String {

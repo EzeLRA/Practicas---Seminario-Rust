@@ -240,8 +240,9 @@ impl Plataforma{
 	fn agregar(&mut self,u2:&Usuario)->bool{
 		match self.usuarios.iter().find(|us| us.es_igual_a(&u2)) {
             Some(_u) => return false,
-            None => {self.usuarios.push(u2.clone()); return true;},
+            None => self.usuarios.push(u2.clone())
         }
+        return true;
 	}
 	fn eliminar(&mut self,u:&Usuario)->bool{
 		let mut pude = false;
@@ -615,8 +616,8 @@ pub struct Archivo{
 }
 
 impl Archivo{
-	fn new(dato:&Plataforma,dir:String,estado:bool)->Archivo{
-        return Archivo { informacion: dato.clone(), path: dir , autoguardado : estado};
+	fn new(dato:&Plataforma,dir:&String,estado:bool)->Archivo{
+        return Archivo { informacion: dato.clone(), path: dir.clone() , autoguardado : estado};
     }
     fn existe_archivo(&self)->bool{
         return Path::new(&self.path.clone()).exists();
@@ -674,7 +675,7 @@ impl Archivo{
     fn upgrade_suscripcion_usuario(&mut self,u:&Usuario)-> Result<(), Errores>{
     	if !self.informacion.usuarios.is_empty(){
     		if let Some(user) = self.informacion.usuarios.iter_mut().find(|us1| us1.es_igual_a(&u)){
-    			if user.upgrade_suscripcion(){
+    			if !user.upgrade_suscripcion(){
     				return Err(Errores::ErrorSuscripcion(user.get_nombre()));
     			}
     		}else{
@@ -787,4 +788,227 @@ impl Archivo{
 }
 
 #[cfg(test)]
-mod test_implementacion_ejercicio5{}
+mod test_implementacion_ejercicio5{
+	use super::*;
+
+	#[test]
+	fn operatoria_informacion(){
+		//Plataforma y las suscripciones
+
+		//Plataforma vacia
+		let pl1 = Plataforma::new();
+
+		//Usuarios con las suscripciones
+		let usuario1 = Usuario::new(&"Daniel".to_string() , 
+		64254 , 
+		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+			 123.5,
+			  5, 
+			  120325, 
+			  Medios_de_pago::Transferencia_bancaria));
+
+		let usuario2 = Usuario::new(&"Tobias".to_string() , 
+		93843 , 
+		&Suscripcion_activa::crear_suscripcion(Suscripciones::Super,
+			 225.5,
+			  12, 
+			  310325, 
+			  Medios_de_pago::Transferencia_bancaria));
+
+		let usuario3 = Usuario::new(&"Marcos".to_string() , 
+		542134 , 
+		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+			 103.5,
+			  3, 
+			  120525, 
+			  Medios_de_pago::Efectivo));
+
+		let usuario4 = Usuario::new(&"Dario".to_string() , 
+	32124 , 
+		&Suscripcion_activa::crear_suscripcion(Suscripciones::Clasic,
+			 183.5,
+			  7, 
+			  120125, 
+			  Medios_de_pago::Criptomoneda));
+
+
+		//Archivo (la plafatorma no tiene usuarios)
+		let mut archivo1 = Archivo::new(&pl1,&"".to_string(),false);
+
+		//Registro de usuario1
+		match archivo1.registrar_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Registro de usuario2 y usuario3
+		match archivo1.registrar_suscripcion_usuario(&usuario2){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}	
+		match archivo1.registrar_suscripcion_usuario(&usuario3){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Eliminar usuario1
+		match archivo1.eliminar_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Registro de usuario4
+		match archivo1.registrar_suscripcion_usuario(&usuario4){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Cancelacion de suscripcion usuario2
+		match archivo1.cancelar_suscripcion_usuario(&usuario2){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Upgrade de suscripcion usuario3
+		match archivo1.upgrade_suscripcion_usuario(&usuario3){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Downgrade de suscripcion usuario4
+		match archivo1.downgrade_suscripcion_usuario(&usuario4){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Solo se hacen estas operaciones porque las funciones de estadistica como
+		//suscripcion_max y metodopago_max implican abrir el archivo (algo que para este contexto el archivo no esta creado)
+
+	}
+
+	#[test]
+	fn operatoria_archivo_suscripciones(){
+		//Plataforma y las suscripciones
+
+		//Plataforma vacia
+		let pl1 = Plataforma::new();
+
+		//Usuarios con las suscripciones
+		let usuario1 = Usuario::new(&"Daniel".to_string() , 
+		64254 , 
+		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+			 123.5,
+			  5, 
+			  120325, 
+			  Medios_de_pago::Transferencia_bancaria));
+
+		let usuario2 = Usuario::new(&"Tobias".to_string() , 
+		93843 , 
+		&Suscripcion_activa::crear_suscripcion(Suscripciones::Super,
+			 225.5,
+			  12, 
+			  310325, 
+			  Medios_de_pago::Transferencia_bancaria));
+
+		let usuario3 = Usuario::new(&"Marcos".to_string() , 
+		542134 , 
+		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+			 103.5,
+			  3, 
+			  120525, 
+			  Medios_de_pago::Efectivo));
+
+		let usuario4 = Usuario::new(&"Dario".to_string() , 
+	32124 , 
+		&Suscripcion_activa::crear_suscripcion(Suscripciones::Clasic,
+			 183.5,
+			  7, 
+			  120125, 
+			  Medios_de_pago::Criptomoneda));
+
+
+		//Archivo (la plafatorma no tiene usuarios)
+		let mut archivo1 = Archivo::new(&pl1,&"src/tp5/registro_suscripciones.json".to_string(),true);
+
+		//Registro de usuarios
+		match archivo1.registrar_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		match archivo1.registrar_suscripcion_usuario(&usuario2){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		match archivo1.registrar_suscripcion_usuario(&usuario3){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		match archivo1.registrar_suscripcion_usuario(&usuario4){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Baja usuario1 y usuario3
+		match archivo1.eliminar_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		match archivo1.eliminar_suscripcion_usuario(&usuario3){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Upgrade usuario4
+		match archivo1.upgrade_suscripcion_usuario(&usuario4){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Suscripcion Max
+		match archivo1.retornar_suscripcion_max(){
+			Ok(res) => assert!(res == Suscripciones::Super),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Metodo pago Max
+		match archivo1.retornar_medio_pago_max(){
+			Ok(res) => assert!(res == Medios_de_pago::Transferencia_bancaria),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Downgrade usuario2 y usuario4
+		match archivo1.downgrade_suscripcion_usuario(&usuario2){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		match archivo1.downgrade_suscripcion_usuario(&usuario4){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Suscripcion anterior Max (luego de que se efecuenten operatorias)
+		match archivo1.retornar_suscripcion_anterior_max(){
+			Ok(res) => assert!(res == Suscripciones::Super),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Metodo pago anterior Max (luego de que se efecuenten operatorias)
+		match archivo1.retornar_medio_pago_anterior_max(){
+			Ok(res) => assert!(res == Medios_de_pago::Transferencia_bancaria),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+		//Cancelacion de suscripcion usuario2
+		match archivo1.cancelar_suscripcion_usuario(&usuario2){
+			Ok(_) => assert!(true),
+			Err(e) => {println!("error: {}", e); assert!(false);}
+		}
+
+	}
+
+}

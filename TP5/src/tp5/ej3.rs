@@ -716,6 +716,7 @@ mod testing_implementacion_ejercicio3{
             assert!(false);
         }
         
+        
         //Se agrega la informacion al archivo (todavia no se guarda en el archivo fisico)
         let mut archivo1 = Archivo::new(&v.atenciones_realizadas, "".to_string(),false);
 
@@ -801,6 +802,7 @@ mod testing_implementacion_ejercicio3{
             println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
             assert!(false);
         }
+
 
         //Se agrega la informacion al archivo
         let mut archivo1 = Archivo::new(&v.atenciones_realizadas, "src/tp5/cola_atencion_info.json".to_string(),false);
