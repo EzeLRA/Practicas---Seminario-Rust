@@ -1179,6 +1179,7 @@ mod test_ejercicio5{
 */
 #[derive(Debug)]
 pub enum error_operatoria{
+    Existente(String),
     Inexistente(String),
     EstructuraVacia(String)
 }
@@ -1186,6 +1187,7 @@ pub enum error_operatoria{
 impl Display for error_operatoria{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self{
+            error_operatoria::Existente(val) => write!(f,"Ya existe el elemento en la estructura {}",val),
             error_operatoria::Inexistente(val) => write!(f, "No se encontro el elemento en la estructura {} ",val),
             error_operatoria::EstructuraVacia(val) => write!(f, "La estrucutra {} no dispone de elementos ",val)
         }
@@ -1235,7 +1237,23 @@ impl Plataforma{
         return self.registro_transacciones.clone();
     }
 }
-//Implementacion extra para 
+//Implementacion extra para los tipos de comprante
+impl TiposTransacciones{
+    fn datos_igual_a(&self,info:&DatosPersona)->bool{
+        let mut res = false;
+
+        match self{
+            TiposTransacciones::CompraCriptomoneda(datos) => res = datos.datos_genericos.informacion_correcta(&info),
+            TiposTransacciones::VentaCriptomoneda(datos) => res = datos.datos_genericos.informacion_correcta(&info),
+            TiposTransacciones::IngresoFiat(datos) => res = datos.informacion_correcta(&info),
+            TiposTransacciones::RetiroCriptomoneda(datos) => res = datos.datos_criptomoneda.datos_genericos.informacion_correcta(&info),
+            TiposTransacciones::RecepcionCriptomoneda(datos) => res = datos.datos_criptomoneda.datos_genericos.informacion_correcta(&info),
+            TiposTransacciones::RetiroFiat(datos) => res = datos.datos_genericos.informacion_correcta(&info),
+        }
+
+        return res;
+    }
+}
 
 //Archivo de almacenamiento (Respalda los usuarios con sus respectivos balances y el listado de comprobantes de cada operacion hecha en el sistema)
 #[derive(Debug)]
@@ -1290,11 +1308,108 @@ impl<T:Clone + Serialize> Archivo<T>{
 
 //Implemetacion para el listado de comprobantes
 impl Archivo<TiposTransacciones>{
+    fn obtener_transaccion(&self,info:&DatosPersona)->Result<TiposTransacciones,Errores>{
 
+        let mut file = File::open(self.path.clone())?;
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        let comprobantes : Vec<TiposTransacciones> = serde_json::from_str(&buf)?;
+
+        if !comprobantes.is_empty(){
+            if let Some(comprobante) = comprobantes.iter().find(|c| c.datos_igual_a(&info)){
+                Ok(comprobante.clone())
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Listado de comprobantes".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Listado de comprobantes".to_string() )) );
+        }
+
+    }
+    fn registrar_transaccion(&mut self,t:&TiposTransacciones)->Result<(),Errores>{
+
+        self.informacion.push(t.clone());
+
+        if self.autoguardado{
+            self.respaldar_informacion()?;
+        }
+
+        Ok(())
+
+    }
+    fn eliminar_transaccion(&mut self,info:&DatosPersona)->Result<(),Errores>{
+        if !self.informacion.is_empty(){
+            if let Some(pos) = self.informacion.iter().position(|c| c.datos_igual_a(&info)){
+                self.informacion.remove(pos);
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Listado de comprobantes".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Listado de comprobantes".to_string() )) );
+        }
+
+        if self.autoguardado{
+            self.respaldar_informacion()?;
+        }
+
+        Ok(())
+    }
 }
 
-/*
+
 //Implemetacion para el registro de usuarios con sus balances realizados
 impl Archivo<Usuario>{
+    fn registrar_usuario(&mut self,u:&Usuario)->Result<(),Errores>{
 
-}*/
+        if !self.informacion.is_empty(){
+            if self.informacion.iter().find(|user| user.informacion_correcta(&u.datos)).is_none(){
+                self.informacion.push(u.clone());
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Existente("Registro de usuarios".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Registro de usuarios".to_string() )) );
+        }
+
+        if self.autoguardado{
+            self.respaldar_informacion()?;
+        }
+
+        Ok(())
+    }
+    fn eliminar_usuario(&mut self,u:&Usuario)->Result<(),Errores>{
+        if !self.informacion.is_empty(){
+            if let Some(pos) = self.informacion.iter().position(|user| user.informacion_correcta(&u.datos)){
+                self.informacion.remove(pos);
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Registro de usuarios".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Registro de usuarios".to_string() )) );
+        }
+
+        if self.autoguardado{
+            self.respaldar_informacion()?;
+        }
+
+        Ok(())
+    }
+    fn obtener_usuario(&self,info:&DatosPersona)->Result<Usuario,Errores>{
+
+        let mut file = File::open(self.path.clone())?;
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        let usuarios : Vec<Usuario> = serde_json::from_str(&buf)?;
+
+        if !usuarios.is_empty(){
+            if let Some(user) = usuarios.iter().find(|u| u.informacion_correcta(&info)){
+                Ok(user.clone())
+            }else{
+                return Err(Errores::ErrorOperatoria(error_operatoria::Inexistente("Registro de usuarios".to_string() )) );
+            }
+        }else{
+            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Registro de usuarios".to_string() )) );
+        }
+
+    }
+}
