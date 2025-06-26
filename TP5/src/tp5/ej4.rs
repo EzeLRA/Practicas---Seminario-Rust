@@ -137,6 +137,63 @@ impl Fecha{
 
 }
 
+#[cfg(test)]
+mod testing_fecha{
+    use super::Fecha;
+
+    #[test]
+    fn creacion_fecha(){
+        let f = Fecha::new(1, 1, 2025);
+        assert_eq!(f.es_igual_a(&Fecha::new(1, 1, 2025)),true);
+    }
+
+    #[test]
+    fn validacion_de_fecha(){
+        let mut f = Fecha::new(1, 1, 2025);
+        assert_eq!(f.es_fecha_valida(),true);
+        f = Fecha::new(31, 2, 2004);
+        assert_eq!(f.es_fecha_valida(),false);
+    }
+
+    #[test]
+    fn validar_bisiesto(){
+        let mut f = Fecha::new(1, 1, 2028);
+        assert_eq!(f.es_bisiesto(),true);
+        f = Fecha::new(1, 1, 2025);
+        assert_eq!(f.es_bisiesto(),false);
+    }
+
+    #[test]
+    fn adicion_fecha(){
+        let mut f = Fecha::new(1, 1, 2028);
+        f.sumar_dias(30);
+        assert_eq!(f.es_igual_a(&Fecha::new(31, 1, 2028)),true);
+        f.sumar_dias(1);
+        assert_eq!(f.es_igual_a(&Fecha::new(1, 2, 2028)),true);
+        f.sumar_dias(29);
+        assert_eq!(f.es_igual_a(&Fecha::new(1,3,2028)),true);
+    }
+
+    #[test]
+    fn sustraccion_fecha(){
+        let mut f = Fecha::new(10, 4, 2028);
+        f.restar_dias(9);
+        assert_eq!(f.es_igual_a(&Fecha::new(1, 4, 2028)),true);
+        f.restar_dias(31);
+        assert_eq!(f.es_igual_a(&Fecha::new(1,3,2028)),true);
+        f.restar_dias(1);
+        assert_eq!(f.es_igual_a(&Fecha::new(29, 2, 2028)),true);
+    }
+
+    #[test]
+    fn comparacion_fechas(){
+        let f1 = Fecha::new(25, 5, 2000);
+        let f2 = Fecha::new(25, 2, 2004);
+        assert_eq!(f1.es_mayor(&f2),false);
+        assert_eq!(f2.es_mayor(&f1),true);
+    }
+
+}
 
 /***
  * 

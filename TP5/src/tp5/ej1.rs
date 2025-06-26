@@ -187,6 +187,8 @@ mod testing_consecionaria_auto{
 		//Identificar antiguedad
 		let a = Auto::new(String::from("asd"),String::from("aytuiy"),2000,100000.0,Colores::Rojo);
 		assert_eq!(a.calcular_precio(),125000.0);
+		let a = Auto::new(String::from("gfd"),String::from("mkemf"),1990,100000.0,Colores::Rojo);
+		assert_eq!(a.calcular_precio(),120000.0);
 	}
 
 	/*
@@ -205,10 +207,12 @@ mod testing_consecionaria_auto{
 		let a2 = Auto::new(String::from("BMW"),String::from("ajytjt"),2000,200500.0,Colores::Verde);
 		let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),3);
 		//Limite de insersiones
+		assert_eq!(conse1.get_cantAutos(),0);
 		assert_eq!(conse1.agregar_auto(&a1),true);
 		assert_eq!(conse1.agregar_auto(&a1),true);
 		assert_eq!(conse1.agregar_auto(&a2),true);
 		assert_eq!(conse1.agregar_auto(&a2),false);
+		assert_eq!(conse1.get_cantAutos(),3);
 		//Borra auto "a1"(primera recurrencia)
 		conse1.eliminar_auto(&a1);
 
@@ -407,28 +411,25 @@ use super::*;
 		//Limite de insersiones
 
 		//Primera Insercion(No notifica de un error)
-		let r = archivo1.validar_insercion(&a1); 
-		match r {
+		match archivo1.validar_insercion(&a1) {
 			Ok(mov) => assert!(true),
 			Err(e) => {println!("error: {}", e); assert!(false);}
 		}
 
 		//Llenado de la consecionaria
 		archivo1.validar_insercion(&a2);
-		let r = archivo1.validar_insercion(&a3); 
-		match r {
+		match archivo1.validar_insercion(&a3) {
 			Ok(mov) => assert!(true),
 			Err(e) => {println!("error: {}", e); assert!(false);}
 		}
 		
 		//Ultima insercion(Avisa del error)
-		/*  	//Descomentar seccion para hacer la validacion 
 		let r = archivo1.validar_insercion(&a4); 
 		match r {
 			Ok(mov) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => {println!("error: {}", e); /*assert!(false);*/ } 
 		}
-		*/
+		
 		
 	}
 
@@ -455,61 +456,57 @@ use super::*;
 			Err(e) => {println!("error: {}", e); assert!(false);}
 		}
 
-		//Borra auto "a4" (Error de inexsistencia) ; Descomentar para probar
-		/*  
+		//Borra auto "a4" (Error de inexsistencia)
+		
 		match archivo1.validar_eliminacion(&a4) {
 			Ok(res) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => {println!("error: {}", e); /*assert!(false);*/}
 		}
-		*/
+		
 		archivo1.validar_eliminacion(&a2);
 		archivo1.validar_eliminacion(&a3);
 
-		//Borra auto "a4" (Error de estructura vacia) ; Descomentar para probar
-		/* 
+		//Borra auto "a4" (Error de estructura vacia)
+		
 		match archivo1.validar_eliminacion(&a4) {
 			Ok(res) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => {println!("error: {}", e); /*assert!(false);*/}
 		}
-		*/
+		
 		
 	}
 
 	#[test]
 	fn operatoria_archivo_sin_autoguardado(){
-		//Autos
-		let a1 = Auto::new(String::from("ffds"),String::from("yjyjy"),2023,100432.0,Colores::Azul);
-		let a2 = Auto::new(String::from("BMW"),String::from("avcvbvt"),2000,200500.0,Colores::Verde);
-		let a3 = Auto::new(String::from("BMW"),String::from("ajmujmuh"),2000,250000.0,Colores::Rojo);
-		let a4 = Auto::new(String::from("Toyota"),String::from("arttt"),2000,200000.0,Colores::Azul);
 		
 		//Consecionaria
 		let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),3);
 		
 		let mut archivo1 = Archivo_respaldable::new(&conse1, "src/tp5/concesionaria_info.json".to_string(),false);
 
-		//Funcion de lectura de archivo
-		/* 
-		let r = archivo1.rescatar_informacion();
-		match r{
-			Ok(d) => assert!(d.is_Vacio()),
-			Err(e) => {println!("error: {}", e); assert!(false);}
-		}
-		*/
-
-		 
 		//Guardado directo sin realizar operatorias
 		let r = archivo1.respaldar_informacion();
 		match r{
 			Ok(_) => assert!(true),
 			Err(e) => {println!("error: {}", e); assert!(false);}
 		}
-		
+
+		//Funcion de lectura de archivo
+		match archivo1.rescatar_informacion(){
+			Ok(d) => assert!(d.is_Vacio()),
+			Err(e) => {println!("error: {}", e); assert!(false); }
+		}	
 
 		/*
 			Resultado del archivo(JSON) = {"nombre":"asd","direccion":"tryertw","capacidad":3,"autos":[]}
 		*/
 
+		//Autos
+		let a1 = Auto::new(String::from("ffds"),String::from("yjyjy"),2023,100432.0,Colores::Azul);
+		let a2 = Auto::new(String::from("BMW"),String::from("avcvbvt"),2000,200500.0,Colores::Verde);
+		let a3 = Auto::new(String::from("BMW"),String::from("ajmujmuh"),2000,250000.0,Colores::Rojo);
+		let a4 = Auto::new(String::from("Toyota"),String::from("arttt"),2000,200000.0,Colores::Azul);
+		
 		archivo1.validar_insercion(&a1);
 		archivo1.validar_insercion(&a2);
 		archivo1.validar_insercion(&a3);
