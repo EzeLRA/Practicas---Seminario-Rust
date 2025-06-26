@@ -1265,8 +1265,8 @@ pub struct Archivo<T>{
 
 //Implementacion generica
 impl<T:Clone + Serialize> Archivo<T>{
-    fn new(dato:&Vec<T>,dir:String,estado:bool)->Archivo<T>{
-        return Archivo { informacion: dato.clone(), path: dir , autoguardado : estado};
+    fn new(dato:&Vec<T>,dir:&String,estado:bool)->Archivo<T>{
+        return Archivo { informacion: dato.clone(), path: dir.clone() , autoguardado : estado};
     }
     fn existe_archivo(&self)->bool{
         return Path::new(&self.path.clone()).exists();
@@ -1308,6 +1308,7 @@ impl<T:Clone + Serialize> Archivo<T>{
 
 //Implemetacion para el listado de comprobantes
 impl Archivo<TiposTransacciones>{
+    //Retorna la primer ocurrencia existente
     fn obtener_transaccion(&self,info:&DatosPersona)->Result<TiposTransacciones,Errores>{
 
         let mut file = File::open(self.path.clone())?;
@@ -1337,6 +1338,7 @@ impl Archivo<TiposTransacciones>{
         Ok(())
 
     }
+    //Elimina la primer ocurrencia
     fn eliminar_transaccion(&mut self,info:&DatosPersona)->Result<(),Errores>{
         if !self.informacion.is_empty(){
             if let Some(pos) = self.informacion.iter().position(|c| c.datos_igual_a(&info)){
@@ -1412,4 +1414,156 @@ impl Archivo<Usuario>{
         }
 
     }
+}
+
+
+#[cfg(test)]
+mod test_implementacion_ejercicio6{
+	use super::*;
+
+    #[test]
+    fn operatoria_archivo_balances(){
+        //Usuario1
+        let datos = DatosPersona{nombre : "Marcos".to_string(),apellido : "Deltodo".to_string(),email : "exmpl@example.com".to_string(),dni : 1234876};
+        let mut us1 = Usuario::new(&datos.nombre,&datos.apellido,&datos.email,datos.dni);
+
+        //Usuario2
+        let datos = DatosPersona{nombre : "Daniel".to_string(),apellido : "Bordo".to_string(),email : "exmpl@example.com".to_string(),dni : 1246476};
+        let mut us2 = Usuario::new(&datos.nombre,&datos.apellido,&datos.email,datos.dni);
+
+        //Usuario3
+        let datos = DatosPersona{nombre : "Matias".to_string(),apellido : "Prada".to_string(),email : "exmpl@example.com".to_string(),dni : 9876476};
+        let mut us3 = Usuario::new(&datos.nombre,&datos.apellido,&datos.email,datos.dni);
+        
+        //Criptomonedas
+        let c1 = Criptomoneda::new(&"Cripton".to_string(),&"CRP".to_string());
+        let c2 = Criptomoneda::new(&"MineCoin".to_string(),&"MIN".to_string());
+        let c3 = Criptomoneda::new(&"Bitcoin".to_string(),&"BTC".to_string());
+
+        //Creacion del sistema
+        let mut sis1 = Plataforma::new();
+        sis1.registrar_criptomoneda(&c1.clone(),1500.0);
+        sis1.registrar_criptomoneda(&c2.clone(),1000.0);
+        sis1.registrar_criptomoneda(&c3.clone(),5000.0);
+
+        sis1.registrar_usuario(&us1);
+        sis1.registrar_usuario(&us2);
+        sis1.registrar_usuario(&us3);
+
+        //Operacion de dinero fiat
+        sis1.ingresar_monto_usuario(&us1,&Fecha(20,06,2025),50000.0);
+        sis1.ingresar_monto_usuario(&us2,&Fecha(20,06,2025),50000.0);        
+        sis1.ingresar_monto_usuario(&us3,&Fecha(20,06,2025),50000.0);
+        
+        //Validacion de los usuarios 2 y 3
+        sis1.validar_usuario(&us2);
+        sis1.validar_usuario(&us3);
+
+        //Operatoria de criptomonedas
+        sis1.comprar_criptomoneda_usuario(&us2,&Fecha(23,06,2025),5.0,&c1.get_nombre());
+        sis1.comprar_criptomoneda_usuario(&us2,&Fecha(23,06,2025),15.0,&c2.get_nombre());
+        sis1.comprar_criptomoneda_usuario(&us3,&Fecha(23,06,2025),5.0,&c3.get_nombre());
+        sis1.comprar_criptomoneda_usuario(&us3,&Fecha(23,06,2025),10.0,&c2.get_nombre());
+        sis1.comprar_criptomoneda_usuario(&us3,&Fecha(23,06,2025),5.0,&c1.get_nombre());
+
+        //Archivo (la plafatorma no tiene usuarios)
+		let mut archivo1 = Archivo::new(&sis1.get_balances(),&"src/tp5/registro_balances.json".to_string(),true);
+        match archivo1.respaldar_informacion(){
+            Ok(_) => assert!(true),
+            Err(e) => {println!("{}",e); assert!(false)},
+        }
+
+        //Baja del usuario1 en el archivo1
+        match archivo1.eliminar_usuario(&us1){
+            Ok(val) => assert!(true),
+            Err(e) => {println!("{}",e); assert!(false);}, 
+        }
+
+        //Alta un usuario nuevo sin dinero fiat y criptomonedas adquiridas
+        match archivo1.registrar_usuario(&Usuario::new(&"Manolo".to_string(),&"Teruel".to_string(),&"examp@example.com".to_string(),8897712)){
+            Ok(_) => assert!(true),
+            Err(e) => {println!("{}",e); assert!(false);}, 
+        }
+
+        //Busqueda de usuario3
+        let datos = DatosPersona{nombre : "Matias".to_string(),apellido : "Prada".to_string(),email : "exmpl@example.com".to_string(),dni : 9876476};
+        match archivo1.obtener_usuario(&datos){
+            Ok(user) => assert!(user.informacion_correcta(&datos)),
+            Err(e) => {println!("{}",e); assert!(false);}, 
+        }
+        
+    }
+
+    #[test]
+    fn operatoria_archivo_comprobantes(){ 
+        //Usuario1
+        let datos = DatosPersona{nombre : "Marcos".to_string(),apellido : "Deltodo".to_string(),email : "exmpl@example.com".to_string(),dni : 1234876};
+        let mut us1 = Usuario::new(&datos.nombre,&datos.apellido,&datos.email,datos.dni);
+
+        //Usuario2
+        let datos = DatosPersona{nombre : "Daniel".to_string(),apellido : "Bordo".to_string(),email : "exmpl@example.com".to_string(),dni : 1246476};
+        let mut us2 = Usuario::new(&datos.nombre,&datos.apellido,&datos.email,datos.dni);
+
+        //Criptomonedas
+        let c1 = Criptomoneda::new(&"Cripton".to_string(),&"CRP".to_string());
+        let c2 = Criptomoneda::new(&"MineCoin".to_string(),&"MIN".to_string());
+        let c3 = Criptomoneda::new(&"Bitcoin".to_string(),&"BTC".to_string());
+
+        //Creacion del sistema
+        let mut sis1 = Plataforma::new();
+        sis1.registrar_criptomoneda(&c1.clone(),1500.0);
+        sis1.registrar_criptomoneda(&c2.clone(),1000.0);
+        sis1.registrar_criptomoneda(&c3.clone(),5000.0);
+
+        sis1.registrar_usuario(&us1);
+        sis1.registrar_usuario(&us2);
+
+        //Operacion de dinero fiat
+        sis1.ingresar_monto_usuario(&us1,&Fecha(20,06,2025),50000.0);
+        sis1.ingresar_monto_usuario(&us2,&Fecha(20,06,2025),50000.0); 
+
+        //Validacion de los usuarios 1 y 2
+        sis1.validar_usuario(&us1);
+        sis1.validar_usuario(&us2);
+
+        //Operatoria de criptomonedas
+        sis1.comprar_criptomoneda_usuario(&us2,&Fecha(23,06,2025),5.0,&c1.get_nombre());
+        sis1.comprar_criptomoneda_usuario(&us2,&Fecha(23,06,2025),15.0,&c2.get_nombre());
+        sis1.comprar_criptomoneda_usuario(&us1,&Fecha(23,06,2025),5.0,&c3.get_nombre());
+
+        //Retiro de dinero fiat
+        sis1.retirar_monto_usuario(&us1,&Fecha(25, 6, 2025), 100.0, &MediosPago::MercadoPago);
+
+        //Venta de criptomoneda
+        sis1.vender_criptomoneda_usuario(&us2,&Fecha(28, 6, 2025), 3.0 , &c1.get_nombre());
+
+        //Creacion del archivo fisico
+        let mut archivo1 = Archivo::new(&sis1.get_comprobantes(),&"src/tp5/listado_comprobantes.json".to_string(),true);
+        match archivo1.respaldar_informacion(){
+            Ok(_) => assert!(true),
+            Err(e) => {println!("{}",e); assert!(false)},
+        }
+
+        //Registro de un comprobante
+        let datos = DatosPersona{nombre : "Damian".to_string(),apellido : "Bordo".to_string(),email : "exmpl@example.com".to_string(),dni : 1246476};
+        let c = TiposTransacciones::RetiroFiat(Datos_Retiro::new(&datos, &Fecha(28,06,2025), 30.0, &MediosPago::MercadoPago));
+
+        match archivo1.registrar_transaccion(&c){
+            Ok(_) => assert!(true),
+            Err(e) => {println!("{}",e); assert!(false)},
+        }
+
+        //Eliminar un comprobante de usuario1
+        match archivo1.eliminar_transaccion(&us1.datos){
+            Ok(_) => assert!(true),
+            Err(e) => {println!("{}",e); assert!(false)},
+        }
+
+        //Buscar un comprobante de usuario2
+        match archivo1.obtener_transaccion(&us2.datos){
+            Ok(c) => assert!(c.datos_igual_a(&us2.datos)),
+            Err(e) => {println!("{}",e); assert!(false)},
+        }
+    }
+
 }

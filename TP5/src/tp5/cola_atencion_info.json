@@ -1,1 +1,1 @@
-[{"mascota":{"nombre":"Luchito","edad":2,"tipo":"Perro","duenio":{"nombre":"Marcos","direccion":"av2","telefono":1234}},"diagnostico":"Parasitos","tratamiento":"Inyecciones","proxima_visita":{"dia":1,"mes":1,"anio":2025}}]
+[{"mascota":{"nombre":"Lupe","edad":1,"tipo":"Gato","duenio":{"nombre":"Marcos","direccion":"av2","telefono":1234}},"diagnostico":"Parasitos","tratamiento":"Pipeta","proxima_visita":{"dia":18,"mes":9,"anio":2025}}]
