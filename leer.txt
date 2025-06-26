@@ -1,6 +1,9 @@
-Seguir trabajando con
-TP4: ej5
-TP5: ejercicios
+Resultados de coverage TP5
+Ej1 = 71,30 %
+Ej2 = 80,88 %
+Ej3 = 65,91 %
+Ej4 = 82,27 %
+Ej5 = 69,44 %
+Ej6 = 85,53 %
 
-Revisar:
-TP4: ej4
+Agregar Test a struct Fecha
