@@ -415,7 +415,11 @@ impl Archivo{
     }
 }
 
-//Test para maximar el coverage
+#[cfg(test)]
+mod testing_implementacion_ejercicio2{
+    use super::*;
+
+    //Test para maximar el coverage
     #[test]
     fn test_error_guardado(){
         let mut p = PlayList::new(&"asd".to_string());
@@ -429,11 +433,7 @@ impl Archivo{
 		}
 
     }
-
-#[cfg(test)]
-mod testing_implementacion_ejercicio2{
-    use super::*;
-
+	
     #[test]
     fn operatoria_informacion(){
         let mut p = PlayList::new(&"asd".to_string());
