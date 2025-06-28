@@ -838,47 +838,47 @@ mod test_implementacion_ejercicio5{
 		//Registro de usuario1
 		match archivo1.registrar_suscripcion_usuario(&usuario1){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Registro de usuario2 y usuario3
 		match archivo1.registrar_suscripcion_usuario(&usuario2){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}	
 		match archivo1.registrar_suscripcion_usuario(&usuario3){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Eliminar usuario1
 		match archivo1.eliminar_suscripcion_usuario(&usuario1){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Registro de usuario4
 		match archivo1.registrar_suscripcion_usuario(&usuario4){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Cancelacion de suscripcion usuario2
 		match archivo1.cancelar_suscripcion_usuario(&usuario2){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Upgrade de suscripcion usuario3
 		match archivo1.upgrade_suscripcion_usuario(&usuario3){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Downgrade de suscripcion usuario4
 		match archivo1.downgrade_suscripcion_usuario(&usuario4){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Solo se hacen estas operaciones porque las funciones de estadistica como
@@ -933,80 +933,80 @@ mod test_implementacion_ejercicio5{
 		//Registro de usuarios
 		match archivo1.registrar_suscripcion_usuario(&usuario1){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		match archivo1.registrar_suscripcion_usuario(&usuario2){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		match archivo1.registrar_suscripcion_usuario(&usuario3){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		match archivo1.registrar_suscripcion_usuario(&usuario4){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Baja usuario1 y usuario3
 		match archivo1.eliminar_suscripcion_usuario(&usuario1){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		match archivo1.eliminar_suscripcion_usuario(&usuario3){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Upgrade usuario4
 		match archivo1.upgrade_suscripcion_usuario(&usuario4){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Suscripcion Max
 		match archivo1.retornar_suscripcion_max(){
 			Ok(res) => assert!(res == Suscripciones::Super),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Metodo pago Max
 		match archivo1.retornar_medio_pago_max(){
 			Ok(res) => assert!(res == Medios_de_pago::Transferencia_bancaria),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Downgrade usuario2 y usuario4
 		match archivo1.downgrade_suscripcion_usuario(&usuario2){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		match archivo1.downgrade_suscripcion_usuario(&usuario4){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Suscripcion anterior Max (luego de que se efecuenten operatorias)
 		match archivo1.retornar_suscripcion_anterior_max(){
 			Ok(res) => assert!(res == Suscripciones::Super),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Metodo pago anterior Max (luego de que se efecuenten operatorias)
 		match archivo1.retornar_medio_pago_anterior_max(){
 			Ok(res) => assert!(res == Medios_de_pago::Transferencia_bancaria),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Cancelacion de suscripcion usuario2
 		match archivo1.cancelar_suscripcion_usuario(&usuario2){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 	}

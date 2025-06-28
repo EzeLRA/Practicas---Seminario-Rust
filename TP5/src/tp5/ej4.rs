@@ -896,7 +896,7 @@ mod testing_implementacion_ejercicio4{
     
         match archivo1.respaldar_informacion() {
             Ok(_) => assert!(true),
-            Err(e) => {println!("error: {}",e); assert!(false)}
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Alta de un nuevo libro
@@ -904,61 +904,61 @@ mod testing_implementacion_ejercicio4{
 
         match archivo1.registrar_libro(&libro5, 20){
             Ok(_) => assert!(true),
-            Err(e) => {println!("error: {}",e); assert!(false)} 
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Baja del libro "libro1"
         match archivo1.eliminar_libro(&libro1){
             Ok(_) => assert!(true),
-            Err(e) => {println!("error: {}",e); assert!(false)} 
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Retornar cantidad de libros de "libro5"
         match archivo1.contabilizar_copias(&libro5){
-            Ok(cant) => assert!(cant == 20),
-            Err(e) => {println!("error: {}",e); assert!(false)} 
+            Ok(cant) => assert_eq!(cant,20),
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Retornar cantidad de libros de "libro1"(esta borrado en el archivo por lo que retorna 0 unidades existentes)
         match archivo1.contabilizar_copias(&libro1){
             Ok(cant) => assert!(cant == 0),
-            Err(e) => {println!("error: {}",e); assert!(false)} 
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Incremento de unidades de "libro2"
         match archivo1.incrementar_copias_libro(&libro2){
             Ok(_) => assert!(true),
-            Err(e) => {println!("error: {}",e); assert!(false)} 
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Retornar cantidad de libros de "libro2"
         match archivo1.contabilizar_copias(&libro2){
-            Ok(cant) => assert!(cant == 11),
-            Err(e) => {println!("error: {}",e); assert!(false)} 
+            Ok(cant) => assert_eq!(cant,11),
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Decremento de unidades de "libro3"
         match archivo1.decrementar_copias_libro(&libro3){
             Ok(_) => assert!(true),
-            Err(e) => {println!("error: {}",e); assert!(false)} 
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Retornar cantidad de libros de "libro3"
         match archivo1.contabilizar_copias(&libro3){
-            Ok(cant) => assert!(cant == 9),
-            Err(e) => {println!("error: {}",e); assert!(false)} 
+            Ok(cant) => assert_eq!(cant,9),
+            Err(e) => assert!(false,"Error : {}",e) 
         }
 
         //Decremento de unidades de "libro4"(Se lo borra del archivo al no disponer mas unidades disponibles)
         match archivo1.decrementar_copias_libro(&libro4){
             Ok(_) => assert!(true),
-            Err(e) => {println!("error: {}",e); assert!(false)} 
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Retornar cantidad de libros de "libro4"
         match archivo1.contabilizar_copias(&libro4){
-            Ok(cant) => assert!(cant == 0),
-            Err(e) => {println!("error: {}",e); assert!(false)} 
+            Ok(cant) => assert_eq!(cant,0),
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
     }
@@ -1005,25 +1005,25 @@ mod testing_implementacion_ejercicio4{
     
         match archivo1.respaldar_informacion() {
             Ok(_) => assert!(true),
-            Err(e) => {println!("error: {}",e); assert!(false)}
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Contabilizar prestamos de cliente1
         match archivo1.contar_prestamos(&cliente1){
-            Ok(cant) => assert!(cant == 1),
-            Err(e) => {println!("error: {}",e); assert!(false)}
+            Ok(cant) => assert_eq!(cant,1),
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Contabilizar prestamos de cliente4
         match archivo1.contar_prestamos(&cliente4){
-            Ok(cant) => assert!(cant == 4),
-            Err(e) => {println!("error: {}",e); assert!(false)}
+            Ok(cant) => assert_eq!(cant,4),
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Buscar prestamo por cliente y libro
         match archivo1.buscar_prestamo(&cliente3,&libro3){
             Ok(_pres) => assert!(true),
-            Err(e) => {println!("error: {}",e); assert!(false)}
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Registrar prestamo
@@ -1031,19 +1031,19 @@ mod testing_implementacion_ejercicio4{
 
         match archivo1.registrar_prestamo(&p){
             Ok(_) => assert!(true),
-            Err(e) => {println!("error: {}",e); assert!(false)}
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Eliminar prestamo
         match archivo1.eliminar_prestamo(&cliente4,&libro4){
             Ok(_) => assert!(true),
-            Err(e) => {println!("error: {}",e); assert!(false)}
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Filtrado de prestamos vencidos para una fecha determinada
         match archivo1.filtrar_prestamos_fecha(&Fecha::new(24,6,2025),0){
             Ok(res) => assert!(!res.is_empty()),
-            Err(e) => {println!("error: {}",e); assert!(false)}
+            Err(e) => assert!(false,"Error : {}",e)
         }
     }
 

@@ -337,20 +337,17 @@ impl Archivo{
         	OpenOptions::new()
             .write(true)
             .truncate(true)
-            .open(&self.path)
-            .map_err(Errores::ErrorIO)?
+            .open(&self.path)?
     	} else {
         	// Crear nuevo archivo si no existe
-        	File::create(&self.path).map_err(Errores::ErrorIO)?
+        	File::create(&self.path)?
     	};
 
         // Serialización de la informacion
-        let serializado = serde_json::to_string(&self.informacion)
-            .map_err(Errores::ErrorSerde)?;
+        let serializado = serde_json::to_string(&self.informacion)?;
 
         // Escritura en el archivo
-        file.write_all(serializado.as_bytes())
-            .map_err(Errores::ErrorIO)?;
+        file.write_all(serializado.as_bytes())?;
 
         Ok(())
     }
@@ -437,60 +434,34 @@ mod testing_implementacion_ejercicio2{
 
         let mut archivo1 = Archivo::new(&p, "".to_string(),false);
 
-        let r = archivo1.validar_alta(&c1); 
-		match r {
-			Ok(mov) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
-		}
+        assert!(archivo1.validar_alta(&c1).is_ok());
 
-        let r = archivo1.validar_baja(&c2); 
-		match r {
-			Ok(mov) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
-		}
+        assert!(archivo1.validar_baja(&c2).is_ok());
 
-        //En esta seccion saltara error por elemento inexistente(Borrado anteriormente) ; Descomentar para probar
-        /*   
-        let r = archivo1.validar_baja(&c2); 
-		match r {
-			Ok(mov) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+        //Retorna error de inexistencia de un elemento
+		match archivo1.validar_baja(&c2) {
+			Ok(_) => assert!(false,"Aqui tendria que haber fallado"),
+			Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura"))
 		}
-        */
-
-        let r = archivo1.cambiar_nombre_playlist(&"PlayL1".to_string());
-		match r {
-			Ok(mov) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+        
+        assert!(archivo1.cambiar_nombre_playlist(&"PlayL1".to_string()).is_ok());
+		
+        assert!(archivo1.validar_desplazamiento(&c3, 0).is_ok());
+		
+        //Retorna error de posicion invalida
+		match archivo1.validar_desplazamiento(&c3, 10) {
+			Ok(_) => assert!(false,"Aqui tendria que haber fallado"),
+			Err(e) => assert!(format!("{}",e).contains("La posicion recibida no es valida para la operacion en la estructura"))
 		}
-
-        let r = archivo1.validar_desplazamiento(&c3, 0);
-		match r {
-			Ok(mov) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+        
+        assert!(archivo1.validar_baja_total().is_ok());
+        
+        //Retorna error de estructura vacia 
+		match archivo1.validar_baja_total() {
+			Ok(_) => assert!(false,"Aqui tendria que haber fallado"),
+			Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
 		}
-
-        /*   //Retorna error de posicion invalida (Descomentar para probar) 
-        let r = archivo1.validar_desplazamiento(&c3, 10);
-		match r {
-			Ok(mov) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
-		}
-        */
-
-        let r = archivo1.validar_baja_total();
-		match r {
-			Ok(mov) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
-		}
-
-        /*  //Retorna error de estructura vacia 
-        let r = archivo1.validar_baja_total();
-		match r {
-			Ok(mov) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
-		}
-        */
+        
     }
 
     #[test]
@@ -506,74 +477,35 @@ mod testing_implementacion_ejercicio2{
 
 
         //Altas
-        let r = archivo1.validar_alta(&c1); 
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
-        archivo1.validar_alta(&c2);
-        archivo1.validar_alta(&c3);
+        assert!(archivo1.validar_alta(&c1).is_ok());
+        
+        assert!(archivo1.validar_alta(&c2).is_ok());
+        assert!(archivo1.validar_alta(&c3).is_ok());
 
         //Respaldo de informacion del archivo(luego de altas)
-        let r = archivo1.respaldar_informacion(); 
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
-
+        assert!(archivo1.respaldar_informacion().is_ok());
 
         //Bajas
-        let r = archivo1.validar_baja(&c2); 
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
-        archivo1.validar_baja(&c3);
+        assert!(archivo1.validar_baja(&c2).is_ok());
+        assert!(archivo1.validar_baja(&c3).is_ok());
 
         //Respaldo de informacion del archivo(luego de bajas)
-        let r = archivo1.respaldar_informacion(); 
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
-
-
+        assert!(archivo1.respaldar_informacion().is_ok());
+    
         //Modificaciones
-        archivo1.validar_alta(&c2);
-        let r = archivo1.validar_desplazamiento(&c2,0); 
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
-
-        let r = archivo1.cambiar_nombre_playlist(&"PlayL1".to_string());
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
-
+        assert!(archivo1.validar_alta(&c2).is_ok());
+        assert!(archivo1.validar_desplazamiento(&c2,0).is_ok());
+        
+        assert!(archivo1.cambiar_nombre_playlist(&"PlayL1".to_string()).is_ok());
+    
         //Respaldo de informacion del archivo(luego de modificaciones)
-        let r = archivo1.respaldar_informacion(); 
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
-
+        assert!(archivo1.respaldar_informacion().is_ok());
 
         //Baja total
-        let r = archivo1.validar_baja_total();
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
+        assert!(archivo1.validar_baja_total().is_ok());
 
         //Respaldo de informacion del archivo(luego de modificaciones)
-        let r = archivo1.respaldar_informacion(); 
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
-
+        assert!(archivo1.respaldar_informacion().is_ok());
 
         //Insercion directa(estructura modificada aparte) y respaldo
 
@@ -585,11 +517,7 @@ mod testing_implementacion_ejercicio2{
 
         archivo1.set_informacion(&p); 
 
-        let r = archivo1.respaldar_informacion(); 
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
+        assert!(archivo1.respaldar_informacion().is_ok());
 
         /*
             Resultado final de JSON = "Queda vacio"
@@ -610,47 +538,23 @@ mod testing_implementacion_ejercicio2{
 
 
         //Altas
-        let r = archivo1.validar_alta(&c1); 
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
-        archivo1.validar_alta(&c2);
-        archivo1.validar_alta(&c3);
-
+        assert!(archivo1.validar_alta(&c1).is_ok());
+        assert!(archivo1.validar_alta(&c2).is_ok());
+        assert!(archivo1.validar_alta(&c3).is_ok());
 
         //Bajas
-        let r = archivo1.validar_baja(&c1); 
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
-        archivo1.validar_baja(&c2);
-
+        assert!(archivo1.validar_baja(&c1).is_ok());
+        assert!(archivo1.validar_baja(&c2).is_ok());
 
         //Modificaciones
-        archivo1.validar_alta(&c2);
-        let r = archivo1.validar_desplazamiento(&c2,0); 
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
-
-        let r = archivo1.cambiar_nombre_playlist(&"PlayL1".to_string());
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        } 
-
-
+        assert!(archivo1.validar_alta(&c1).is_ok());
+        assert!(archivo1.validar_desplazamiento(&c1,0).is_ok());
+        
+        assert!(archivo1.cambiar_nombre_playlist(&"PlayL1".to_string()).is_ok());
+        
         //Baja total
-        let r = archivo1.validar_baja_total();
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }     
-
-
+        assert!(archivo1.validar_baja_total().is_ok());
+           
         //Insercion directa(estructura modificada aparte) y respaldo
 
         p = PlayList::new(&"Pl2".to_string());
@@ -661,11 +565,7 @@ mod testing_implementacion_ejercicio2{
 
         archivo1.set_informacion(&p); 
 
-        let r = archivo1.respaldar_informacion(); 
-        match r {
-            Ok(mov) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}
-        }
+        assert!(archivo1.respaldar_informacion().is_ok());
 
         /*
             Resultado final de JSON = "Queda vacio"

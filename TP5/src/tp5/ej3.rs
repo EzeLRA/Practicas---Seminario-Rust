@@ -769,10 +769,8 @@ mod testing_implementacion_ejercicio3{
         if let Some(a) = v.realizar_atencion(&"Fiebre".to_string(), &"Inyecciones".to_string(), &Fecha::new(12, 5, 2025) ){
             v.registrar_atencion(&a);
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"{}",Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion"))));
         }
-        
         
         //Se agrega la informacion al archivo (todavia no se guarda en el archivo fisico)
         let mut archivo1 = Archivo::new(&v.atenciones_realizadas, "".to_string(),false);
@@ -780,63 +778,52 @@ mod testing_implementacion_ejercicio3{
         //Se atiende animal2 (desde la veterinaria y se registra en el archivo)
         if let Some(a) = v.realizar_atencion(&"Pulgas".to_string(), &"Pipeta".to_string(), &Fecha::new(12, 8, 2025) ){
             v.registrar_atencion(&a);
-            let r = archivo1.registrar_atencion(&a);
-            match r {
+            match archivo1.registrar_atencion(&a) {
                 Ok(_) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}   //Solo puede ocurrir el error si se realiza un guardado en el archivo fisico
+                Err(e) => assert!(false,"Error : {}",e)   //Solo puede ocurrir el error si se realiza un guardado en el archivo fisico
             }
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error de {}",Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion"))));
         }
-
 
         //Modificacion de atenciones
         if let Some(mut a) = v.buscar_atencion(animal1.get_nombre(),d1.get_nombre(),d1.get_tel()){
             //Cambio de fecha
-            let r = archivo1.modificar_fecha_atencion(&a,&Fecha::new(2, 1, 2025));
-            match r {
+            match archivo1.modificar_fecha_atencion(&a,&Fecha::new(2, 1, 2025)) {
                 Ok(_) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e)  
             }
             a.cambiar_fecha(&Some(Fecha::new(2, 1, 2025))); //Modifico la fecha de la veterina para continuar en el archivo logico
             //Cambio de diagnostico
-            let r = archivo1.modificar_diagnostico_atencion(&a,&"Tos".to_string());
-            match r {
+            match archivo1.modificar_diagnostico_atencion(&a,&"Tos".to_string()) {
                 Ok(_) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e)   
             }
             a.cambiar_diagnostico(&"Tos".to_string()); //Lo mismo de arriba pero con la seccion de diagnostico
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion"))));
         }
-
 
         //Busqueda
         if let Some(a) = v.buscar_atencion(animal2.get_nombre(),d1.get_nombre(),d1.get_tel()){
             //Busqueda en el archivo logico
-            let r = archivo1.recuperar_atencion(&a);
-            match r {
+            match archivo1.recuperar_atencion(&a) {
                 Ok(ate) => assert!(ate.es_igual_a(&a)),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e)
             }
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion"))));
         }
 
         //Baja
         if let Some(a) = v.buscar_atencion(animal2.get_nombre(),d1.get_nombre(),d1.get_tel()){
             //Busqueda en el archivo logico
-            let r = archivo1.eliminar_atencion(&a);
-            match r {
+            match archivo1.eliminar_atencion(&a) {
                 Ok(_) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e)  
             }
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion"))))
         }
 
     }
@@ -856,10 +843,8 @@ mod testing_implementacion_ejercicio3{
         if let Some(a) = v.realizar_atencion(&"Fiebre".to_string(), &"Inyecciones".to_string(), &Fecha::new(12, 5, 2025) ){
             v.registrar_atencion(&a);
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion"))));
         }
-
 
         //Se agrega la informacion al archivo
         let mut archivo1 = Archivo::new(&v.atenciones_realizadas, "src/tp5/cola_atencion_info.json".to_string(),false);
@@ -867,81 +852,67 @@ mod testing_implementacion_ejercicio3{
         //2º atencion
         if let Some(a) = v.realizar_atencion(&"Fiebre".to_string(), &"Inyecciones".to_string(), &Fecha::new(21, 6, 2025) ){
             v.registrar_atencion(&a);
-            let r = archivo1.registrar_atencion(&a);
-            match r {
+            match archivo1.registrar_atencion(&a) {
                     Ok(_) => assert!(true),
-                    Err(e) => {println!("error: {}", e); assert!(false);}  
+                    Err(e) => assert!(false,"Error : {}",e)  
             }
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion"))));
         }
 
         //Se guarda la informacion en el archivo fisico
-        let r = archivo1.respaldar_informacion();
-        match r {
-            Ok(_) => assert!(true),
-            Err(e) => {println!("error: {}", e); assert!(false);}  
-        }
-
-
+        assert!(archivo1.respaldar_informacion().is_ok());
+        
         //Busqueda 
         if let Some(a) = v.buscar_atencion(animal1.get_nombre(),d1.get_nombre(),d1.get_tel()){
-            let r = archivo1.rescatar_informacion_fisica(&a);
-            match r {
+            match archivo1.rescatar_informacion_fisica(&a) {
                 Ok(ate) => assert!(ate.es_igual_a(&a)),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e)
             }
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion"))));
         }
 
         //Baja (2º elemento)
         if let Some(a) = v.buscar_atencion(animal2.get_nombre(),d1.get_nombre(),d1.get_tel()){
-            let r = archivo1.eliminar_atencion(&a);
-            match r {
+            match archivo1.eliminar_atencion(&a) {
                 Ok(_) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e)
             }
             //Se actualiza el archivo fisico
-            let r = archivo1.respaldar_informacion();
-            match r {
+            match archivo1.respaldar_informacion() {
                 Ok(_) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e)
             }
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion"))));
         }
 
         //Modificacion del archivo
         if let Some(mut a) = v.buscar_atencion(animal1.get_nombre(),d1.get_nombre(),d1.get_tel()){
             
             //Cambio de fecha
-            let r = archivo1.modificar_fecha_atencion(&a,&Fecha::new(1,1,2025));
-            a.cambiar_fecha(&Some(Fecha::new(1,1,2025)) );
-            match r {
+            
+            match archivo1.modificar_fecha_atencion(&a,&Fecha::new(1,1,2025)) {
                 Ok(_) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e) 
             }
 
+            a.cambiar_fecha(&Some(Fecha::new(1,1,2025)) );
+
             //Cambio de diagnostico
-            let r = archivo1.modificar_diagnostico_atencion(&a,&"Parasitos".to_string());
-            match r {
+            match archivo1.modificar_diagnostico_atencion(&a,&"Parasitos".to_string()) {
                 Ok(_) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e)  
             }
 
             //Se actualiza el archivo fisico
-            let r = archivo1.respaldar_informacion();
-            match r {
+            match archivo1.respaldar_informacion() {
                 Ok(_) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e) 
             }
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion"))));
         }
 
     }
@@ -961,8 +932,7 @@ mod testing_implementacion_ejercicio3{
         if let Some(a) = v.realizar_atencion(&"Garrapatas".to_string(), &"Pastillas".to_string(), &Fecha::new(22, 5, 2025) ){
             v.registrar_atencion(&a);
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion"))));
         }
 
         //Se agrega la informacion al archivo
@@ -971,40 +941,37 @@ mod testing_implementacion_ejercicio3{
         //2º atencion
         if let Some(a) = v.realizar_atencion(&"Pulgas".to_string(), &"Pipeta".to_string(), &Fecha::new(25, 6, 2025) ){
             v.registrar_atencion(&a);
-            let r = archivo1.registrar_atencion(&a);
-            match r {
+            
+            match archivo1.registrar_atencion(&a) {
                     Ok(_) => assert!(true),
-                    Err(e) => {println!("error: {}", e); assert!(false);}  
+                    Err(e) => assert!(false,"Error : {}",e) 
             }
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::EstructuraVacia(String::from("Cola de atencion"))));
         }
 
 
         //Busqueda 
         if let Some(a) = v.buscar_atencion(animal1.get_nombre(),d1.get_nombre(),d1.get_tel()){
-            let r = archivo1.rescatar_informacion_fisica(&a);
-            match r {
+            
+            match archivo1.rescatar_informacion_fisica(&a) {
                 Ok(ate) => assert!(ate.es_igual_a(&a)),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e) 
             }
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion"))));
         }
         
 
         //Baja (1º elemento)
         if let Some(a) = v.buscar_atencion(animal1.get_nombre(),d1.get_nombre(),d1.get_tel()){
-            let r = archivo1.eliminar_atencion(&a);
-            match r {
+            
+            match archivo1.eliminar_atencion(&a) {
                 Ok(_) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e)
             }
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion"))));
         }      
 
 
@@ -1012,23 +979,20 @@ mod testing_implementacion_ejercicio3{
         if let Some(mut a) = v.buscar_atencion(animal2.get_nombre(),d1.get_nombre(),d1.get_tel()){
             
             //Cambio de fecha
-            let r = archivo1.modificar_fecha_atencion(&a,&Fecha::new(18,9,2025));
-            a.cambiar_fecha(&Some(Fecha::new(18,9,2025)) );
-            match r {
+            match archivo1.modificar_fecha_atencion(&a,&Fecha::new(18,9,2025)) {
                 Ok(_) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e) 
             }
+            a.cambiar_fecha(&Some(Fecha::new(18,9,2025)) );
 
             //Cambio de diagnostico
-            let r = archivo1.modificar_diagnostico_atencion(&a,&"Parasitos".to_string());
-            match r {
+            match archivo1.modificar_diagnostico_atencion(&a,&"Parasitos".to_string()) {
                 Ok(_) => assert!(true),
-                Err(e) => {println!("error: {}", e); assert!(false);}  
+                Err(e) => assert!(false,"Error : {}",e)  
             }
             
         }else{
-            println!("error: {}", Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion")))); assert!(false);
-            assert!(false);
+            assert!(false,"Error : {}",Errores::ErrorOperatoria(error_operatoria::Inexistente(String::from("Cola de atencion"))));
         }  
     }
 

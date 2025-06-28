@@ -1466,30 +1466,30 @@ mod test_implementacion_ejercicio6{
         sis1.comprar_criptomoneda_usuario(&us3,&Fecha(23,06,2025),10.0,&c2.get_nombre());
         sis1.comprar_criptomoneda_usuario(&us3,&Fecha(23,06,2025),5.0,&c1.get_nombre());
 
-        //Archivo (la plafatorma no tiene usuarios)
+        //Archivo (la plafatorma tiene usuarios con sus balances)
 		let mut archivo1 = Archivo::new(&sis1.get_balances(),&"src/tp5/registro_balances.json".to_string(),true);
         match archivo1.respaldar_informacion(){
             Ok(_) => assert!(true),
-            Err(e) => {println!("{}",e); assert!(false)},
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Baja del usuario1 en el archivo1
         match archivo1.eliminar_usuario(&us1){
             Ok(val) => assert!(true),
-            Err(e) => {println!("{}",e); assert!(false);}, 
+            Err(e) => assert!(false,"Error : {}",e), 
         }
 
         //Alta un usuario nuevo sin dinero fiat y criptomonedas adquiridas
         match archivo1.registrar_usuario(&Usuario::new(&"Manolo".to_string(),&"Teruel".to_string(),&"examp@example.com".to_string(),8897712)){
             Ok(_) => assert!(true),
-            Err(e) => {println!("{}",e); assert!(false);}, 
+            Err(e) => assert!(false,"Error : {}",e), 
         }
 
         //Busqueda de usuario3
         let datos = DatosPersona{nombre : "Matias".to_string(),apellido : "Prada".to_string(),email : "exmpl@example.com".to_string(),dni : 9876476};
         match archivo1.obtener_usuario(&datos){
             Ok(user) => assert!(user.informacion_correcta(&datos)),
-            Err(e) => {println!("{}",e); assert!(false);}, 
+            Err(e) => assert!(false,"Error : {}",e), 
         }
         
     }
@@ -1541,7 +1541,7 @@ mod test_implementacion_ejercicio6{
         let mut archivo1 = Archivo::new(&sis1.get_comprobantes(),&"src/tp5/listado_comprobantes.json".to_string(),true);
         match archivo1.respaldar_informacion(){
             Ok(_) => assert!(true),
-            Err(e) => {println!("{}",e); assert!(false)},
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Registro de un comprobante
@@ -1550,19 +1550,19 @@ mod test_implementacion_ejercicio6{
 
         match archivo1.registrar_transaccion(&c){
             Ok(_) => assert!(true),
-            Err(e) => {println!("{}",e); assert!(false)},
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Eliminar un comprobante de usuario1
         match archivo1.eliminar_transaccion(&us1.datos){
             Ok(_) => assert!(true),
-            Err(e) => {println!("{}",e); assert!(false)},
+            Err(e) => assert!(false,"Error : {}",e)
         }
 
         //Buscar un comprobante de usuario2
         match archivo1.obtener_transaccion(&us2.datos){
             Ok(c) => assert!(c.datos_igual_a(&us2.datos)),
-            Err(e) => {println!("{}",e); assert!(false)},
+            Err(e) => assert!(false,"Error : {}",e)
         }
     }
 

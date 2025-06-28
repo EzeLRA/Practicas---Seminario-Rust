@@ -205,20 +205,24 @@ mod testing_consecionaria_auto{
 	fn operatoria_consecionaria(){
 		let a1 = Auto::new(String::from("asdf"),String::from("aytuiy"),2023,100432.0,Colores::Rojo);
 		let a2 = Auto::new(String::from("BMW"),String::from("ajytjt"),2000,200500.0,Colores::Verde);
-		let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),3);
+		let a3 = Auto::new(String::from("BMW"),String::from("ytjyjt"),2000,200000.0,Colores::Blanco);
+        let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),3);
 		//Limite de insersiones
 		assert_eq!(conse1.get_cantAutos(),0);
 		assert_eq!(conse1.agregar_auto(&a1),true);
-		assert_eq!(conse1.agregar_auto(&a1),true);
 		assert_eq!(conse1.agregar_auto(&a2),true);
+		assert_eq!(conse1.agregar_auto(&a3),true);
 		assert_eq!(conse1.agregar_auto(&a2),false);
 		assert_eq!(conse1.get_cantAutos(),3);
-		//Borra auto "a1"(primera recurrencia)
-		conse1.eliminar_auto(&a1);
-
-		//Busqueda de auto "a1"(solo encontrara al unico existente con tales caracteristicas)
+		
+		//Busqueda de auto "a1 y a3"(solo encontrara al unico existente con tales caracteristicas)
 		if let Some(a) = conse1.buscar_auto(&a1){
 			assert_eq!(a.es_igual_a(&a1),true);
+		}else{
+			panic!("El auto no fue encontrado en el concesionario");
+		}
+        if let Some(a) = conse1.buscar_auto(&a3){
+			assert_eq!(a.es_igual_a(&a3),true);
 		}else{
 			panic!("El auto no fue encontrado en el concesionario");
 		}
@@ -227,6 +231,7 @@ mod testing_consecionaria_auto{
 
 		//Busqueda de auto "a1"(ya no lo dispone y no existe otro en la estructura)
 		assert_eq!(conse1.buscar_auto(&a1).is_none(),true);
+
 	}
 }
 
@@ -343,20 +348,17 @@ impl Archivo_respaldable{
         	OpenOptions::new()
             .write(true)
             .truncate(true)
-            .open(&self.path)
-            .map_err(Errores::ErrorIO)?
+            .open(&self.path)?
     	} else {
         	// Crear nuevo archivo si no existe
-        	File::create(&self.path).map_err(Errores::ErrorIO)?
+        	File::create(&self.path)?
     	};
 
         // Serialización de la informacion
-        let serializado = serde_json::to_string(&self.informacion)
-            .map_err(Errores::ErrorSerde)?;
+        let serializado = serde_json::to_string(&self.informacion)?;
 
         // Escritura en el archivo
-        file.write_all(serializado.as_bytes())
-            .map_err(Errores::ErrorIO)?;
+        file.write_all(serializado.as_bytes())?;
 
         Ok(())
     }
@@ -393,9 +395,50 @@ impl Archivo_respaldable{
 
 #[cfg(test)]
 mod testing_implementacion_ejercicio1{
+use std::env::temp_dir;
+
 use super::*;
 
-	//Se implementa la estructura "Archivo respaldable" como un "influyente" entre el archivo JSON y el struct que se dispone 
+    //Test para maximar el coverage
+    #[test]
+    fn test_error_serializacion(){
+        let directorio_temp = std::env::temp_dir();
+        let archivo_temp = directorio_temp.join("archivo_prueba.json");
+        std::fs::write(&archivo_temp, "contenido basura");
+
+        let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"trrjrjrtw".to_string(),3);
+
+		let mut archivo1 = Archivo_respaldable::new(&conse1, archivo_temp.to_str().unwrap().to_string() ,true);
+		match archivo1.rescatar_informacion(){
+            Ok(_) => assert!(false),
+			Err(e) => assert!(format!("{}",e).contains("Error de serialización")) 
+        }
+		
+    }
+
+    //Test para maximar el coverage
+    #[test]
+    fn test_error_guardado(){
+        let a1 = Auto::new(String::from("asdf"),String::from("aytuiy"),2023,100432.0,Colores::Rojo);
+
+        let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"trrjrjrtw".to_string(),3);
+
+        //Direccion nula
+		let mut archivo1 = Archivo_respaldable::new(&conse1, "".to_string(),true);
+
+        //Primera Insercion(Notifica de un error)
+		match archivo1.validar_insercion(&a1) {
+			Ok(_) => assert!(false),
+			Err(e) => assert!(format!("{}",e).contains("Error de E/S al guardar")) 
+		}
+
+        //Intento de guardardo forzoso
+        match archivo1.respaldar_informacion() {
+			Ok(_) => assert!(false),
+			Err(e) => assert!(format!("{}",e).contains("Error de E/S al guardar")) 
+		}
+
+    }
 
 	#[test]
 	fn maxima_capacidad_superada(){
@@ -411,23 +454,19 @@ use super::*;
 		//Limite de insersiones
 
 		//Primera Insercion(No notifica de un error)
-		match archivo1.validar_insercion(&a1) {
-			Ok(mov) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
-		}
+		assert!(archivo1.validar_insercion(&a1).is_ok());
 
 		//Llenado de la consecionaria
-		archivo1.validar_insercion(&a2);
+		assert!(archivo1.validar_insercion(&a2).is_ok());
 		match archivo1.validar_insercion(&a3) {
-			Ok(mov) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Ok(_) => assert!(true),
+			Err(e) => assert!(false,"{}",e)
 		}
 		
 		//Ultima insercion(Avisa del error)
-		let r = archivo1.validar_insercion(&a4); 
-		match r {
-			Ok(mov) => assert!(true),
-			Err(e) => {println!("error: {}", e); /*assert!(false);*/ } 
+		match archivo1.validar_insercion(&a4) {
+			Ok(_) => assert!(false,"Aqui tendria que haber fallado") , 
+			Err(e) => assert!(format!("{}",e).contains("La Capacidad de autos para la consecionaria")) 
 		}
 		
 		
@@ -452,15 +491,15 @@ use super::*;
 
 		//Borra auto "a1"
 		match archivo1.validar_eliminacion(&a1) {
-			Ok(res) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Ok(_) => assert!(true),
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		//Borra auto "a4" (Error de inexsistencia)
 		
 		match archivo1.validar_eliminacion(&a4) {
-			Ok(res) => assert!(true),
-			Err(e) => {println!("error: {}", e); /*assert!(false);*/}
+			Ok(_) => assert!(false) , 
+			Err(e) => assert!(format!("{}",e).contains("No se encontro el auto en la consecionaria")) 
 		}
 		
 		archivo1.validar_eliminacion(&a2);
@@ -469,8 +508,8 @@ use super::*;
 		//Borra auto "a4" (Error de estructura vacia)
 		
 		match archivo1.validar_eliminacion(&a4) {
-			Ok(res) => assert!(true),
-			Err(e) => {println!("error: {}", e); /*assert!(false);*/}
+			Ok(_) => assert!(false) , 
+			Err(e) => assert!(format!("{}",e).contains("no dispone de autos"))
 		}
 		
 		
@@ -482,20 +521,13 @@ use super::*;
 		//Consecionaria
 		let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),3);
 		
-		let mut archivo1 = Archivo_respaldable::new(&conse1, "src/tp5/concesionaria_info.json".to_string(),false);
+		let mut archivo1 = Archivo_respaldable::new(&conse1, "src/concesionaria_info.json".to_string(),false);
 
 		//Guardado directo sin realizar operatorias
-		let r = archivo1.respaldar_informacion();
-		match r{
+		match archivo1.respaldar_informacion(){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
-
-		//Funcion de lectura de archivo
-		match archivo1.rescatar_informacion(){
-			Ok(d) => assert!(d.is_Vacio()),
-			Err(e) => {println!("error: {}", e); assert!(false); }
-		}	
 
 		/*
 			Resultado del archivo(JSON) = {"nombre":"asd","direccion":"tryertw","capacidad":3,"autos":[]}
@@ -510,14 +542,16 @@ use super::*;
 		archivo1.validar_insercion(&a1);
 		archivo1.validar_insercion(&a2);
 		archivo1.validar_insercion(&a3);
-		archivo1.validar_insercion(&a4);
-
+		//Error de capacidad
+        match archivo1.validar_insercion(&a4) {
+			Ok(_) => assert!(false,"Aqui tendria que haber fallado") , 
+			Err(e) => assert!(format!("{}",e).contains("La Capacidad de autos para la consecionaria")) 
+		}
 		 
 		//Guardado directo con operatorias realizadas
-		let r = archivo1.respaldar_informacion();
-		match r{
+		match archivo1.respaldar_informacion(){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 		
 		/*
@@ -528,11 +562,16 @@ use super::*;
 		archivo1.validar_eliminacion(&a3);
 
 		//Guardado directo con operatorias realizadas
-		let r = archivo1.respaldar_informacion();
-		match r{
+		match archivo1.respaldar_informacion(){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
+
+        //Funcion de lectura de archivo
+		match archivo1.rescatar_informacion(){
+			Ok(d) => assert!(!d.is_Vacio()),
+			Err(e) => assert!(false,"Error : {}",e)
+		}	
 
 		/* 
 			Resultado del archivo(JSON) = {"nombre":"asd","direccion":"tryertw","capacidad":3,"autos":[{"marca":"BMW","modelo":"avcvbvt","anio":2000,"precio_bruto":200500.0,"color":"Verde"}]}
@@ -551,34 +590,30 @@ use super::*;
 		//Consecionaria
 		let mut conse1 = ConcesionarioAuto::new("asd".to_string(),"tryertw".to_string(),3);
 		
-		let mut archivo1 = Archivo_respaldable::new(&conse1, "src/tp5/concesionaria_info.json".to_string(),true);
+		let mut archivo1 = Archivo_respaldable::new(&conse1, "src/concesionaria_info.json".to_string(),true);
 
 		//Carga de informacion
-		let r = archivo1.validar_insercion(&a1);
-		match r{
+		match archivo1.validar_insercion(&a1){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 		archivo1.validar_insercion(&a2);
 		archivo1.validar_insercion(&a3);
 		archivo1.validar_insercion(&a4);
 
 		//Baja de informacion
-		let r = archivo1.validar_eliminacion(&a1);
-		match r{
+		match archivo1.validar_eliminacion(&a1){
 			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+			Err(e) => assert!(false,"Error : {}",e)
 		}
 
 		archivo1.validar_eliminacion(&a3);
 
-		/* 	//En esta seccion resultara en un error de inexistencia
-		let r = archivo1.validar_eliminacion(&a1);
-		match r{
-			Ok(_) => assert!(true),
-			Err(e) => {println!("error: {}", e); assert!(false);}
+		//Error de inexistencia
+        match archivo1.validar_eliminacion(&a1) {
+			Ok(_) => assert!(false) , 
+			Err(e) => assert!(format!("{}",e).contains("No se encontro el auto en la consecionaria")) 
 		}
-		*/
 
 	}
 	
