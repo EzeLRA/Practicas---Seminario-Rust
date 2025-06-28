@@ -415,6 +415,21 @@ impl Archivo{
     }
 }
 
+//Test para maximar el coverage
+    #[test]
+    fn test_error_guardado(){
+        let mut p = PlayList::new(&"asd".to_string());
+        //Direccion nula
+		let mut archivo1 = Archivo_respaldable::new(&p, "".to_string(),true);
+
+        //Intento de guardardo forzoso
+        match archivo1.respaldar_informacion() {
+			Ok(_) => assert!(false),
+			Err(e) => assert!(format!("{}",e).contains("Error de E/S al guardar")) 
+		}
+
+    }
+
 #[cfg(test)]
 mod testing_implementacion_ejercicio2{
     use super::*;
