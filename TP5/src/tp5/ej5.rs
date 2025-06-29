@@ -52,38 +52,19 @@ pub struct Usuario{
 */
 
 pub trait DatosSuscripcion{
-	fn set_costo(&mut self,monto : f64);
-	fn get_costo(self)->f64;
-	fn set_duracion(&mut self,meses : u8);
-	fn get_duracion(self)->u8;
-	fn set_fecha_inicio(&mut self,f:u64);
-	fn get_fecha_inicio(self)->u64;
-	fn set_medio(&mut self,m:&Medios_de_pago);
     fn get_medio(&self)->Medios_de_pago;
     fn get_tipo(&self)->Suscripciones;
     fn set_tipo(&mut self,t:Suscripciones);
 }
 pub trait DatosUsuario{
 	fn get_nombre(&self)->String;
-	fn get_dni(&self)->u64;
-	fn set_nombre(&mut self, nom : &String);
-	fn set_dni(&mut self, dni_in : u64);
 	fn get_suscripcion_anterior(&self)->Option<Suscripcion_activa>;
 	fn get_suscripcion_actual(&self)->Option<Suscripcion_activa>;
 	fn set_suscripcion_actual(&mut self,s:&Suscripcion_activa);
 }
 impl DatosUsuario for Usuario{
-	fn get_nombre(&self)->String{
+	fn get_nombre(&self)->String {
 		return self.nombre.clone();
-	}
-	fn get_dni(&self)->u64{
-		return self.dni;
-	}
-	fn set_nombre(&mut self, nom : &String){
-		self.nombre = nom.clone();
-	}
-	fn set_dni(&mut self, dni_in : u64){
-		self.dni = dni_in;
 	}
 	fn get_suscripcion_anterior(&self)->Option<Suscripcion_activa>{
 		if self.suscripcion_anterior.is_some() {
@@ -104,29 +85,8 @@ impl DatosUsuario for Usuario{
 }
 
 impl DatosSuscripcion for Suscripcion_activa {
-	fn set_costo(&mut self,monto : f64){
-		self.costo_mensual = monto;
-	}
-	fn get_costo(self)->f64{
-		return self.costo_mensual;
-	}
-	fn set_duracion(&mut self,meses : u8){
-		self.duracion_mes = meses;
-	}
-	fn get_duracion(self)->u8{
-		return self.duracion_mes;
-	}
-	fn set_fecha_inicio(&mut self,f:u64){
-		self.fecha_inicio = f;
-	}
-	fn get_fecha_inicio(self)->u64{
-		return self.fecha_inicio;
-	}
 	fn get_medio(&self)->Medios_de_pago{
 		return self.tipo_pago.clone();
-	}
-	fn set_medio(&mut self, m : &Medios_de_pago) {
-		self.tipo_pago = m.clone();
 	}
 	 fn get_tipo(&self)->Suscripciones{
 		return self.tipo_suscripcion.clone();
@@ -172,19 +132,18 @@ impl Suscripcion_activa{
 }
 
 impl Usuario{
-	fn new(nom:&String,dni_in:u64,s:&Suscripcion_activa)->Usuario{
+	fn new(nom:&String,dni_in:u64,s:Option<Suscripcion_activa>)->Usuario{
 		return Usuario{
 			nombre : nom.clone(),
 			dni : dni_in,
-			suscripcion_actual : Some(s.clone()),
+			suscripcion_actual : s ,
 			suscripcion_anterior : None	
 		}
 	}
 	fn upgrade_suscripcion(&mut self)->bool{
 		if let Some(mut s) = self.get_suscripcion_actual(){
 			if s.upgrade(){
-				self.suscripcion_anterior = self.suscripcion_actual.clone();
-				self.suscripcion_actual = Some(s);
+				self.set_suscripcion_actual(&s);
 				return true;
 			}
 		}
@@ -410,13 +369,13 @@ mod test_ejercicio3{
 	fn operar_suscripcion_usuario(){
 		let mut usuario1 = Usuario::new(&"Daniel".to_string() , 
 		64254 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
 			 123.5,
 			  5, 
 			  120325, 
-			  Medios_de_pago::Transferencia_bancaria));
+			  Medios_de_pago::Transferencia_bancaria)));
 			
-		assert_eq!(usuario1,Usuario::new(&"Daniel".to_string() , 64254 , &Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,123.5,5,120325,Medios_de_pago::Transferencia_bancaria)));
+		assert_eq!(usuario1,Usuario::new(&"Daniel".to_string() , 64254 , Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,123.5,5, 120325, Medios_de_pago::Transferencia_bancaria))) );
 		
 		assert!(usuario1.upgrade_suscripcion());
 
@@ -444,42 +403,50 @@ mod test_ejercicio3{
 			panic!("No se registro/actualizo la suscripcion actual");
 		}
 
+		//Resulta en false porque se llego al limite de "downgrade" para efectuar sobre el usuario
+		assert!(usuario1.downgrade_suscripcion());
+		assert!(!usuario1.downgrade_suscripcion());
+
+		//Prueba de baja de suscripcion
+	    usuario1.set_suscripcion_actual(&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,123.5,5,120325,Medios_de_pago::Transferencia_bancaria));
 		assert!(usuario1.cancelar_suscripcion());
+		assert!(usuario1.get_suscripcion_actual().is_none());
+		assert!(!usuario1.cancelar_suscripcion());
 	}
 
 	#[test]
 	fn operar_suscripciones_usuarios(){
 		let mut usuario1 = Usuario::new(&"Daniel".to_string() , 
 		64254 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
 			 123.5,
 			  5, 
 			  120325, 
-			  Medios_de_pago::Transferencia_bancaria));
+			  Medios_de_pago::Transferencia_bancaria)));
 
 		let mut usuario2 = Usuario::new(&"Tobias".to_string() , 
-		93843 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Super,
-			 225.5,
-			  12, 
-			  310325, 
-			  Medios_de_pago::Transferencia_bancaria));
+		64254 , 
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Super,
+			 243.5,
+			  5, 
+			  120325, 
+			  Medios_de_pago::Transferencia_bancaria)));
 
 		let mut usuario3 = Usuario::new(&"Marcos".to_string() , 
 		542134 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Super,
 			 103.5,
-			  3, 
-			  120525, 
-			  Medios_de_pago::Efectivo));
+			  5, 
+			  120325, 
+			  Medios_de_pago::Efectivo)));
 
 		let mut usuario4 = Usuario::new(&"Dario".to_string() , 
 	32124 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Clasic,
-			 183.5,
-			  7, 
-			  120125, 
-			  Medios_de_pago::Criptomoneda));
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Clasic,
+			 103.5,
+			  5, 
+			  120325, 
+			  Medios_de_pago::Criptomoneda)));
 	
 
 		//Plataforma vacia
@@ -498,7 +465,7 @@ mod test_ejercicio3{
 		pl1.agregar(&usuario3);
 		pl1.agregar(&usuario4);
 		
-		 
+		//Prueba estadistica
 		if let Some(tipo) = pl1.metodo_pago_mas_usado(){
 			assert_eq!(tipo,Medios_de_pago::Transferencia_bancaria);
 		}else{
@@ -506,13 +473,14 @@ mod test_ejercicio3{
 		}
 		
 		if let Some(tipo) = pl1.suscripcion_mas_contratada(){
-			assert_eq!(tipo,Suscripciones::Basic);
+			assert_eq!(tipo,Suscripciones::Super);
 		}else{
 			panic!("No hubo un retorno esperado");
 		}
 		assert!(pl1.metodo_pago_anterior_mas_usado().is_none());
 		assert!(pl1.suscripcion_anterior_mas_contratada().is_none());
 
+		//Se hace "upgrade" a un usuario
 		pl1.upgrade_usuario(&usuario1);
 		assert!(pl1.upgrade_usuario(&usuario1));
 		assert_eq!(pl1.upgrade_usuario(&usuario2),false);
@@ -540,6 +508,150 @@ mod test_ejercicio3{
 		}else{
 			panic!("No hubo un retorno esperado");
 		}
+
+		//Se hace "downgrade" a un usuario
+		assert!(pl1.downgrade_usuario(&usuario1));
+		assert!(pl1.downgrade_usuario(&usuario1));
+		assert!(pl1.downgrade_usuario(&usuario1));
+		assert!(!pl1.downgrade_usuario(&usuario1));
+
+		//Se cancela una suscripcion a un usuario
+		assert!(pl1.cancelar_suscripcion(&usuario2));
+		//Se borra un usuario y se hacen pruebas de existencia
+		assert!(pl1.eliminar(&usuario2));
+		assert!(!pl1.cancelar_suscripcion(&usuario2));
+		assert!(!pl1.upgrade_usuario(&usuario2)); 
+		assert!(!pl1.downgrade_usuario(&usuario2)); 
+		
+	}
+
+	//Test para evaluar los diferentes resultados que proporcione la plataforma (maximos)
+	#[test]
+	fn evaluar_estadisticas(){
+		//Usuarios
+		let mut usuario1 = Usuario::new(&"Dario".to_string() , 32124 , None );
+		let mut usuario2 = Usuario::new(&"Mario".to_string() , 367665 , None );
+		
+		let s = Suscripcion_activa::crear_suscripcion(Suscripciones::Super,100.0,5,120325,Medios_de_pago::Mercado_pago);
+		usuario1.set_suscripcion_actual(&s);
+
+		//Plataforma
+		let mut pl1 = Plataforma::new();
+		pl1.agregar(&usuario1);
+		
+		//Suscripcion max
+		if let Some(tipo) = pl1.suscripcion_mas_contratada(){
+			assert_eq!(tipo,Suscripciones::Super);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+		assert!(pl1.suscripcion_anterior_mas_contratada().is_none());
+
+		pl1.downgrade_usuario(&usuario1);
+		if let Some(tipo) = pl1.suscripcion_mas_contratada(){
+			assert_eq!(tipo,Suscripciones::Clasic);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+
+		if let Some(tipo) = pl1.suscripcion_anterior_mas_contratada(){
+			assert_eq!(tipo,Suscripciones::Super);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+
+		pl1.downgrade_usuario(&usuario1);
+		if let Some(tipo) = pl1.suscripcion_mas_contratada(){
+			assert_eq!(tipo,Suscripciones::Basic);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+
+		if let Some(tipo) = pl1.suscripcion_anterior_mas_contratada(){
+			assert_eq!(tipo,Suscripciones::Clasic);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+
+		//Metodo pago max
+		if let Some(tipo) = pl1.metodo_pago_mas_usado(){
+			assert_eq!(tipo,Medios_de_pago::Mercado_pago);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+
+		pl1.downgrade_usuario(&usuario1);
+		if let Some(tipo) = pl1.suscripcion_anterior_mas_contratada(){
+			assert_eq!(tipo,Suscripciones::Basic);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+		assert!(pl1.suscripcion_mas_contratada().is_none());
+		
+		//Metodo pago max (Casos con downgrade y con inseciones nuevas de usuario)
+		if let Some(tipo) = pl1.metodo_pago_anterior_mas_usado(){
+			assert_eq!(tipo,Medios_de_pago::Mercado_pago);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+		pl1.eliminar(&usuario1);
+
+		//Nuevo metodo de pago
+		let s = Suscripcion_activa::crear_suscripcion(Suscripciones::Super,100.0,5,120325,Medios_de_pago::Tarjeta_de_credito);
+		usuario2.set_suscripcion_actual(&s);
+		pl1.agregar(&usuario2);
+
+		if let Some(tipo) = pl1.metodo_pago_mas_usado(){
+			assert_eq!(tipo,Medios_de_pago::Tarjeta_de_credito);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+		pl1.downgrade_usuario(&usuario2);
+
+		if let Some(tipo) = pl1.metodo_pago_anterior_mas_usado(){
+			assert_eq!(tipo,Medios_de_pago::Tarjeta_de_credito);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+		pl1.eliminar(&usuario2);
+
+		//Nuevo metodo de pago
+		let s = Suscripcion_activa::crear_suscripcion(Suscripciones::Super,100.0,5,120325,Medios_de_pago::Efectivo);
+		usuario2.set_suscripcion_actual(&s);
+		pl1.agregar(&usuario2);
+
+		if let Some(tipo) = pl1.metodo_pago_mas_usado(){
+			assert_eq!(tipo,Medios_de_pago::Efectivo);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+		pl1.downgrade_usuario(&usuario2);
+
+		if let Some(tipo) = pl1.metodo_pago_anterior_mas_usado(){
+			assert_eq!(tipo,Medios_de_pago::Efectivo);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+		pl1.eliminar(&usuario2);
+
+		//Nuevo metodo de pago
+		let s = Suscripcion_activa::crear_suscripcion(Suscripciones::Super,100.0,5,120325,Medios_de_pago::Criptomoneda);
+		usuario2.set_suscripcion_actual(&s);
+		pl1.agregar(&usuario2);
+
+		if let Some(tipo) = pl1.metodo_pago_mas_usado(){
+			assert_eq!(tipo,Medios_de_pago::Criptomoneda);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+		pl1.downgrade_usuario(&usuario2);
+
+		if let Some(tipo) = pl1.metodo_pago_anterior_mas_usado(){
+			assert_eq!(tipo,Medios_de_pago::Criptomoneda);
+		}else{
+			panic!("No hubo un retorno esperado");
+		}
+		pl1.eliminar(&usuario2);
 
 	}
 
@@ -629,20 +741,17 @@ impl Archivo{
             OpenOptions::new()
             .write(true)
             .truncate(true)
-            .open(&self.path)
-            .map_err(Errores::ErrorIO)?
+            .open(&self.path)?
         } else {
             // Crear nuevo archivo si no existe
-            File::create(&self.path).map_err(Errores::ErrorIO)?
+            File::create(&self.path)?
         };
 
         // Serialización de la informacion
-        let serializado = serde_json::to_string(&self.informacion)
-            .map_err(Errores::ErrorSerde)?;
+        let serializado = serde_json::to_string(&self.informacion)?;
 
         // Escritura en el archivo
-        file.write_all(serializado.as_bytes())
-            .map_err(Errores::ErrorIO)?;
+        file.write_all(serializado.as_bytes())?;
 
         Ok(())
     }
@@ -791,6 +900,36 @@ impl Archivo{
 mod test_implementacion_ejercicio5{
 	use super::*;
 
+	//Test para maximizar el coverage
+    #[test]
+    fn test_error_serializacion(){
+        let directorio_temp = std::env::temp_dir();
+        let archivo_temp = directorio_temp.join("archivo_prueba.json");
+        std::fs::write(&archivo_temp, "contenido basura");
+        
+        let aux = Plataforma::new();
+        let mut archivo1 = Archivo::new(&aux, &archivo_temp.to_str().unwrap().to_string(), true);
+        //Se prueba con un metodo que requiera la apertura de un archivo , resultara en un error
+        match archivo1.retornar_medio_pago_max(){
+            Ok(_) => assert!(false,"Aqui tendria que haber fallado"),
+            Err(e) => assert!(format!("{}",e).contains("Error de serialización"))
+        }
+    }
+
+	//Test para maximizar el coverage
+    #[test]
+    fn test_error_respaldado(){
+        let pl1 = Plataforma::new();
+        //Archivo (la plafatorma no tiene usuarios)
+		let mut archivo1 = Archivo::new(&pl1,&"".to_string(),true);
+
+        //Resultara en un error
+        match archivo1.respaldar_informacion(){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("Error de E/S al guardar:"))
+        }
+    }
+
 	#[test]
 	fn operatoria_informacion(){
 		//Plataforma y las suscripciones
@@ -801,44 +940,69 @@ mod test_implementacion_ejercicio5{
 		//Usuarios con las suscripciones
 		let usuario1 = Usuario::new(&"Daniel".to_string() , 
 		64254 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
 			 123.5,
 			  5, 
 			  120325, 
-			  Medios_de_pago::Transferencia_bancaria));
+			  Medios_de_pago::Transferencia_bancaria)) );
 
 		let usuario2 = Usuario::new(&"Tobias".to_string() , 
 		93843 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Super,
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Super,
 			 225.5,
 			  12, 
 			  310325, 
-			  Medios_de_pago::Transferencia_bancaria));
+			  Medios_de_pago::Transferencia_bancaria)) );
 
 		let usuario3 = Usuario::new(&"Marcos".to_string() , 
 		542134 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
 			 103.5,
 			  3, 
 			  120525, 
-			  Medios_de_pago::Efectivo));
+			  Medios_de_pago::Efectivo)) );
 
 		let usuario4 = Usuario::new(&"Dario".to_string() , 
 	32124 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Clasic,
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Clasic,
 			 183.5,
 			  7, 
 			  120125, 
-			  Medios_de_pago::Criptomoneda));
+			  Medios_de_pago::Criptomoneda)) );
 
 
 		//Archivo (la plafatorma no tiene usuarios)
 		let mut archivo1 = Archivo::new(&pl1,&"".to_string(),false);
 
+		//Prueba de retorno de errores (Plataforma vacia sin usuarios todavia)
+		match archivo1.cancelar_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+		}
+		match archivo1.eliminar_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+		}
+		match archivo1.upgrade_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+		}
+		match archivo1.downgrade_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+		}
+
+
 		//Registro de usuario1
 		match archivo1.registrar_suscripcion_usuario(&usuario1){
 			Ok(_) => assert!(true),
 			Err(e) => assert!(false,"Error : {}",e)
+		}
+
+		//Intento de registro usuario1 , resultara error de existencia
+		match archivo1.registrar_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(false,"Aqui no debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("Ya existe el elemento en la estructura"))
 		}
 
 		//Registro de usuario2 y usuario3
@@ -855,6 +1019,24 @@ mod test_implementacion_ejercicio5{
 		match archivo1.eliminar_suscripcion_usuario(&usuario1){
 			Ok(_) => assert!(true),
 			Err(e) => assert!(false,"Error : {}",e)
+		}
+
+		//Prueba de retorno de errores (Plataforma con usuarios pero sin usuario1)
+		match archivo1.cancelar_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura"))
+		}
+		match archivo1.eliminar_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura"))
+		}
+		match archivo1.upgrade_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura"))
+		}
+		match archivo1.downgrade_suscripcion_usuario(&usuario1){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura"))
 		}
 
 		//Registro de usuario4
@@ -896,39 +1078,39 @@ mod test_implementacion_ejercicio5{
 		//Usuarios con las suscripciones
 		let usuario1 = Usuario::new(&"Daniel".to_string() , 
 		64254 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
 			 123.5,
 			  5, 
 			  120325, 
-			  Medios_de_pago::Transferencia_bancaria));
+			  Medios_de_pago::Transferencia_bancaria)) );
 
 		let usuario2 = Usuario::new(&"Tobias".to_string() , 
 		93843 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Super,
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Super,
 			 225.5,
 			  12, 
 			  310325, 
-			  Medios_de_pago::Transferencia_bancaria));
+			  Medios_de_pago::Transferencia_bancaria)));
 
 		let usuario3 = Usuario::new(&"Marcos".to_string() , 
 		542134 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Basic,
 			 103.5,
 			  3, 
 			  120525, 
-			  Medios_de_pago::Efectivo));
+			  Medios_de_pago::Efectivo)));
 
 		let usuario4 = Usuario::new(&"Dario".to_string() , 
 	32124 , 
-		&Suscripcion_activa::crear_suscripcion(Suscripciones::Clasic,
+		Some(Suscripcion_activa::crear_suscripcion(Suscripciones::Clasic,
 			 183.5,
 			  7, 
 			  120125, 
-			  Medios_de_pago::Criptomoneda));
+			  Medios_de_pago::Criptomoneda)));
 
 
 		//Archivo (la plafatorma no tiene usuarios)
-		let mut archivo1 = Archivo::new(&pl1,&"src/tp5/registro_suscripciones.json".to_string(),true);
+		let mut archivo1 = Archivo::new(&pl1,&"registro_suscripciones.json".to_string(),true);
 
 		//Registro de usuarios
 		match archivo1.registrar_suscripcion_usuario(&usuario1){
@@ -1007,6 +1189,47 @@ mod test_implementacion_ejercicio5{
 		match archivo1.cancelar_suscripcion_usuario(&usuario2){
 			Ok(_) => assert!(true),
 			Err(e) => assert!(false,"Error : {}",e)
+		}
+
+		//Aqui resultara en un error de ausencia de suscripcion en el usuario
+		match archivo1.upgrade_suscripcion_usuario(&usuario2){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("No dispone de una suscripcion el usuario"))
+		}
+		match archivo1.downgrade_suscripcion_usuario(&usuario2){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("No dispone de una suscripcion el usuario"))
+		}
+		match archivo1.cancelar_suscripcion_usuario(&usuario2){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("No dispone de una suscripcion el usuario"))
+		}
+
+		//Baja usuario2 y usuario4
+		match archivo1.eliminar_suscripcion_usuario(&usuario2){
+			Ok(_) => assert!(true),
+			Err(e) => assert!(false,"Error : {}",e)
+		}
+
+		match archivo1.eliminar_suscripcion_usuario(&usuario4){
+			Ok(_) => assert!(true),
+			Err(e) => assert!(false,"Error : {}",e)
+		}
+
+		//Resultaran error de estructura vacia (Listado de suscripciones)
+		match archivo1.retornar_suscripcion_max(){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+		}
+
+		match archivo1.retornar_suscripcion_anterior_max(){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+		}
+
+		match archivo1.retornar_medio_pago_anterior_max(){
+			Ok(_) => assert!(false,"Aqui debio fallar"),
+			Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
 		}
 
 	}

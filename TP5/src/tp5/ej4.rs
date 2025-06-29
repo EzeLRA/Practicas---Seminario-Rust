@@ -670,15 +670,6 @@ impl<T:Clone + Serialize> Archivo<T>{
     fn existe_archivo(&self)->bool{
         return Path::new(&self.path.clone()).exists();
     }
-    fn set_informacion(&mut self,datos:&Vec<T>)-> Result<(), Errores>{
-        self.informacion = datos.clone();
-        
-        if self.autoguardado{
-			self.respaldar_informacion()?;
-		}
-
-		Ok(())
-    }
     fn respaldar_informacion(&self) -> Result<(), Errores> {
         // Apertura/Creación del archivo
         let mut file = if self.existe_archivo() {
@@ -686,20 +677,17 @@ impl<T:Clone + Serialize> Archivo<T>{
             OpenOptions::new()
             .write(true)
             .truncate(true)
-            .open(&self.path)
-            .map_err(Errores::ErrorIO)?
+            .open(&self.path)?
         } else {
             // Crear nuevo archivo si no existe
-            File::create(&self.path).map_err(Errores::ErrorIO)?
+            File::create(&self.path)?
         };
 
         // Serialización de la informacion
-        let serializado = serde_json::to_string(&self.informacion)
-            .map_err(Errores::ErrorSerde)?;
+        let serializado = serde_json::to_string(&self.informacion)?;
 
         // Escritura en el archivo
-        file.write_all(serializado.as_bytes())
-            .map_err(Errores::ErrorIO)?;
+        file.write_all(serializado.as_bytes())?;
 
         Ok(())
     }
@@ -901,6 +889,41 @@ impl Archivo<Prestamo>{
 mod testing_implementacion_ejercicio4{
     use super::*;
 
+    //Test para maximizar el coverage
+    #[test]
+    fn test_error_serializacion(){
+        let directorio_temp = std::env::temp_dir();
+        let archivo_temp = directorio_temp.join("archivo_prueba.json");
+        std::fs::write(&archivo_temp, "contenido basura");
+        
+        let aux : Vec<LibrosDispone> = Vec::new();
+        let mut archivo1 = Archivo::new(&aux, archivo_temp.to_str().unwrap().to_string(), true);
+        //Se prueba con un metodo que requiera la apertura de un archivo , resultara en un error
+        match archivo1.contabilizar_copias(&Libro::new(123, "".to_string(), "".to_string(), 1, Genero::Otro)){
+            Ok(_) => assert!(false,"Aqui tendria que haber fallado"),
+            Err(e) => assert!(format!("{}",e).contains("Error de serialización"))
+        }
+    }
+
+    //Test para maximizar el coverage
+    #[test]
+    fn test_error_respaldado(){
+        //Creacion de biblioteca(Sin libros)
+        let nombre = String::from("Sabiondo");
+        let direccion = String::from("1 e 2 y 3");
+       
+        let mut biblioteca = Biblioteca::new(nombre,direccion);
+
+        //Creacion del archivo repositorio
+        let mut archivo1 = Archivo::new(&biblioteca.get_libros_displonibles(), "".to_string(),true);
+
+        //Intento de respaldo , resultara en un error
+        match archivo1.respaldar_informacion(){
+            Ok(_) => assert!(false,"Aqui tendria que haber fallado"),
+            Err(e) => assert!(format!("{}",e).contains("Error de E/S al guardar:"))
+        }
+    }
+
     #[test]
     fn operatoria_archivo_repositorio_libros(){
         //Creacion de biblioteca
@@ -919,8 +942,8 @@ mod testing_implementacion_ejercicio4{
         biblioteca.agregar_libro(libro3.clone(),10);
         biblioteca.agregar_libro(libro4.clone(),1);
 
-        //Creacion del archivo repositorio
-        let mut archivo1 = Archivo::new(&biblioteca.get_libros_displonibles(), "src/tp5/repositorio_libros.json".to_string(),true);
+        //Creacion del archivo repositorio(con libros ya registrados en la biblioteca)
+        let mut archivo1 = Archivo::new(&biblioteca.get_libros_displonibles(), "repositorio_libros.json".to_string(),true);
     
         match archivo1.respaldar_informacion() {
             Ok(_) => assert!(true),
@@ -939,6 +962,12 @@ mod testing_implementacion_ejercicio4{
         match archivo1.eliminar_libro(&libro1){
             Ok(_) => assert!(true),
             Err(e) => assert!(false,"Error : {}",e)
+        }
+
+        //Intento de baja del libro "libro1" , resulta en un error
+        match archivo1.eliminar_libro(&libro1){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura"))
         }
 
         //Retornar cantidad de libros de "libro5"
@@ -989,6 +1018,29 @@ mod testing_implementacion_ejercicio4{
             Err(e) => assert!(false,"Error : {}",e)
         }
 
+        //Baja total de los libros
+        match archivo1.eliminar_libro(&libro2){
+            Ok(_) => assert!(true),
+            Err(e) => assert!(false,"Error : {}",e)
+        }
+        match archivo1.eliminar_libro(&libro3){
+            Ok(_) => assert!(true),
+            Err(e) => assert!(false,"Error : {}",e)
+        }
+        match archivo1.eliminar_libro(&libro5){
+            Ok(_) => assert!(true),
+            Err(e) => assert!(false,"Error : {}",e)
+        }
+        //Resultara en un error de estructura vacia
+        match archivo1.eliminar_libro(&libro1){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+        }
+        match archivo1.decrementar_copias_libro(&libro2){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+        }
+
     }
 
     #[test]
@@ -1029,7 +1081,7 @@ mod testing_implementacion_ejercicio4{
         biblioteca.prestar(cliente4.clone(), &libro4, ayer.clone());
 
         //Creacion del archivo repositorio
-        let mut archivo1 = Archivo::new(&biblioteca.get_lista_prestamos(), "src/tp5/listado_prestamos.json".to_string(),true);
+        let mut archivo1 = Archivo::new(&biblioteca.get_lista_prestamos(), "listado_prestamos.json".to_string(),true);
     
         match archivo1.respaldar_informacion() {
             Ok(_) => assert!(true),
@@ -1067,12 +1119,48 @@ mod testing_implementacion_ejercicio4{
             Ok(_) => assert!(true),
             Err(e) => assert!(false,"Error : {}",e)
         }
+        //Resultara en un error de inexistencia
+        match archivo1.eliminar_prestamo(&cliente4,&libro4){
+            Ok(_) => assert!(false),
+            Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura"))
+        }
+        match archivo1.buscar_prestamo(&cliente4,&libro4){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura"))
+        }
 
         //Filtrado de prestamos vencidos para una fecha determinada
         match archivo1.filtrar_prestamos_fecha(&Fecha::new(24,6,2025),0){
             Ok(res) => assert!(!res.is_empty()),
             Err(e) => assert!(false,"Error : {}",e)
         }
+
+        //Baja total de los prestamos
+        assert!(archivo1.eliminar_prestamo(&cliente1,&libro1).is_ok());
+        assert!(archivo1.eliminar_prestamo(&cliente1,&libro2).is_ok());
+        assert!(archivo1.eliminar_prestamo(&cliente2,&libro2).is_ok());
+        assert!(archivo1.eliminar_prestamo(&cliente3,&libro3).is_ok());
+        assert!(archivo1.eliminar_prestamo(&cliente4,&libro1).is_ok());
+        assert!(archivo1.eliminar_prestamo(&cliente4,&libro2).is_ok());
+        assert!(archivo1.eliminar_prestamo(&cliente4,&libro3).is_ok());
+        //Resultara en un error de etructura vacia
+        match archivo1.eliminar_prestamo(&cliente4,&libro4){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+        }
+        match archivo1.contar_prestamos(&cliente1){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+        }
+        match archivo1.buscar_prestamo(&cliente4,&libro4){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+        }
+        match archivo1.filtrar_prestamos_fecha(&Fecha::new(24,6,2025),0){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+        }
+
     }
 
 }
