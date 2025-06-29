@@ -1,8 +1,9 @@
 use std::fmt::{write, Display};
-use std::fs::{File,OpenOptions};
-use serde::{Deserialize, Serialize};
-use std::io::{self, Write};
+use std::io;
+use std::{fs::{File,OpenOptions}, io::{Error,Read,Write}};
 use std::path::Path;
+//Se debe importar serde para su uso "cargo add serde"
+use serde::{Serialize, Deserialize};
 use serde_json;
 /**
         EXTRACCION DEL EJERCICIO 8 DE TP3
@@ -60,10 +61,10 @@ impl Cancion{
         (self.genero.es_igual_a(&c.genero));
     }
     //Metodos primarios
-    pub fn new(nom1:String,nom2:String,gen_in:Generos)->Cancion{
+    pub fn new(nom_ti:String,nom_art:String,gen_in:Generos)->Cancion{
         return Cancion{
-            titulo : nom1,
-            artista : nom2,
+            titulo : nom_ti,
+            artista : nom_art,
             genero : gen_in
         }
     }    
@@ -82,46 +83,40 @@ impl PlayList{
         self.canciones.push(c.clone());
     }
     pub fn eliminar_cancion(&mut self,c:&Cancion)->bool{
-        let mut pude = false;
         if !self.canciones.is_empty() {
             for i in 0..self.canciones.len(){
                 if let Some(cancion) = self.canciones.get(i){
                     if cancion.es_igual_a(&c) {
                         self.canciones.remove(i);
-                        pude = true;
-                        break;
+                        return true;
                     }
                 }
             }
         }
-        return pude;
+        return false;
     }
     pub fn mover_cancion(&mut self,c:&Cancion,pos:usize)->bool{
-        let mut pude = false;
-            if !self.canciones.is_empty()&&(pos<=self.canciones.len()){
-                for i in 0..self.canciones.len(){
-                    if self.canciones[i].es_igual_a(&c) {
-                        let cancion = self.canciones[i].clone();
-                        self.canciones.remove(i);
-                        self.canciones.insert(pos, cancion);
-                        pude = true;
-                        break;
-                    }
+        if !self.canciones.is_empty()&&(pos<=self.canciones.len()){
+            for i in 0..self.canciones.len(){
+                if self.canciones[i].es_igual_a(&c) {
+                    let cancion = self.canciones[i].clone();
+                    self.canciones.remove(i);
+                    self.canciones.insert(pos, cancion);
+                    return true;
                 }
             }
-        return pude;
+        }
+        return false;
     }
     pub fn buscar_cancion(&self,nom:String)->Option<Cancion>{
-		let mut res : Option<Cancion> = None;
 		if !self.canciones.is_empty() {
 			for cancion in self.canciones.clone(){
 				if cancion.get_titulo() == nom {
-					res = Some(cancion);
-                    break;
+					return Some(cancion);
 				}
 			}
 		}
-		return res;
+		return None;
 	}
     pub fn canciones_genero(&self,gen_in:&Generos)->Vec<Cancion>{
         let mut res : Vec<Cancion> = Vec::new();
@@ -129,7 +124,6 @@ impl PlayList{
             for cancion in self.canciones.clone(){
                 if cancion.genero.es_igual_a(gen_in) {
                     res.push(cancion);
-                    break;
                 }
             }
         }
@@ -141,7 +135,6 @@ impl PlayList{
             for cancion in self.canciones.clone(){
                 if cancion.get_artista() == nom {
                     res.push(cancion);
-                    break;
                 }
             }
         }
@@ -212,16 +205,29 @@ mod testing_playlist{
         let c3 = Cancion::new(String::from("qwe"), String::from("Qwe"), Generos::Rock);
         p.agregar_cancion(&c1);
         p.agregar_cancion(&c2);
+        p.agregar_cancion(&c2);
         p.agregar_cancion(&c1);
         p.agregar_cancion(&c3);
         p.agregar_cancion(&c3);
 
+        //Elimino una cancion que se repite
+        assert!(p.eliminar_cancion(&c2));
+
+        //Muevo una cancion en una posicion valida
+        assert!(p.mover_cancion(&c1, 3));
+
+        if let Some(cancion) = p.buscar_cancion("qwe".to_string()){
+            assert!(cancion.genero.es_igual_a(&Generos::Rock));
+        }else{
+            panic!("No se encontro la cancion");
+        }
+
         //Listados de un unico uso para el test
-        let lista1 = p.canciones_genero(&Generos::Rap);
+        let lista1 = p.canciones_genero(&Generos::Rock);
         
         if !lista1.is_empty(){
             for cancion in lista1{
-                assert_eq!(cancion.genero.es_igual_a(&Generos::Rap),true);
+                assert_eq!(cancion.genero.es_igual_a(&Generos::Rock),true);
             }
         }else{
             panic!("Lista 1 no generada");
@@ -330,6 +336,13 @@ impl Archivo{
     fn existe_archivo(&self)->bool{
 		return Path::new(&self.path.clone()).exists();
 	}
+    fn obtener_informacion(&self)-> Result<PlayList,Errores>{
+		let mut file = File::open(self.path.clone())?;
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        let dato  = serde_json::from_str(&buf)?;
+        Ok(dato) 
+	}
     fn respaldar_informacion(&self) -> Result<(), Errores> {
         // Apertura/Creación del archivo (Se utiliza OpenOptions para la apertura y edicion de un archivo existente)
         let mut file = if self.existe_archivo() {
@@ -421,10 +434,27 @@ mod testing_implementacion_ejercicio2{
 
     //Test para maximar el coverage
     #[test]
+    fn test_error_serializacion(){
+        let directorio_temp = std::env::temp_dir();
+        let archivo_temp = directorio_temp.join("archivo_prueba.json");
+        std::fs::write(&archivo_temp, "contenido basura");
+
+        let mut playl = PlayList::new(&"asd".to_string());
+
+		let mut archivo1 = Archivo::new(&playl, archivo_temp.to_str().unwrap().to_string() ,true);
+		match archivo1.obtener_informacion(){
+            Ok(_) => assert!(false,"Aqui tendria que haber fallado"),
+			Err(e) => assert!(format!("{}",e).contains("Error de serialización")) 
+        }
+		
+    }
+
+    //Test para maximar el coverage
+    #[test]
     fn test_error_guardado(){
         let mut p = PlayList::new(&"asd".to_string());
         //Direccion nula
-		let mut archivo1 = Archivo_respaldable::new(&p, "".to_string(),true);
+		let mut archivo1 = Archivo::new(&p, "".to_string(),true);
 
         //Intento de guardardo forzoso
         match archivo1.respaldar_informacion() {
@@ -449,7 +479,7 @@ mod testing_implementacion_ejercicio2{
 
         let mut archivo1 = Archivo::new(&p, "".to_string(),false);
 
-        assert!(archivo1.validar_alta(&c1).is_ok());
+        assert!(archivo1.validar_baja(&c1).is_ok());
 
         assert!(archivo1.validar_baja(&c2).is_ok());
 
@@ -458,10 +488,34 @@ mod testing_implementacion_ejercicio2{
 			Ok(_) => assert!(false,"Aqui tendria que haber fallado"),
 			Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura"))
 		}
+
+        assert!(archivo1.validar_baja(&c3).is_ok());
         
-        assert!(archivo1.cambiar_nombre_playlist(&"PlayL1".to_string()).is_ok());
+        //Retorna error de estructura vacia
+		match archivo1.validar_baja(&c3) {
+			Ok(_) => assert!(false,"Aqui tendria que haber fallado"),
+			Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+		}
+
+        //Retorna error de estructura vacia
+		match archivo1.validar_desplazamiento(&c3, 0){
+			Ok(_) => assert!(false,"Aqui tendria que haber fallado"),
+			Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+		}
+
+        assert!(archivo1.validar_alta(&c2).is_ok());
+
+        //Retorna error de inexistencia
+		match archivo1.validar_desplazamiento(&c1, 0){
+			Ok(_) => assert!(false,"Aqui tendria que haber fallado"),
+			Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura"))
+		}
+
+        assert!(archivo1.validar_alta(&c3).is_ok());
 		
         assert!(archivo1.validar_desplazamiento(&c3, 0).is_ok());
+
+        assert!(archivo1.cambiar_nombre_playlist(&"PlayL1".to_string()).is_ok());
 		
         //Retorna error de posicion invalida
 		match archivo1.validar_desplazamiento(&c3, 10) {
@@ -488,8 +542,14 @@ mod testing_implementacion_ejercicio2{
         let c3 = Cancion::new(String::from("Bartone"), String::from("Bartolome"), Generos::Jazz);
 
         //Creacion del archivo
-        let mut archivo1 = Archivo::new(&p, "src/tp5/playlist_info.json".to_string(),false);
+        let mut archivo1 = Archivo::new(&p, "playlist_info.json".to_string(),false);
 
+        //Respaldo de informacion del archivo(vacio)
+        assert!(archivo1.respaldar_informacion().is_ok());
+        match archivo1.obtener_informacion(){
+            Ok(dat) => assert!(dat.is_Vacio()),
+            Err(e) => assert!(false,"Error : {}",e)
+        }
 
         //Altas
         assert!(archivo1.validar_alta(&c1).is_ok());
@@ -549,8 +609,14 @@ mod testing_implementacion_ejercicio2{
         let c3 = Cancion::new(String::from("Bartone"), String::from("Bartolome"), Generos::Jazz);
 
         //Creacion del archivo
-        let mut archivo1 = Archivo::new(&p, "src/tp5/playlist_info.json".to_string(),true);
+        let mut archivo1 = Archivo::new(&p, "playlist_info.json".to_string(),true);
 
+        //Respaldo de informacion del archivo(vacio)
+        assert!(archivo1.respaldar_informacion().is_ok());
+        match archivo1.obtener_informacion(){
+            Ok(dat) => assert!(dat.is_Vacio()),
+            Err(e) => assert!(false,"Error : {}",e)
+        }
 
         //Altas
         assert!(archivo1.validar_alta(&c1).is_ok());

@@ -149,10 +149,27 @@ mod testing_fecha{
 
     #[test]
     fn validacion_de_fecha(){
+        //Si las fechas tienen aproximadamente un formato correcto (Respeta el sistema gregoriano)
         let mut f = Fecha::new(1, 1, 2025);
         assert_eq!(f.es_fecha_valida(),true);
         f = Fecha::new(31, 2, 2004);
         assert_eq!(f.es_fecha_valida(),false);
+        //Si determina cual es la ultima fecha(dia) en el que acaba el mes
+        let mut f = Fecha::new(1, 9, 2025);
+        assert_eq!(f.ultimo_dia(),30);
+        assert!(f.es_fecha_valida());
+
+        let mut f = Fecha::new(1, 4, 2025);
+        assert_eq!(f.ultimo_dia(),30);
+        assert!(f.es_fecha_valida());
+
+        let mut f = Fecha::new(1, 6, 2025);
+        assert_eq!(f.ultimo_dia(),30);
+        assert!(f.es_fecha_valida());
+
+        let mut f = Fecha::new(1, 11, 2025);
+        assert_eq!(f.ultimo_dia(),30);
+        assert!(f.es_fecha_valida());
     }
 
     #[test]
@@ -165,6 +182,7 @@ mod testing_fecha{
 
     #[test]
     fn adicion_fecha(){
+        //Prueba con una fecha 1°
         let mut f = Fecha::new(1, 1, 2028);
         f.sumar_dias(30);
         assert_eq!(f.es_igual_a(&Fecha::new(31, 1, 2028)),true);
@@ -172,10 +190,15 @@ mod testing_fecha{
         assert_eq!(f.es_igual_a(&Fecha::new(1, 2, 2028)),true);
         f.sumar_dias(29);
         assert_eq!(f.es_igual_a(&Fecha::new(1,3,2028)),true);
+        //Prueba con una fecha 2°
+        let mut f = Fecha::new(31, 12, 2024);
+        f.sumar_dias(1);
+        assert_eq!(f.es_igual_a(&Fecha::new(1, 1, 2025)),true);
     }
 
     #[test]
     fn sustraccion_fecha(){
+        //Prueba con una fecha 1°
         let mut f = Fecha::new(10, 4, 2028);
         f.restar_dias(9);
         assert_eq!(f.es_igual_a(&Fecha::new(1, 4, 2028)),true);
@@ -183,6 +206,11 @@ mod testing_fecha{
         assert_eq!(f.es_igual_a(&Fecha::new(1,3,2028)),true);
         f.restar_dias(1);
         assert_eq!(f.es_igual_a(&Fecha::new(29, 2, 2028)),true);
+
+        //Prueba con una fecha 2°
+        let mut f = Fecha::new(1, 1, 2025);
+        f.restar_dias(1);
+        assert_eq!(f.es_igual_a(&Fecha::new(31, 12, 2024)),true);
     }
 
     #[test]

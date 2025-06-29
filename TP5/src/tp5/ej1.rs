@@ -395,7 +395,6 @@ impl Archivo_respaldable{
 
 #[cfg(test)]
 mod testing_implementacion_ejercicio1{
-use std::env::temp_dir;
 
 use super::*;
 
