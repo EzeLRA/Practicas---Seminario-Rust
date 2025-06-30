@@ -132,13 +132,13 @@ impl BalancePropio{
     }
     //Sin limite de ingreso maximo
     fn contabilizar_fiat(&mut self,monto:f64){
-        self.dinero_fiat += monto;
+        self.fijar_fiat(self.dinero_fiat + monto);
     }
     //Con limite de extracion(Sin saldo negativo)
     fn descontabilizar_fiat(&mut self,monto:f64)->bool{
         let mut pude = false;
         if self.dinero_fiat >= monto {
-            self.dinero_fiat -= monto;
+            self.fijar_fiat(self.dinero_fiat - monto);
             pude = true;
         }
         return pude;
@@ -980,6 +980,7 @@ mod test_ejercicio5{
         let c1 = Criptomoneda::new(&"Cripton".to_string(),&"CRP".to_string());
         let c2 = Criptomoneda::new(&"MineCoin".to_string(),&"MIN".to_string());
         let c3 = Criptomoneda::new(&"Bitcoin".to_string(),&"BTC".to_string());
+        let c4 = Criptomoneda::new(&"Fakex".to_string(),&"FKX".to_string());
 
         //Creacion de sistema
         let mut sis1 = Plataforma::new();
@@ -987,6 +988,14 @@ mod test_ejercicio5{
         assert!(sis1.registrar_criptomoneda(&c2.clone(),1000.0) );
         assert!(sis1.registrar_criptomoneda(&c3.clone(),5000.0) );
         assert!(!sis1.registrar_criptomoneda(&c1.clone(),700.0) );
+        assert!(sis1.registrar_criptomoneda(&c4.clone(),10.0) );
+
+        //Baja de una criptomoneda
+        assert!(sis1.eliminar_criptomoneda(&c4));
+        assert!(!sis1.eliminar_criptomoneda(&c4));
+
+        //Obtener cotizacion de una criptomoneda
+        assert_eq!(sis1.obtener_cotizacion_criptomoneda(&"Cripton".to_string()),1500.0);
 
         assert!(sis1.registrar_usuario(&us1));
         assert!(!sis1.registrar_usuario(&us1));

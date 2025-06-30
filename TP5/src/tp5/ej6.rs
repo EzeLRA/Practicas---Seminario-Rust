@@ -144,13 +144,13 @@ impl BalancePropio{
     }
     //Sin limite de ingreso maximo
     fn contabilizar_fiat(&mut self,monto:f64){
-        self.dinero_fiat += monto;
+        self.fijar_fiat(self.dinero_fiat + monto);
     }
     //Con limite de extracion(Sin saldo negativo)
     fn descontabilizar_fiat(&mut self,monto:f64)->bool{
         let mut pude = false;
         if self.dinero_fiat >= monto {
-            self.dinero_fiat -= monto;
+            self.fijar_fiat(self.dinero_fiat - monto);
             pude = true;
         }
         return pude;
@@ -992,6 +992,7 @@ mod test_ejercicio5{
         let c1 = Criptomoneda::new(&"Cripton".to_string(),&"CRP".to_string());
         let c2 = Criptomoneda::new(&"MineCoin".to_string(),&"MIN".to_string());
         let c3 = Criptomoneda::new(&"Bitcoin".to_string(),&"BTC".to_string());
+        let c4 = Criptomoneda::new(&"Fakex".to_string(),&"FKX".to_string());
 
         //Creacion de sistema
         let mut sis1 = Plataforma::new();
@@ -999,6 +1000,14 @@ mod test_ejercicio5{
         assert!(sis1.registrar_criptomoneda(&c2.clone(),1000.0) );
         assert!(sis1.registrar_criptomoneda(&c3.clone(),5000.0) );
         assert!(!sis1.registrar_criptomoneda(&c1.clone(),700.0) );
+        assert!(sis1.registrar_criptomoneda(&c4.clone(),10.0) );
+
+        //Baja de una criptomoneda
+        assert!(sis1.eliminar_criptomoneda(&c4));
+        assert!(!sis1.eliminar_criptomoneda(&c4));
+
+        //Obtener cotizacion de una criptomoneda
+        assert_eq!(sis1.obtener_cotizacion_criptomoneda(&"Cripton".to_string()),1500.0);
 
         assert!(sis1.registrar_usuario(&us1));
         assert!(!sis1.registrar_usuario(&us1));
@@ -1271,15 +1280,6 @@ impl<T:Clone + Serialize> Archivo<T>{
     fn existe_archivo(&self)->bool{
         return Path::new(&self.path.clone()).exists();
     }
-    fn set_informacion(&mut self,datos:&Vec<T>)-> Result<(), Errores>{
-        self.informacion = datos.clone();
-        
-        if self.autoguardado{
-            self.respaldar_informacion()?;
-        }
-
-        Ok(())
-    }
     fn respaldar_informacion(&self) -> Result<(), Errores> {
         // Apertura/Creación del archivo
         let mut file = if self.existe_archivo() {
@@ -1287,20 +1287,17 @@ impl<T:Clone + Serialize> Archivo<T>{
             OpenOptions::new()
             .write(true)
             .truncate(true)
-            .open(&self.path)
-            .map_err(Errores::ErrorIO)?
+            .open(&self.path)?
         } else {
             // Crear nuevo archivo si no existe
-            File::create(&self.path).map_err(Errores::ErrorIO)?
+            File::create(&self.path)?
         };
 
         // Serialización de la informacion
-        let serializado = serde_json::to_string(&self.informacion)
-            .map_err(Errores::ErrorSerde)?;
+        let serializado = serde_json::to_string(&self.informacion)?;
 
         // Escritura en el archivo
-        file.write_all(serializado.as_bytes())
-            .map_err(Errores::ErrorIO)?;
+        file.write_all(serializado.as_bytes())?;
 
         Ok(())
     }
@@ -1364,14 +1361,11 @@ impl Archivo<Usuario>{
     fn registrar_usuario(&mut self,u:&Usuario)->Result<(),Errores>{
 
         if !self.informacion.is_empty(){
-            if self.informacion.iter().find(|user| user.informacion_correcta(&u.datos)).is_none(){
-                self.informacion.push(u.clone());
-            }else{
+            if self.informacion.iter().find(|user| user.informacion_correcta(&u.datos)).is_some(){
                 return Err(Errores::ErrorOperatoria(error_operatoria::Existente("Registro de usuarios".to_string() )) );
             }
-        }else{
-            return Err(Errores::ErrorOperatoria(error_operatoria::EstructuraVacia("Registro de usuarios".to_string() )) );
         }
+        self.informacion.push(u.clone());
 
         if self.autoguardado{
             self.respaldar_informacion()?;
@@ -1421,6 +1415,36 @@ impl Archivo<Usuario>{
 mod test_implementacion_ejercicio6{
 	use super::*;
 
+    //Test para maximizar el coverage
+    #[test]
+    fn test_error_serializacion(){
+        let directorio_temp = std::env::temp_dir();
+        let archivo_temp = directorio_temp.join("archivo_prueba.json");
+        std::fs::write(&archivo_temp, "contenido basura");
+        
+        let aux : Vec<Usuario> = Vec::new();
+        let mut archivo1 = Archivo::new(&aux, &archivo_temp.to_str().unwrap().to_string(), true);
+        //Se prueba con un metodo que requiera la apertura de un archivo , resultara en un error
+        match archivo1.obtener_usuario(&DatosPersona { nombre: "as".to_string(), apellido: "hgtr".to_string(), email: "hth".to_string(), dni: 1234 }) {
+            Ok(_) => assert!(false,"Aqui tendria que haber fallado"),
+            Err(e) => assert!(format!("{}",e).contains("Error de serialización"))
+        }
+    }
+
+	//Test para maximizar el coverage
+    #[test]
+    fn test_error_respaldado(){
+        let aux : Vec<Usuario> = Vec::new();
+        //Archivo (la plafatorma no tiene usuarios)
+		let mut archivo1 = Archivo::new(&aux,&"".to_string(),true);
+
+        //Resultara en un error
+        match archivo1.respaldar_informacion(){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("Error de E/S al guardar:"))
+        }
+    }
+
     #[test]
     fn operatoria_archivo_balances(){
         //Usuario1
@@ -1467,7 +1491,7 @@ mod test_implementacion_ejercicio6{
         sis1.comprar_criptomoneda_usuario(&us3,&Fecha(23,06,2025),5.0,&c1.get_nombre());
 
         //Archivo (la plafatorma tiene usuarios con sus balances)
-		let mut archivo1 = Archivo::new(&sis1.get_balances(),&"src/tp5/registro_balances.json".to_string(),true);
+		let mut archivo1 = Archivo::new(&sis1.get_balances(),&"registro_balances.json".to_string(),true);
         match archivo1.respaldar_informacion(){
             Ok(_) => assert!(true),
             Err(e) => assert!(false,"Error : {}",e)
@@ -1475,14 +1499,29 @@ mod test_implementacion_ejercicio6{
 
         //Baja del usuario1 en el archivo1
         match archivo1.eliminar_usuario(&us1){
-            Ok(val) => assert!(true),
+            Ok(_) => assert!(true),
             Err(e) => assert!(false,"Error : {}",e), 
+        }
+        //Resulta en un error de inexistencia
+        match archivo1.eliminar_usuario(&us1){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura")) 
+        }
+        match archivo1.obtener_usuario(&us1.datos){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura")) 
         }
 
         //Alta un usuario nuevo sin dinero fiat y criptomonedas adquiridas
-        match archivo1.registrar_usuario(&Usuario::new(&"Manolo".to_string(),&"Teruel".to_string(),&"examp@example.com".to_string(),8897712)){
+        let usuario_nue = Usuario::new(&"Manolo".to_string(),&"Teruel".to_string(),&"examp@example.com".to_string(),8897712);
+        match archivo1.registrar_usuario(&usuario_nue){
             Ok(_) => assert!(true),
             Err(e) => assert!(false,"Error : {}",e), 
+        }
+        //Resulta error de existencia
+        match archivo1.registrar_usuario(&usuario_nue){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("Ya existe el elemento en la estructura")), 
         }
 
         //Busqueda de usuario3
@@ -1492,6 +1531,30 @@ mod test_implementacion_ejercicio6{
             Err(e) => assert!(false,"Error : {}",e), 
         }
         
+        //Baja total de los usuarios
+        match archivo1.eliminar_usuario(&us2){
+            Ok(_) => assert!(true),
+            Err(e) => assert!(false,"Error : {}",e), 
+        }
+        match archivo1.eliminar_usuario(&us3){
+            Ok(_) => assert!(true),
+            Err(e) => assert!(false,"Error : {}",e) 
+        }
+        match archivo1.eliminar_usuario(&usuario_nue){
+            Ok(_) => assert!(true),
+            Err(e) => assert!(false,"Error : {}",e) 
+        }
+
+        //Resulta error de estructura (Listado de usuarios/balances) vacia
+        match archivo1.eliminar_usuario(&us2){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("no dispone de elementos")) 
+        }
+        match archivo1.obtener_usuario(&us2.datos){
+            Ok(_) => assert!(false,"Aqui debio fallar"),
+            Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+        }
+
     }
 
     #[test]
@@ -1538,7 +1601,7 @@ mod test_implementacion_ejercicio6{
         sis1.vender_criptomoneda_usuario(&us2,&Fecha(28, 6, 2025), 3.0 , &c1.get_nombre());
 
         //Creacion del archivo fisico
-        let mut archivo1 = Archivo::new(&sis1.get_comprobantes(),&"src/tp5/listado_comprobantes.json".to_string(),true);
+        let mut archivo1 = Archivo::new(&sis1.get_comprobantes(),&"listado_comprobantes.json".to_string(),true);
         match archivo1.respaldar_informacion(){
             Ok(_) => assert!(true),
             Err(e) => assert!(false,"Error : {}",e)
@@ -1564,6 +1627,48 @@ mod test_implementacion_ejercicio6{
             Ok(c) => assert!(c.datos_igual_a(&us2.datos)),
             Err(e) => assert!(false,"Error : {}",e)
         }
+
+        //Baja total de comprobantes de usuario1
+        match archivo1.eliminar_transaccion(&us1.datos){
+            Ok(_) => assert!(true),
+            Err(e) => assert!(false,"Error : {}",e)
+        }
+        match archivo1.eliminar_transaccion(&us1.datos){
+            Ok(_) => assert!(true),
+            Err(e) => assert!(false,"Error : {}",e)
+        }
+        //Retorna error de inexistencia
+        match archivo1.eliminar_transaccion(&us1.datos){
+            Ok(_) => assert!(false),
+            Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura"))
+        }
+        match archivo1.obtener_transaccion(&us1.datos){
+            Ok(_) => assert!(false),
+            Err(e) => assert!(format!("{}",e).contains("No se encontro el elemento en la estructura"))
+        }
+
+        //Baja total de comprobantes
+        for i in 0..4{
+            match archivo1.eliminar_transaccion(&us2.datos){
+                Ok(_) => assert!(true),
+                Err(e) => assert!(false,"Error : {}",e)            
+            }
+        }
+        match archivo1.eliminar_transaccion(&datos){
+            Ok(_) => assert!(true),
+            Err(e) => assert!(false,"Error : {}",e)            
+        }
+
+        //Retorna error de estructura(lista de comprobantes) vacia
+        match archivo1.eliminar_transaccion(&us1.datos){
+            Ok(_) => assert!(false),
+            Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+        }
+        match archivo1.obtener_transaccion(&us1.datos){
+            Ok(_) => assert!(false),
+            Err(e) => assert!(format!("{}",e).contains("no dispone de elementos"))
+        }
+        
     }
 
 }
