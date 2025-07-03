@@ -437,7 +437,8 @@ use super::*;
     IMPLEMENTACION PRINCIPAL ENTREGABLE 2
 */
 
-//Extrae los datos necesarios para la resolucion solo lo pedido()
+//Extrae los datos necesarios para la resolucion (solo lo pedido)
+#[derive(Debug)]
 pub struct Compra{
     fecha : Fecha,
     medio_pago : MediosDePago,
@@ -457,8 +458,12 @@ impl Compra{
     fn get_fecha(&self)->Fecha{
         return self.fecha.clone();
     }
+    fn get_monto_final(&self)->f64{
+        return self.monto_final;
+    }
 }
 
+#[derive(Debug)]
 pub struct Informe{
     compras : Vec<Compra>
 }
@@ -473,7 +478,7 @@ impl Informe{
     }
     //Funciones primarias (las propuestas inicialmente)
 
-    //Agrega la venta con la informacion necesaria para el informe
+    //Recibe un venta para obtener la informacion necesaria para el informe
     fn procesar_venta(&mut self,v:&Venta,monto:f64){
         let compra = Compra::new(&v.fecha,&v.medio_pago,&v.productos,monto);
         self.compras.push(compra);
@@ -515,28 +520,19 @@ impl Sistema {
 mod test_entregable2{    
     use super::*;
 
-    //Se buscara testear si el sistema no dispone de ventas
-    
-    //Se buscara testear si el sistema dispone de ventas pero se evaluara si:
-    //Existe el cliente con el dni obtenido y no existe un cliente con tal dni
-    
-    //Se evaluara si el dni existe pero cada compra no cumple lo siguiente:
-    //El monto final no supera el monto minimo
-    //El monto final supera el monto minimo
-
     //1º Test
-    //Se observa el correcto funcionamiento del metodo y su resultado
+    //Se observa el correcto funcionamiento del metodo implementado (funcionamiento minimo)
     #[test]
     fn creacion_informe(){
         //Sistema
-        let mut sis = Sistema::new(&CategPorcentajes(0.0, 60.0, 40.0, 0.0), &"correo@example.com".to_string());
+        let sis = Sistema::new(&CategPorcentajes(0.0, 60.0, 40.0, 0.0), &"correo@example.com".to_string());
 
         //No retornara un informe (el sistema no dispone de ninguna venta hecha,inclusive de datos como clientes,vendedores o productos)
-        assert!(sis.get_historial_compras(123,1000.0).is_none());
+        assert!(sis.get_historial_compras(123,1000.0).is_none(),"Se esperaba un retorno de None");
     }
 
     //2º Test
-    //Se evaluan los diferentes que retorne el metodo
+    //Se evaluan los diferentes casos de retorno del nuevo metodo implementado
     #[test]
     fn operar_sistema_informes(){
         //Sistema
@@ -552,9 +548,9 @@ mod test_entregable2{
         //Productos registrados
         let p1 = Producto::new(&"CocaCola".to_string(), &sis.definir_categoria(&Categorias::Alimento(0.0)), 3500.0);
         let p2 = Producto::new(&"Escoba".to_string(), &sis.definir_categoria(&Categorias::Limpieza(0.0)), 1000.0);
-        let p3 = Producto::new(&"ElEjemplo".to_string(), &Categorias::Bazar(0.0), 1500.0);
+        let p3 = Producto::new(&"ElEjemplo".to_string(), &sis.definir_categoria(&Categorias::Bazar(0.0)), 1500.0);
 
-        //Generar ventas por cli1
+        //Generar ventas con cli1
         let mut v1 = Venta::new(&Fecha::new(05, 02, 2025), &cli1, &ven1, &MediosDePago::Efectivo);
         v1.agregar_producto(&ProductoVendido::new(&p1, 2));
         v1.agregar_producto(&ProductoVendido::new(&p2, 1));
@@ -569,22 +565,106 @@ mod test_entregable2{
         sis.agregar_venta(&v1);
         sis.agregar_venta(&v2);
 
+        //Caso 1º
+        //No retornara un informe (el sistema no encuentra el dni en el registro de ventas)
+        assert!(sis.get_historial_compras(2987865,1000.0).is_none(),"Se esperaba un retorno de None");
 
-        //No retornara un informe (el sistema no encuentra un dni de tal tipo)
-        assert!(sis.get_historial_compras(2987865,1000.0).is_none());
-
+        //Caso 2º
         //No retornara un informe (el sistema encuentra un dni pero el mismo no cumple la condicion de monto minimo)
-        assert!(sis.get_historial_compras(871265,900000.0).is_none());
+        assert!(sis.get_historial_compras(871265,900000.0).is_none(),"Se esperaba un retorno de None");
 
+        //Caso 3º
         //Retorna un informe (el sistema encuentra un dni y cumple la condicion de monto minimo)
-        assert!(sis.get_historial_compras(871265,1000.0).is_some());
+        assert!(sis.get_historial_compras(871265,1000.0).is_some(),"Se esperaba un retorno de un informe");
     }
 
-    //3º Test
+    //3º Test extra
+    //Valida si el informe cumple con las condiciones pedidas:
+        //Las compras estan ordenadas por orden cronologico
+        //Cumplen la condicion de monto minimo
     #[test]
     fn validar_informacion_informe(){
-        //Evaluar si las compras estan ordenadas por orden cronologico
-        //Evaluar si las compras cumplen la condicion de monto minimo
+        //Sistema
+        let mut sis = Sistema::new(&CategPorcentajes(0.0, 60.0, 40.0, 0.0), &"correo@example.com".to_string());
+
+        //Personas (Solo se trabaja con un unico cliente)
+        let mut cli1 = Cliente::new(&"Lucas".to_string(), &"Daniel".to_string(), &"AvBelgrano".to_string(), 871265);
+        
+        let ven1 = Vendedor::new(&"Tobias".to_string(), &"Serio".to_string(), &"AvBelgrano".to_string(), 237863, 9876, 2, 12000.0);
+
+        //Productos registrados
+        let p1 = Producto::new(&"CocaCola".to_string(), &sis.definir_categoria(&Categorias::Alimento(0.0)), 3500.0);
+        let p2 = Producto::new(&"Escoba".to_string(), &sis.definir_categoria(&Categorias::Limpieza(0.0)), 1000.0);
+        let p3 = Producto::new(&"ElEjemplo".to_string(), &sis.definir_categoria(&Categorias::Bazar(0.0)), 1500.0);
+        let p4 = Producto::new(&"Shampoo".to_string(),&sis.definir_categoria(&Categorias::Limpieza(0.0)),3000.0);
+
+        //Generar ventas con cli1
+        let mut v1 = Venta::new(&Fecha::new(05, 02, 2024), &cli1, &ven1, &MediosDePago::Efectivo);
+        v1.agregar_producto(&ProductoVendido::new(&p1, 3));
+        v1.agregar_producto(&ProductoVendido::new(&p2, 1));
+        v1.agregar_producto(&ProductoVendido::new(&p3, 5));
+
+        let mut v2 = Venta::new(&Fecha::new(15, 6, 2025), &cli1, &ven1, &MediosDePago::Efectivo);
+        v2.agregar_producto(&ProductoVendido::new(&p1, 5));
+        v2.agregar_producto(&ProductoVendido::new(&p2, 2));
+        v2.agregar_producto(&ProductoVendido::new(&p3, 3));
+
+        //Agregar ventas al sistema
+        sis.agregar_venta(&v1);
+        sis.agregar_venta(&v2);
+
+        //Verificacion sin modificaciones en el sistema
+        //Se verifica si retorna el informe , ya que existe el cliente con el dni ingresado en el sistema
+        if let Some(info) = sis.get_historial_compras(871265,10000.0){
+            //Verifico si el informe incluye las dos compras hechas por el cliente (ya que deben cumplir con las condiciones de monto minimo y pertenecientes a un dni ingresado)
+            assert_eq!(info.compras.len(),2);
+            //Se demuestra que cumplen con la condicion de monto minimo cada compra
+            for compra in &info.compras{
+                assert!(compra.get_monto_final() > 10000.0 ,"Una de las compras no cumple la condicion");
+                assert_eq!(compra.medio_pago,MediosDePago::Efectivo); //Validacion extra del medio de pago
+            }
+            //Verifico que se cumple la condicion de orden cronologico
+            assert_eq!(info.compras[0].get_fecha(),Fecha(5, 2, 2024)); //Primer fecha
+            assert_eq!(info.compras[info.compras.len()-1].get_fecha(),Fecha(15, 6, 2025)); //Ultima fecha
+        }else{
+            panic!("No se genero el informe correctamente");
+        }
+
+
+        //Se agregan nuevas ventas al sistema
+
+        let mut v3 = Venta::new(&Fecha::new(25, 1, 2023), &cli1, &ven1, &MediosDePago::Efectivo);
+        v3.agregar_producto(&ProductoVendido::new(&p1, 4));
+        v3.agregar_producto(&ProductoVendido::new(&p2, 1));
+        v3.agregar_producto(&ProductoVendido::new(&p3, 5));
+        v3.agregar_producto(&ProductoVendido::new(&p4, 2));
+
+        let mut v4 = Venta::new(&Fecha::new(24, 12, 2025), &cli1, &ven1, &MediosDePago::Efectivo);
+        v4.agregar_producto(&ProductoVendido::new(&p1, 4));
+        v4.agregar_producto(&ProductoVendido::new(&p3, 4));
+
+        sis.agregar_venta(&v3);
+        sis.agregar_venta(&v4);
+
+        //Otorga cli1 el newsletter por parte del sistema
+        sis.otorgar_newsletter(&mut cli1);
+
+        //Verificacion con modificaciones en el sistema
+        //Se vuelve a verificar si retorna el informe correctamente para el mismo cliente existente
+        if let Some(info) = sis.get_historial_compras(871265,10000.0){
+            //Verifico si el informe incluye las cuatro compras hechas por el cliente (ya que deben cumplir con las condiciones de monto minimo y pertenecientes a un dni ingresado)
+            assert_eq!(info.compras.len(),4);
+            //Se demuestra que cumplen con la condicion de monto minimo cada compra
+            for compra in &info.compras{
+                assert!(compra.get_monto_final() > 10000.0 ,"Una de las compras no cumple la condicion");
+                assert_eq!(compra.medio_pago,MediosDePago::Efectivo); //Validacion extra del medio de pago
+            }
+            //Verifico que se cumple la condicion de orden cronologico
+            assert_eq!(info.compras[0].get_fecha(),Fecha(25, 1, 2023)); //Primer fecha
+            assert_eq!(info.compras[info.compras.len()-1].get_fecha(),Fecha(24, 12, 2025)); //Ultima fecha
+        }else{
+            panic!("No se genero el informe correctamente");
+        }
     }
 
 }
