@@ -1,7 +1,0 @@
-/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/deps/libstr_buf-888099afb913f6cf.rmeta: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/str-buf-3.0.3/src/lib.rs
-
-/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/deps/libstr_buf-888099afb913f6cf.rlib: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/str-buf-3.0.3/src/lib.rs
-
-/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/src/coverage/debug/deps/str_buf-888099afb913f6cf.d: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/str-buf-3.0.3/src/lib.rs
-
-/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/str-buf-3.0.3/src/lib.rs:

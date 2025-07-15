@@ -262,6 +262,8 @@ pub struct CategPorcentajes(f64,f64,f64,f64);
 
 pub struct Sistema{
     ventas : Vec<Venta>,
+    vendedores : Vec<Vendedor>,
+    productos : Vec<Producto>,
     categorias_porcentajes : CategPorcentajes,
     newsletter : String
 }
@@ -270,6 +272,8 @@ impl Sistema{
     fn new(porcentajes:&CategPorcentajes,c:&String)->Sistema{
         return Sistema {
             ventas : Vec::new(),
+            vendedores : Vec::new(),
+            productos : Vec::new(),
             categorias_porcentajes : porcentajes.clone(),
             newsletter : c.clone()
         }
@@ -283,8 +287,32 @@ impl Sistema{
         }
 
     }
-    fn agregar_venta(&mut self,v:&Venta){
-        self.ventas.push(v.clone());
+    fn registrar_vendedor(&mut self,v: &Vendedor)->bool{
+        if self.vendedores.iter().find(|u| *u == v).is_some(){
+            return false;
+        }
+        self.vendedores.push(v.clone());
+        return true;
+    }
+    fn registrar_producto(&mut self,p: &Producto)->bool{
+        if self.productos.iter().find(|pr| *pr == p).is_some(){
+            return false;
+        }
+        self.productos.push(p.clone());
+        return true;
+    }
+    fn registrar_venta(&mut self,v:&Venta)->bool{
+        if self.vendedores.iter().find(|u| **u == v.vendedor).is_some(){
+            for pv in &v.productos {
+                if !self.productos.contains(&pv.0) {
+                    return false;
+                }
+            }
+            self.ventas.push(v.clone());
+            return true;
+        }else{
+            return false;
+        }
     }
     fn retornar_ventas_por_categoria(&self,categ:&Categorias)->Vec<Venta>{
         let mut res : Vec<Venta> = Vec::new();
@@ -401,8 +429,14 @@ use super::*;
         let v3 = Venta::new(&Fecha::new(25, 8, 2025), &cli1, &ven1, &MediosDePago::TarjetaDébito);  //Sin productos y sin registrar en el sistema
 
         //Operar en el sistema
-        sis.agregar_venta(&v1);
-        sis.agregar_venta(&v2);
+        assert!(sis.registrar_vendedor(&ven1));
+        assert!(sis.registrar_producto(&p1));
+        assert!(sis.registrar_producto(&p2));
+        assert!(sis.registrar_producto(&p3));
+
+        assert!(sis.registrar_venta(&v1));
+        assert!(sis.registrar_venta(&v2));
+
 
         //Retorno de ventas por categorias
         let res = sis.retornar_ventas_por_categoria(&sis.definir_categoria(&Categorias::Otro(0.0)));
