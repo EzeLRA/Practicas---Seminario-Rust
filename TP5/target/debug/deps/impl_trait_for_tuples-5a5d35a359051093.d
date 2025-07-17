@@ -1,0 +1,8 @@
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/target/debug/deps/impl_trait_for_tuples-5a5d35a359051093.d: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/impl-trait-for-tuples-0.2.3/src/lib.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/impl-trait-for-tuples-0.2.3/src/full_automatic.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/impl-trait-for-tuples-0.2.3/src/semi_automatic.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/impl-trait-for-tuples-0.2.3/src/utils.rs
+
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/TP5/target/debug/deps/libimpl_trait_for_tuples-5a5d35a359051093.so: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/impl-trait-for-tuples-0.2.3/src/lib.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/impl-trait-for-tuples-0.2.3/src/full_automatic.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/impl-trait-for-tuples-0.2.3/src/semi_automatic.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/impl-trait-for-tuples-0.2.3/src/utils.rs
+
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/impl-trait-for-tuples-0.2.3/src/lib.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/impl-trait-for-tuples-0.2.3/src/full_automatic.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/impl-trait-for-tuples-0.2.3/src/semi_automatic.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/impl-trait-for-tuples-0.2.3/src/utils.rs:

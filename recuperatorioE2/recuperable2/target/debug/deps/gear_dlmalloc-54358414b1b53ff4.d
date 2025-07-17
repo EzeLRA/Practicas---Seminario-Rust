@@ -1,0 +1,10 @@
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/recuperatorioE2/recuperable2/target/debug/deps/gear_dlmalloc-54358414b1b53ff4.d: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/lib.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/common.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/dlmalloc.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/dlverbose.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/global.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/linux.rs
+
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/recuperatorioE2/recuperable2/target/debug/deps/libgear_dlmalloc-54358414b1b53ff4.rmeta: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/lib.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/common.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/dlmalloc.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/dlverbose.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/global.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/linux.rs
+
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/lib.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/common.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/dlmalloc.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/dlverbose.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/global.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gear-dlmalloc-0.2.0/src/linux.rs:

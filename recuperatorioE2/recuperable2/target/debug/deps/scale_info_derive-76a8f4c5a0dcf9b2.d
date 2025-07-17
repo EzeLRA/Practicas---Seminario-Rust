@@ -1,0 +1,8 @@
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/recuperatorioE2/recuperable2/target/debug/deps/scale_info_derive-76a8f4c5a0dcf9b2.d: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scale-info-derive-2.11.6/src/lib.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scale-info-derive-2.11.6/src/attr.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scale-info-derive-2.11.6/src/trait_bounds.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scale-info-derive-2.11.6/src/utils.rs
+
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/recuperatorioE2/recuperable2/target/debug/deps/libscale_info_derive-76a8f4c5a0dcf9b2.so: /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scale-info-derive-2.11.6/src/lib.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scale-info-derive-2.11.6/src/attr.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scale-info-derive-2.11.6/src/trait_bounds.rs /home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scale-info-derive-2.11.6/src/utils.rs
+
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scale-info-derive-2.11.6/src/lib.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scale-info-derive-2.11.6/src/attr.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scale-info-derive-2.11.6/src/trait_bounds.rs:
+/home/ezequiel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/scale-info-derive-2.11.6/src/utils.rs:
