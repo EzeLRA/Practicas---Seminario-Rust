@@ -1273,12 +1273,64 @@ mod testing_nueva_implementacion_rec_entregable2{
         //Se evalua que retorna una lista de prestamos por cliente1
         assert!(!biblioteca.get_historial_prestamos(&cliente1.get_nombre(),EstadoPrestamo::EnPrestamo).is_empty(),"El metodo debio retornar una lista con contenido");
         
+        //Se evalua que se retorne una lista vacia por cliente2
+        assert!(biblioteca.get_historial_prestamos(&cliente2.get_nombre(),EstadoPrestamo::EnPrestamo).is_empty(),"El metodo debio retornar una lista vacia");
         
     }
 
     //3° Test
+    //La biblioteca dispone de prestamos y se quiere evaluar para un cliente los tres estados principales
     #[test]
     fn evaluacion_estados(){
-        //La biblioteca dispone de prestamos y se quiere evaluar para un cliente los tres estados principales
+        //Biblioteca principal
+        let mut biblioteca = Biblioteca::new(String::from("Silencio"),String::from("1 e 2 y 3"));
+
+        //Libros
+        let libro1 = Libro::new(10, "Libro1".to_string(), "Autor1".to_string(), 50 , Genero::Infantil);
+        let libro2 = Libro::new(20, "Libro2".to_string(), "Autor2".to_string(), 50 , Genero::Novela);
+        let libro3 = Libro::new(30, "Libro3".to_string(), "Autor3".to_string(), 50 , Genero::Tecnico);
+        let libro4 = Libro::new(40, "Libro4".to_string(), "Autor4".to_string(), 50 , Genero::Otro);
+
+        biblioteca.agregar_libro(libro1.clone(),5);
+        biblioteca.agregar_libro(libro2.clone(),5);
+        biblioteca.agregar_libro(libro3.clone(),5);
+        biblioteca.agregar_libro(libro4.clone(),5);
+
+        //Clientes
+        let cliente1 = Cliente::new("Pedro".to_string(),4,"Pedro.com".to_string());
+        
+        //Prestamos de cliente1
+        biblioteca.prestar(cliente1.clone(), &libro1, Fecha::new(22, 4, 2025)); 
+        biblioteca.prestar(cliente1.clone(), &libro2, Fecha::new(12, 7, 2025));
+        biblioteca.prestar(cliente1.clone(), &libro3, Fecha::new(21, 8, 2025));
+        biblioteca.prestar(cliente1.clone(), &libro4, Fecha::new(28, 1, 2025));
+
+        //Retorno de libros por parte del cliente1
+        biblioteca.devolver(&Fecha::new(25,5,2025),&libro1,&cliente1);
+        biblioteca.devolver(&Fecha::new(22,9,2025),&libro3,&cliente1);
+
+        //Se intenta evaluar los prestamos pendientes
+        let res = biblioteca.get_historial_prestamos(&cliente1.get_nombre(),EstadoPrestamo::EnPrestamo);
+        if !res.is_empty() {
+            let mut it = res.iter();
+            assert!(it.next().is_some());
+            assert!(it.next().is_some());
+            assert!(it.next().is_none());
+        }
+
+        //Se intenta evaluar los prestamos devueltos
+        let res = biblioteca.get_historial_prestamos(&cliente1.get_nombre(),EstadoPrestamo::Devueltos);
+        if !res.is_empty(){
+            let mut it = res.iter();
+            assert!(it.next().is_some());
+            assert!(it.next().is_some());
+            assert!(it.next().is_none());
+        }
+
+        //Se intenta evaluar todos los prestamos
+        let res = biblioteca.get_historial_prestamos(&cliente1.get_nombre(),EstadoPrestamo::Ambos);
+        if !res.is_empty(){
+            assert_eq!(res.len(),4);
+        }
     }
 }
