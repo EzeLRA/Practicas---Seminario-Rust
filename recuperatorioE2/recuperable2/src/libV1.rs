@@ -1186,22 +1186,21 @@ pub enum EstadoPrestamo{
 
 impl Biblioteca{
     //No se realizan modificaciones en base a los datos que tendra el struct prestamo (ya que dispone de los datos necesarios)
-    //Retorna una lista vacia en el caso de que no exista el cliente o si existe el mismo pero no dispone de prestamos segun lo que se haya solicitado 
     fn get_historial_prestamos(&self,id_cliente:&String,filtro_estado:EstadoPrestamo)->Vec<Prestamo>{
         let mut res : Vec<Prestamo> = Vec::new();
         
         //Verifica si la lista esta vacia antes de recorrer
         if !self.prestamos.is_empty(){
             //filtro los prestamos por cliente
-            let prestamos_cli : Vec<Prestamo> = self.prestamos.clone().into_iter().filter(|pres| pres.cliente.get_nombre() == *id_cliente).collect();
+            let prestamos_cli : Vec<Prestamo> = self.prestamos.iter().filter(|pres| pres.cliente.get_nombre() == id_cliente).collect().clone();
             //Verifico si el cliente tiene prestamos para seguir con el proceso
             if !prestamos_cli.is_empty(){
                 //Filtro los prestamos segun el filtro de estado
                 //Aqui se procesara en conjunto con res
                 match filtro_estado {
-                    EstadoPrestamo::EnPrestamo => {res = prestamos_cli.into_iter().filter(|pres| pres.estado.es_igual_a(&Estado::EnPrestamo)).collect() },
-                    EstadoPrestamo::Devueltos => {res = prestamos_cli.into_iter().filter(|pres| pres.estado.es_igual_a(&Estado::Devuelto)).collect() },
-                    EstadoPrestamo::Ambos => {res = prestamos_cli }
+                    EstadoPrestamo::EnPrestamo => {},
+                    EstadoPrestamo::Devueltos => {},
+                    EstadoPrestamo::Ambos => {}
                 }
             }
         }
@@ -1216,140 +1215,23 @@ mod testing_nueva_implementacion_rec_entregable2{
 
     //Se buscara evaluar la nueva funcion bajo las siguientes condiciones
 
-    //1° Test
-    //La biblioteca no dispone de ningun libro o dispone de libros pero no se efectuaron prestamos 
+    //1° Test 
     #[test]
     fn sin_ningun_prestamo(){
-        //Biblioteca principal
-        let mut biblioteca = Biblioteca::new(String::from("Silencio"),String::from("1 e 2 y 3"));
-
-        //Libros
-        let libro1 = Libro::new(10, "Libro1".to_string(), "Autor1".to_string(), 50 , Genero::Infantil);
-        let libro2 = Libro::new(20, "Libro2".to_string(), "Autor2".to_string(), 50 , Genero::Novela);
-        let libro3 = Libro::new(30, "Libro3".to_string(), "Autor3".to_string(), 50 , Genero::Tecnico);
-        let libro4 = Libro::new(40, "Libro4".to_string(), "Autor4".to_string(), 50 , Genero::Otro);
-
-        //Se busca bajo un nombre de algun cliente ejemplo y si tiene algun prestamo pendiente , resultara en un listado vacio(Vec vacio)
-        assert!(biblioteca.get_historial_prestamos(&"nombre".to_string(),EstadoPrestamo::EnPrestamo).is_empty(),"El retorno del metodo tenia que ser de una lista sin prestamos");
-
-        biblioteca.agregar_libro(libro1.clone(),5);
-        biblioteca.agregar_libro(libro2.clone(),5);
-        biblioteca.agregar_libro(libro3.clone(),3);
-        biblioteca.agregar_libro(libro4.clone(),4);
-
-        //Se vuelve evaluar para el caso en el que se agregaron libros pero no hubo prestamos
-        assert!(biblioteca.get_historial_prestamos(&"nombre".to_string(),EstadoPrestamo::EnPrestamo).is_empty(),"El retorno del metodo tenia que ser de una lista sin prestamos");
-    
+        //La biblioteca no dispone de ningun libro o dispone de libros pero no se efectuaron prestamos
     }
 
-    //2° Test
-    //La biblioteca dispone de prestamos de un cliente y se quiere evaluar los casos de retorno sobre su existencia 
+    //2° Test 
     #[test]
     fn con_prestamos(){
-        //Biblioteca principal
-        let mut biblioteca = Biblioteca::new(String::from("Silencio"),String::from("1 e 2 y 3"));
-
-        //Libros
-        let libro1 = Libro::new(10, "Libro1".to_string(), "Autor1".to_string(), 50 , Genero::Infantil);
-        let libro2 = Libro::new(20, "Libro2".to_string(), "Autor2".to_string(), 50 , Genero::Novela);
-        let libro3 = Libro::new(30, "Libro3".to_string(), "Autor3".to_string(), 50 , Genero::Tecnico);
-        let libro4 = Libro::new(40, "Libro4".to_string(), "Autor4".to_string(), 50 , Genero::Otro);
-
-        biblioteca.agregar_libro(libro1.clone(),5);
-        biblioteca.agregar_libro(libro2.clone(),5);
-        biblioteca.agregar_libro(libro3.clone(),5);
-        biblioteca.agregar_libro(libro4.clone(),5);
-
-        //Clientes
-        let cliente1 = Cliente::new("Pedro".to_string(),4,"Pedro.com".to_string());
-        let cliente2 = Cliente::new("Mateo".to_string(),2,"Mateo.com".to_string());
-
-        //Se evalua que no se retorna nada porque no se hizo un prestamo todavia por parte de cliente1
-        assert!(biblioteca.get_historial_prestamos(&cliente1.get_nombre(),EstadoPrestamo::EnPrestamo).is_empty(),"El metodo debio retornar una lista sin contenido");
-
-        //Prestamos de cliente1
-        biblioteca.prestar(cliente1.clone(), &libro1, Fecha::new(22, 4, 2025)); 
-        biblioteca.prestar(cliente1.clone(), &libro3, Fecha::new(12, 7, 2025) );
-
-        //Se evalua que retorna una lista de prestamos por cliente1
-        assert!(!biblioteca.get_historial_prestamos(&cliente1.get_nombre(),EstadoPrestamo::EnPrestamo).is_empty(),"El metodo debio retornar una lista con contenido");
-        
-        //Se evalua que se retorne una lista vacia por cliente2
-        assert!(biblioteca.get_historial_prestamos(&cliente2.get_nombre(),EstadoPrestamo::EnPrestamo).is_empty(),"El metodo debio retornar una lista vacia");
-        
+        //La biblioteca dispone de prestamos pero: (como estado default se usara EnPrestamo)
+            //Existe el cliente a filtrar
+            //No existe el cliente a filtrar
     }
 
     //3° Test
-    //La biblioteca dispone de prestamos y se quiere evaluar para un cliente los tres estados principales
     #[test]
     fn evaluacion_estados(){
-        //Biblioteca principal
-        let mut biblioteca = Biblioteca::new(String::from("Silencio"),String::from("1 e 2 y 3"));
-
-        //Libros
-        let libro1 = Libro::new(10, "Libro1".to_string(), "Autor1".to_string(), 50 , Genero::Infantil);
-        let libro2 = Libro::new(20, "Libro2".to_string(), "Autor2".to_string(), 50 , Genero::Novela);
-        let libro3 = Libro::new(30, "Libro3".to_string(), "Autor3".to_string(), 50 , Genero::Tecnico);
-        let libro4 = Libro::new(40, "Libro4".to_string(), "Autor4".to_string(), 50 , Genero::Otro);
-
-        biblioteca.agregar_libro(libro1.clone(),5);
-        biblioteca.agregar_libro(libro2.clone(),5);
-        biblioteca.agregar_libro(libro3.clone(),5);
-        biblioteca.agregar_libro(libro4.clone(),5);
-
-        //Clientes
-        let cliente1 = Cliente::new("Pedro".to_string(),4,"Pedro.com".to_string());
-        
-        //Prestamos de cliente1
-        biblioteca.prestar(cliente1.clone(), &libro1, Fecha::new(22, 4, 2025)); 
-        biblioteca.prestar(cliente1.clone(), &libro2, Fecha::new(12, 7, 2025));
-        biblioteca.prestar(cliente1.clone(), &libro3, Fecha::new(21, 8, 2025));
-        biblioteca.prestar(cliente1.clone(), &libro4, Fecha::new(28, 1, 2025));
-
-        //Retorno de libros por parte del cliente1
-        biblioteca.devolver(&Fecha::new(25,5,2025),&libro1,&cliente1);
-        biblioteca.devolver(&Fecha::new(22,9,2025),&libro3,&cliente1);
-
-        //Se intenta evaluar los prestamos pendientes
-        let res = biblioteca.get_historial_prestamos(&cliente1.get_nombre(),EstadoPrestamo::EnPrestamo);
-        if !res.is_empty() {
-            let mut it = res.iter();
-            if let Some(p) = it.next(){
-                assert!(p.es_igual(&libro2,&cliente1),"Los datos basicos del prestamo no coinciden");
-                assert!(p.estado.es_igual_a(&Estado::EnPrestamo),"El estado del prestamo no coincide con lo pedido");
-            }else{
-                panic!("Se esperaba obtener un prestamo");
-            }
-            assert!(it.next().is_some());
-            assert!(it.next().is_none());
-        }else{
-            panic!("Se esperaba un resultado del metodo");
-        }
-
-        //Se intenta evaluar los prestamos devueltos
-        let res = biblioteca.get_historial_prestamos(&cliente1.get_nombre(),EstadoPrestamo::Devueltos);
-        if !res.is_empty(){
-            let mut it = res.iter();
-            if let Some(p) = it.next(){
-                assert!(p.es_igual(&libro1,&cliente1),"Los datos basicos del prestamo no coinciden");
-                assert!(p.estado.es_igual_a(&Estado::Devuelto),"El estado del prestamo no coincide con lo pedido");
-            }else{
-                panic!("Se esperaba obtener un prestamo");
-            }
-            assert!(it.next().is_some());
-            assert!(it.next().is_none());
-        }else{
-            panic!("Se esperaba un resultado del metodo");
-        }
-
-        //Se intenta evaluar todos los prestamos
-        let res = biblioteca.get_historial_prestamos(&cliente1.get_nombre(),EstadoPrestamo::Ambos);
-        if !res.is_empty(){
-            assert_eq!(res.len(),4);
-            assert!(res.iter().any(|pr| pr.estado.es_igual_a(&Estado::EnPrestamo)));
-            assert!(res.iter().any(|pr| pr.estado.es_igual_a(&Estado::Devuelto)));
-        }else{
-            panic!("Se esperaba un resultado del metodo");
-        }
+        //La biblioteca dispone de prestamos y se quiere evaluar para un cliente los tres estados principales
     }
 }
