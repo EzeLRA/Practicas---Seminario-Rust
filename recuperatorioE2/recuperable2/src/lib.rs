@@ -1176,7 +1176,7 @@ mod testing_implementacion_ejercicio4{
     IMPLEMENTACION RECUPERATORIO ENTREGABLE 2 15/07/25
 */
 
-//Incluye la opcion extra para ambos
+//Incluye la opcion extra para ambos , se lo considera este enum de manejo independiente a "Estado" 
 #[derive(Debug)]
 pub enum EstadoPrestamo{
     EnPrestamo,
@@ -1217,11 +1217,14 @@ mod testing_nueva_implementacion_rec_entregable2{
     //Se buscara evaluar la nueva funcion bajo las siguientes condiciones
 
     //1° Test
-    //La biblioteca no dispone de ningun libro o dispone de libros pero no se efectuaron prestamos 
+    //La biblioteca no dispone de ningun libro o dispone de libros pero no se efectuaron prestamos. Esto con el objetivo de que exista influencia entre el repositorio de los libros y los prestamos al momento de usar el metodo
     #[test]
     fn sin_ningun_prestamo(){
         //Biblioteca principal
         let mut biblioteca = Biblioteca::new(String::from("Silencio"),String::from("1 e 2 y 3"));
+
+        //Se intenta evaular el metodo con un nombre de ejemplo y la biblioteca sin ninguna operacion realizada de algun tipo
+        assert!(biblioteca.get_historial_prestamos(&"nombre".to_string(),EstadoPrestamo::EnPrestamo).is_empty(),"Se esperaba una lista sin prestamos");
 
         //Libros
         let libro1 = Libro::new(10, "Libro1".to_string(), "Autor1".to_string(), 50 , Genero::Infantil);
@@ -1230,15 +1233,15 @@ mod testing_nueva_implementacion_rec_entregable2{
         let libro4 = Libro::new(40, "Libro4".to_string(), "Autor4".to_string(), 50 , Genero::Otro);
 
         //Se busca bajo un nombre de algun cliente ejemplo y si tiene algun prestamo pendiente , resultara en un listado vacio(Vec vacio)
-        assert!(biblioteca.get_historial_prestamos(&"nombre".to_string(),EstadoPrestamo::EnPrestamo).is_empty(),"El retorno del metodo tenia que ser de una lista sin prestamos");
+        assert!(biblioteca.get_historial_prestamos(&"nombre".to_string(),EstadoPrestamo::EnPrestamo).is_empty(),"Se esperaba una lista sin prestamos");
 
         biblioteca.agregar_libro(libro1.clone(),5);
         biblioteca.agregar_libro(libro2.clone(),5);
         biblioteca.agregar_libro(libro3.clone(),3);
         biblioteca.agregar_libro(libro4.clone(),4);
 
-        //Se vuelve evaluar para el caso en el que se agregaron libros pero no hubo prestamos
-        assert!(biblioteca.get_historial_prestamos(&"nombre".to_string(),EstadoPrestamo::EnPrestamo).is_empty(),"El retorno del metodo tenia que ser de una lista sin prestamos");
+        //Se vuelve evaluar para el caso en el que se agregaron libros pero no hubo prestamos realizados
+        assert!(biblioteca.get_historial_prestamos(&"nombre".to_string(),EstadoPrestamo::EnPrestamo).is_empty(),"Se esperaba una lista sin prestamos");
     
     }
 
@@ -1273,10 +1276,11 @@ mod testing_nueva_implementacion_rec_entregable2{
 
         //Se evalua que retorna una lista de prestamos por cliente1
         assert!(!biblioteca.get_historial_prestamos(&cliente1.get_nombre(),EstadoPrestamo::EnPrestamo).is_empty(),"El metodo debio retornar una lista con contenido");
-        
-        //Se evalua que se retorne una lista vacia por cliente2
+        assert_eq!(biblioteca.get_historial_prestamos(&cliente1.get_nombre(),EstadoPrestamo::EnPrestamo).len(),2);
+
+        //Se evalua que se retorne una lista vacia por cliente2 que no hizo ningun prestamo
         assert!(biblioteca.get_historial_prestamos(&cliente2.get_nombre(),EstadoPrestamo::EnPrestamo).is_empty(),"El metodo debio retornar una lista vacia");
-        
+
     }
 
     //3° Test
@@ -1297,7 +1301,7 @@ mod testing_nueva_implementacion_rec_entregable2{
         biblioteca.agregar_libro(libro3.clone(),5);
         biblioteca.agregar_libro(libro4.clone(),5);
 
-        //Clientes
+        //Cliente
         let cliente1 = Cliente::new("Pedro".to_string(),4,"Pedro.com".to_string());
         
         //Prestamos de cliente1
@@ -1342,12 +1346,12 @@ mod testing_nueva_implementacion_rec_entregable2{
             panic!("Se esperaba un resultado del metodo");
         }
 
-        //Se intenta evaluar todos los prestamos
+        //Se intenta evaluar la existencia de todos los prestamos que dispone
         let res = biblioteca.get_historial_prestamos(&cliente1.get_nombre(),EstadoPrestamo::Ambos);
         if !res.is_empty(){
             assert_eq!(res.len(),4);
-            assert!(res.iter().any(|pr| pr.estado.es_igual_a(&Estado::EnPrestamo)));
-            assert!(res.iter().any(|pr| pr.estado.es_igual_a(&Estado::Devuelto)));
+            assert!(res.iter().any(|pr| pr.estado.es_igual_a(&Estado::EnPrestamo)),"Se esperaba que la lista incluya prestamos pendientes");
+            assert!(res.iter().any(|pr| pr.estado.es_igual_a(&Estado::Devuelto)),"Se esperaba que la lista incluya prestamos devueltos");
         }else{
             panic!("Se esperaba un resultado del metodo");
         }

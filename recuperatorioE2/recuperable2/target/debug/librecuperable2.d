@@ -1,0 +1,1 @@
+/home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/recuperatorioE2/recuperable2/target/debug/librecuperable2.rlib: /home/ezequiel/Desktop/Programas/Programas_Rust/Practicas---Seminario-Rust/recuperatorioE2/recuperable2/src/lib.rs
